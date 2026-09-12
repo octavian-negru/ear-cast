@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.openhearing.R
 import app.openhearing.assist.AssistService
 import app.openhearing.common.SafetyConstants
+import app.openhearing.core.audio.AudioSessionState
 import app.openhearing.core.audio.MicrophoneSource
 import app.openhearing.core.audio.dsp.AssistPreset
 import app.openhearing.data.HearingProfile
@@ -143,10 +144,10 @@ private fun AssistControls(
     onStop: () -> Unit,
 ) {
     Text(
-        if (state.running) {
-            stringResource(R.string.assist_on)
-        } else {
-            stringResource(R.string.assist_off)
+        when (state.sessionStatus.state) {
+            AudioSessionState.CONNECTING -> stringResource(R.string.assist_connecting)
+            AudioSessionState.RUNNING -> stringResource(R.string.assist_on)
+            else -> stringResource(R.string.assist_off)
         },
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.SemiBold,
@@ -157,20 +158,22 @@ private fun AssistControls(
 
     MicrophoneSelector(
         source = state.microphoneSource,
-        enabled = !state.running,
+        enabled = !state.active,
         onChange = viewModel::setMicrophoneSource,
     )
 
     PresetSelector(
         preset = state.preset,
-        running = state.running,
+        running = state.active,
         onChange = viewModel::setPreset,
     )
 
-    if (speakerWarning && !state.running) SpeakerWarning()
+    SessionAudioStatus(state.sessionStatus)
+
+    if (speakerWarning && !state.active) SpeakerWarning()
 
     Spacer(Modifier.padding(8.dp))
-    if (state.running) {
+    if (state.active) {
         Button(
             onClick = onStop,
             modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
@@ -193,11 +196,17 @@ private fun AssistControls(
 
     ExposureCard(exposure = state.exposure, running = state.running)
 
+    ListeningControls(
+        options = state.listeningOptions,
+        enabled = !state.active,
+        onChange = viewModel::setListeningOptions,
+    )
+
     if (state.profiles.size > 1) {
         ProfilesCard(
             profiles = state.profiles,
             activeProfileId = state.activeProfileId,
-            running = state.running,
+            running = state.active,
             onSelect = viewModel::selectProfile,
             onDelete = viewModel::deleteProfile,
         )

@@ -42,6 +42,7 @@ constructor(
         val ceiling = settingsRepository.observeComfortCeiling().first()
         val preset = AssistPreset.fromName(settingsRepository.observeAssistPreset().first())
         val microphoneSource = MicrophoneSource.fromName(settingsRepository.observeMicrophoneSource().first())
+        val listening = settingsRepository.observeListeningSettings().first().toOptions()
         controller.configure(
             AssistConfig(
                 leftGainCurve = left.withPreset(preset),
@@ -50,6 +51,7 @@ constructor(
                 ceilingLinear = ceiling,
                 highPassHz = preset.highPassHz,
                 microphoneSource = microphoneSource,
+                listeningOptions = listening,
             ),
         )
         return true

@@ -1,0 +1,12 @@
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m48[90m:26:[0m Newline expected after opening parenthesis [90m(standard:class-signature)[0m
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m48[90m:51:[0m Parameter should start on a newline [90m(standard:class-signature)[0m
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m48[90m:81:[0m Parameter should start on a newline [90m(standard:class-signature)[0m
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m48[90m:110:[0m Newline expected before closing parenthesis [90m(standard:class-signature)[0m
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m49[90m:9:[0m Expected single space before the super type [90m(standard:class-signature)[0m
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m54[90m:24:[0m Newline expected after opening parenthesis [90m(standard:class-signature)[0m
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m54[90m:47:[0m Newline expected before closing parenthesis [90m(standard:class-signature)[0m
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m59[90m:36:[0m Newline expected after opening parenthesis [90m(standard:class-signature)[0m
+[90mF:\Oct\temp\airpods-protocol\src\main\kotlin\app\openhearing\airpods\[0mAirPodsController.kt[90m:[0m59[90m:54:[0m Newline expected before closing parenthesis [90m(standard:class-signature)[0m
+
+Summary error count (descending) by rule:
+  standard:class-signature: 9

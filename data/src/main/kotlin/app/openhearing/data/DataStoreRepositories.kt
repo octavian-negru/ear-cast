@@ -26,6 +26,10 @@ private object Keys {
     val COMFORT_CEILING = floatPreferencesKey("comfort_ceiling")
     val ASSIST_PRESET = stringPreferencesKey("assist_preset")
     val MICROPHONE_SOURCE = stringPreferencesKey("microphone_source")
+    val NOISE_REDUCTION = stringPreferencesKey("noise_reduction")
+    val VOICE_COMFORT = stringPreferencesKey("voice_comfort")
+    val CAPTURE_MODE = stringPreferencesKey("capture_mode")
+    val SPEECH_CLARITY = stringPreferencesKey("speech_clarity")
     val MEDIA_EQ_ENABLED = booleanPreferencesKey("media_eq_enabled")
     val PROFILES = stringPreferencesKey("profiles")
     val ACTIVE_PROFILE_ID = stringPreferencesKey("active_profile_id")
@@ -71,6 +75,25 @@ class DataStoreSettingsRepository(private val dataStore: DataStore<Preferences>)
 
     override suspend fun setMicrophoneSource(name: String) {
         dataStore.edit { it[Keys.MICROPHONE_SOURCE] = name }
+    }
+
+    override fun observeListeningSettings(): Flow<ListeningSettings> = dataStore.data.map {
+        val defaults = ListeningSettings()
+        ListeningSettings(
+            noiseReduction = it[Keys.NOISE_REDUCTION] ?: defaults.noiseReduction,
+            voiceComfort = it[Keys.VOICE_COMFORT] ?: defaults.voiceComfort,
+            captureMode = it[Keys.CAPTURE_MODE] ?: defaults.captureMode,
+            speechClarity = it[Keys.SPEECH_CLARITY] ?: defaults.speechClarity,
+        )
+    }
+
+    override suspend fun setListeningSettings(settings: ListeningSettings) {
+        dataStore.edit {
+            it[Keys.NOISE_REDUCTION] = settings.noiseReduction
+            it[Keys.VOICE_COMFORT] = settings.voiceComfort
+            it[Keys.CAPTURE_MODE] = settings.captureMode
+            it[Keys.SPEECH_CLARITY] = settings.speechClarity
+        }
     }
 
     override fun observeMediaEqEnabled(): Flow<Boolean> = dataStore.data.map { it[Keys.MEDIA_EQ_ENABLED] ?: false }

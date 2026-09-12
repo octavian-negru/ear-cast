@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="app.openhearing.audiogram.PureToneScreeningTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:21:54" hostname="RECENT-AIR-RA-0" time="0.023">
-  <properties/>
-  <testcase name="recovers a sloping high-frequency loss()" classname="app.openhearing.audiogram.PureToneScreeningTest" time="0.013"/>
-  <testcase name="measures both ears across all frequencies()" classname="app.openhearing.audiogram.PureToneScreeningTest" time="0.006"/>
-  <testcase name="progress advances and completes()" classname="app.openhearing.audiogram.PureToneScreeningTest" time="0.002"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

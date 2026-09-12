@@ -8,7 +8,8 @@ the phone near the sound source; there is no separate remote-microphone mode.
 With headset input, the signal path is:
 
 ```
-Headset microphone -> Android phone -> fitted gain + compression + feedback guard
+Headset microphone -> optional denoise + bass/presence shaping
+                  -> per-ear fitted gain + three-band compression + feedback guard
                   -> output limiter -> same headset speakers
 ```
 
@@ -24,8 +25,8 @@ microphone feeds cannot be selected through these APIs.
 2. Open Hearing assist with a saved hearing profile.
 3. Select **Headset microphone** or **Phone microphone**, then tap **Start assist**.
 4. Allow microphone access. Wait for **Connecting audio…** to finish.
-5. The screen shows the actual microphone name and processing sample rate once
-   both the input and output routes are verified. Adjust amplification as usual.
+5. The screen shows the routed microphone name once both input and output are
+   verified, and identifies classic Bluetooth mono call audio. Adjust amplification as usual.
 6. Stop assist before changing microphones. Use **Phone microphone** if the
    headset does not provide a compatible two-way connection, or when using the
    phone as a remote microphone.
@@ -34,6 +35,65 @@ The service continues with the screen off. Stop is available during connection,
 on the assist screen, in the notification, and through the tile. Losing the
 selected route or audio focus ends the session; reconnect and explicitly restart.
 Connection failure is shown on the screen rather than silently using the phone mic.
+
+## Sound clarity (CMF Buds 2 / OnePlus Nord 3 starting point)
+
+Start with **Natural** capture, **Gentle** speech clarity, **Gentle** bass reduction,
+and noise reduction **Off**. These are the defaults; settings are saved and used
+by both the assist screen and quick-settings tile. Stop assist to change them.
+Try Strong speech clarity only if Gentle still sounds dull, and Off bass reduction
+if voices sound thin. Use Call mode if the phone cannot route Natural capture.
+
+Natural requests Android's `UNPROCESSED` source when the platform advertises it,
+otherwise `VOICE_RECOGNITION`. Call mode requests `VOICE_COMMUNICATION`.
+Android's raw-source capability flag is not proof that a Bluetooth microphone is
+unprocessed: headset firmware can still alter it before Android receives it.
+
+The CMF Buds 2 microphone is designed for calls. Nothing describes its Clear Voice
+Technology as reducing ambient noise while recording voice. **Inference:** this can
+work against listening to other people around the wearer; those sounds may already
+be suppressed before OpenHearing receives them. Neither EQ, denoising nor changing
+the phone's audio library can recover information removed at capture.
+The app cannot access the buds' private transparency/ANC microphone feeds.
+For surrounding speech, compare the phone microphone placed near the talker, which
+also avoids the classic Bluetooth two-way call playback path.
+
+- [Nothing's CMF Buds 2 microphone description](https://iq.nothing.tech/en/products/cmf-buds-2)
+- [Android raw-capture guidance](https://developer.android.com/media/platform/mediarecorder)
+
+## Processing and verification
+
+Speech clarity is a broad +3 or +6 dB presence filter near 2.4–2.5 kHz. Bass
+reduction is a -6 or -12 dB low shelf at 450 Hz, applied to all sound; it does not
+identify or cancel the wearer's voice. Neither control creates missing bandwidth.
+
+Each ear now uses independent three-band WDRC envelopes, split at 700 and 2400 Hz
+with phase-aligned fourth-order Linkwitz-Riley crossovers. Loud bass compresses
+the bass band without applying the same attenuation to higher speech detail.
+The existing -35 dBFS threshold, 3:1 ratio and soft knee remain digital level
+settings, not a calibrated hearing-aid prescription. The low-band release is
+120 ms; the speech bands retain 80 ms release and 5 ms attack. The fitted EQ is
+upstream; the feedback guard, master cap and final lookahead limiter remain downstream.
+
+Optional SpeexDSP suppression runs once on the mono microphone signal, before
+per-ear fitting: Gentle allows up to 6 dB attenuation, Strong up to 12 dB. AGC,
+dereverberation and echo cancellation in Speex stay disabled. The adapter buffers
+10 ms frames across capture block boundaries; Off bypasses it with no added frame
+delay. Do not stack Strong suppression onto an already muffled earbud microphone.
+The worker releases native state on stop, connection failure and capture failure.
+
+JVM signal tests check flat crossover reconstruction, preservation of a quiet
+high-frequency tone alongside loud bass, block continuity/reset, filter response,
+denoiser frame ordering and final output ceilings at 8, 16 and 48 kHz. Synthetic
+tests establish DSP behavior, not subjective intelligibility or device compatibility.
+CMF Buds 2 / Nord 3 listening validation is still required.
+
+Oboe remains a possible future I/O improvement. Its purpose is high-performance,
+low-latency Android streams; it does not replace speech processing or change the
+Bluetooth headset's microphone bandwidth or firmware suppression.
+See [Google Oboe](https://github.com/google/oboe),
+[Linkwitz crossover design](https://www.linkwitzlab.com/crossovers.htm), and the
+[RBJ biquad reference](https://www.w3.org/TR/audio-eq-cookbook/).
 
 ## Compatibility and latency
 
@@ -44,6 +104,10 @@ Connection failure is shown on the screen rather than silently using the phone m
 | Classic Bluetooth HFP/SCO, Android 8–11 | Wait for SCO connection; conservative 8 kHz mono I/O | Narrowband; call audio must be available outside phone calls |
 | Bluetooth LE Audio headset, Android 12+ | Communication device selection when exposed by Android | Requires compatible phone, headset and OS; stereo is not guaranteed |
 | A2DP-only headphones / output-only hearing aids | Phone microphone mode | No microphone uplink to process |
+
+The listed PCM rates are app I/O configurations, not measurements of the negotiated
+Bluetooth codec or acoustic bandwidth. A 16 kHz stream can carry audio that the
+headset/phone negotiated at a narrower bandwidth.
 
 Classic Bluetooth processes both ear profiles and averages their limited outputs
 for mono playback. It cannot deliver independent left/right gain to the ears on

@@ -1,1 +1,0 @@
--keep,allowobfuscation,allowshrinking class app.openhearing.ui.dintest.DinTestViewModel

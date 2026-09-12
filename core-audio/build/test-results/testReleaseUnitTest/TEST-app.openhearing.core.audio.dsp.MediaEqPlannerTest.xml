@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="app.openhearing.core.audio.dsp.MediaEqPlannerTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:47:59" hostname="RECENT-AIR-RA-0" time="0.017">
-  <properties/>
-  <testcase name="bands cover the standard centers with ascending cutoffs()" classname="app.openhearing.core.audio.dsp.MediaEqPlannerTest" time="0.013"/>
-  <testcase name="gains follow each ear's curve independently()" classname="app.openhearing.core.audio.dsp.MediaEqPlannerTest" time="0.001"/>
-  <testcase name="boosts are capped and cuts are floored at zero()" classname="app.openhearing.core.audio.dsp.MediaEqPlannerTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

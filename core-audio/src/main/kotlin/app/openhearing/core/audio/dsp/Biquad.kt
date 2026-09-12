@@ -4,6 +4,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * A second-order IIR (biquad) filter, processed sample-by-sample in Direct Form I.
@@ -50,6 +51,46 @@ class Biquad(
     }
 
     companion object {
+        /** RBJ Butterworth low-pass; cascading two sections makes an LR4 crossover. */
+        fun lowPass(cutoffHz: Double, q: Double, sampleRateHz: Int): Biquad {
+            require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0)
+            require(q > 0)
+            val w0 = 2.0 * PI * cutoffHz / sampleRateHz
+            val c = cos(w0)
+            val alpha = sin(w0) / (2.0 * q)
+            val a0 = 1 + alpha
+            return Biquad((1 - c) / (2 * a0), (1 - c) / a0, (1 - c) / (2 * a0), -2 * c / a0, (1 - alpha) / a0)
+        }
+
+        /** Unity magnitude phase compensation, matching the sum of an LR4 low/high split. */
+        fun allPass(cutoffHz: Double, q: Double, sampleRateHz: Int): Biquad {
+            require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0)
+            require(q > 0)
+            val w0 = 2.0 * PI * cutoffHz / sampleRateHz
+            val c = cos(w0)
+            val alpha = sin(w0) / (2.0 * q)
+            val a0 = 1 + alpha
+            return Biquad((1 - alpha) / a0, -2 * c / a0, 1.0, -2 * c / a0, (1 - alpha) / a0)
+        }
+
+        /** RBJ low shelf with slope S=1, used to reduce bass without removing speech fundamentals. */
+        fun lowShelf(cutoffHz: Double, gainDb: Double, sampleRateHz: Int): Biquad {
+            require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0)
+            require(gainDb.isFinite())
+            val a = 10.0.pow(gainDb / 40.0)
+            val w0 = 2.0 * PI * cutoffHz / sampleRateHz
+            val c = cos(w0)
+            val beta = sqrt(2.0 * a) * sin(w0)
+            val a0 = (a + 1) + (a - 1) * c + beta
+            return Biquad(
+                a * ((a + 1) - (a - 1) * c + beta) / a0,
+                2 * a * ((a - 1) - (a + 1) * c) / a0,
+                a * ((a + 1) - (a - 1) * c - beta) / a0,
+                -2 * ((a - 1) + (a + 1) * c) / a0,
+                ((a + 1) + (a - 1) * c - beta) / a0,
+            )
+        }
+
         /**
          * Peaking-EQ biquad: boosts/cuts [gainDb] around [centerHz] with bandwidth
          * controlled by [q]. This is how the audiogram's per-frequency insertion

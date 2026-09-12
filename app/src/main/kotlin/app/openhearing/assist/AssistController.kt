@@ -1,16 +1,22 @@
 package app.openhearing.assist
 
 import android.content.Context
+import android.media.AudioManager
 import app.openhearing.audiogram.GainCurve
 import app.openhearing.core.audio.AndroidAudioEngine
 import app.openhearing.core.audio.AudioFormat
-import app.openhearing.core.audio.InputTuning
+import app.openhearing.core.audio.AudioSessionState
+import app.openhearing.core.audio.AudioSessionStatus
 import app.openhearing.core.audio.MicrophoneSource
 import app.openhearing.core.audio.dsp.HearingAssistChain
 import app.openhearing.core.audio.dsp.LevelWindow
 import app.openhearing.core.audio.dsp.MeteredAudioProcessor
 import app.openhearing.core.audio.dsp.OutputLevelMeter
 import app.openhearing.core.audio.dsp.StereoAssistChain
+import app.openhearing.core.audio.speech.ListeningOptions
+import app.openhearing.core.audio.speech.NativeSpeexDenoiser
+import app.openhearing.core.audio.speech.NoiseReduction
+import app.openhearing.core.audio.speech.SpeechFrontEnd
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +48,7 @@ data class AssistConfig(
     val highPassHz: Double? = null,
     val sampleRateHz: Int = DEFAULT_SAMPLE_RATE_HZ,
     val framesPerBlock: Int = DEFAULT_FRAMES_PER_BLOCK,
-    val inputTuning: InputTuning = InputTuning.COMMUNICATION,
+    val listeningOptions: ListeningOptions = ListeningOptions(),
     val microphoneSource: MicrophoneSource = MicrophoneSource.PHONE,
     val requireHeadphones: Boolean = false,
 ) {
@@ -66,12 +72,17 @@ class AssistController
 constructor(
     @ApplicationContext context: Context,
 ) {
+    private val manager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val _sessionStatus = MutableStateFlow(AudioSessionStatus())
+    val sessionStatus: StateFlow<AudioSessionStatus> = _sessionStatus.asStateFlow()
+
     private val engine = AndroidAudioEngine(context) { status ->
+        _sessionStatus.value = status
         when (status.state) {
-            app.openhearing.core.audio.AudioSessionState.RUNNING -> _running.value = true
-            app.openhearing.core.audio.AudioSessionState.CONNECTING -> Unit
-            app.openhearing.core.audio.AudioSessionState.STOPPED,
-            app.openhearing.core.audio.AudioSessionState.FAILED,
+            AudioSessionState.RUNNING -> _running.value = true
+            AudioSessionState.CONNECTING -> Unit
+            AudioSessionState.STOPPED,
+            AudioSessionState.FAILED,
             -> {
                 _running.value = false
             }
@@ -125,7 +136,9 @@ constructor(
                 c.sampleRateHz,
                 channelCount = 2,
                 framesPerBlock = c.framesPerBlock,
-                inputTuning = c.inputTuning,
+                inputTuning = c.listeningOptions.captureMode.inputTuning(
+                    manager.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED) == "true",
+                ),
                 microphoneSource = c.microphoneSource,
                 requireHeadphones = c.requireHeadphones,
             ),
@@ -151,7 +164,16 @@ constructor(
             chain = newChain
             // The meter taps the buffer AFTER the chain (post-limiter), so it
             // sees exactly what reaches the device; the chain stays untouched.
-            MeteredAudioProcessor(newChain, outputMeter)
+            SpeechFrontEnd(
+                actual.sampleRateHz,
+                c.listeningOptions,
+                MeteredAudioProcessor(newChain, outputMeter),
+                if (c.listeningOptions.noiseReduction == NoiseReduction.OFF) {
+                    null
+                } else {
+                    NativeSpeexDenoiser(actual.sampleRateHz, c.listeningOptions.noiseReduction.suppressionDb)
+                },
+            )
         }
     }
 

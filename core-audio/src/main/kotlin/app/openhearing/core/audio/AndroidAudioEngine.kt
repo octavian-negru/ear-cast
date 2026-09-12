@@ -130,6 +130,20 @@ class AndroidAudioEngine(private val context: Context, private val onStatus: (Au
     ) {
         val format = AudioRoutePolicy.processingFormat(requestedFormat, route.sco, route.legacy)
         val processor = processorFactory(format)
+        try {
+            runStreams(format, route, processor, onLost)
+        } finally {
+            // Runs on the worker even if stream creation, routing or capture fails.
+            (processor as? AutoCloseable)?.close()
+        }
+    }
+
+    private fun runStreams(
+        format: AudioFormat,
+        route: AssistAudioRoute,
+        processor: AudioProcessor,
+        onLost: () -> Unit,
+    ) {
         val outputChannels = if (route.sco) 1 else format.channelCount
         val streams = AssistAudioStreams(format, outputChannels, route.attributes)
         record = streams.createRecord(context)

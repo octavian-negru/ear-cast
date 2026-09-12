@@ -73,6 +73,22 @@
     <string name="assist_headset_microphone">Headset microphone</string>
     <string name="assist_headset_microphone_desc">Use the microphone on your connected headset while Hearing Assist processes and plays the sound back.</string>
     <string name="assist_microphone_while_running">Stop assist before changing the microphone.</string>
+    <string name="assist_connecting">Connecting audio…</string>
+    <string name="assist_connection_failed">Audio could not connect. Reconnect the headset and try again.</string>
+    <string name="assist_bluetooth_call_quality">Bluetooth microphone active: mono call audio. Detail may be limited and nearby voices may be suppressed by the earbuds. For clearer surrounding sound, try the phone microphone.</string>
+    <string name="assist_sound_quality">Sound clarity</string>
+    <string name="assist_quality_description">Natural capture avoids extra call processing where supported. Use Call mode if Natural cannot connect. Speech clarity brings out consonants; bass reduction softens boomy sound.</string>
+    <string name="assist_capture_mode">Microphone processing</string>
+    <string name="assist_capture_natural">Natural</string>
+    <string name="assist_capture_call">Call mode</string>
+    <string name="assist_speech_clarity">Speech clarity</string>
+    <string name="assist_voice_comfort">Bass reduction</string>
+    <string name="assist_noise_reduction">Noise reduction</string>
+    <string name="assist_quality_off">Off</string>
+    <string name="assist_quality_gentle">Gentle</string>
+    <string name="assist_quality_strong">Strong</string>
+    <string name="assist_noise_description">Start with noise reduction Off for Bluetooth earbuds. Try Gentle for steady hiss or fan noise. Strong may soften speech.</string>
+    <string name="assist_quality_restart">Stop assist to change sound clarity settings.</string>
 
     <!-- Presets -->
     <string name="preset_title">Environment</string>

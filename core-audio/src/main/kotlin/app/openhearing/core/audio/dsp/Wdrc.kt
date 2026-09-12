@@ -11,9 +11,7 @@ import kotlin.math.pow
  * keeping loud sounds from being over-amplified (downward compression above the
  * threshold). A soft knee avoids audible pumping.
  *
- * v1 is single-band and pure (sample-by-sample with an explicit envelope), so its
- * static curve and time behaviour are unit-testable. Multi-band WDRC can replace
- * it behind the same call shape later.
+ * Also serves as the independent envelope/gain cell in [MultibandWdrc].
  */
 class Wdrc(
     private val sampleRateHz: Int,
@@ -38,17 +36,20 @@ class Wdrc(
     /** Compress [buffer] in place. */
     fun process(buffer: FloatArray) {
         for (i in buffer.indices) {
-            val x = buffer[i].toDouble()
-            val rectified = abs(x)
-            envelope =
-                if (rectified > envelope) {
-                    attackCoef * envelope + (1 - attackCoef) * rectified
-                } else {
-                    releaseCoef * envelope + (1 - releaseCoef) * rectified
-                }
-            val gainDb = makeupGainDb + computeGainReductionDb(levelDb(envelope))
-            buffer[i] = (x * 10.0.pow(gainDb / 20.0)).toFloat()
+            buffer[i] = processSample(buffer[i].toDouble()).toFloat()
         }
+    }
+
+    /** Stateful sample API keeps multiband processing free of temporary buffers. */
+    fun processSample(x: Double): Double {
+        val rectified = abs(x)
+        envelope = if (rectified > envelope) {
+            attackCoef * envelope + (1 - attackCoef) * rectified
+        } else {
+            releaseCoef * envelope + (1 - releaseCoef) * rectified
+        }
+        val gainDb = makeupGainDb + computeGainReductionDb(levelDb(envelope))
+        return x * 10.0.pow(gainDb / 20.0)
     }
 
     fun reset() {

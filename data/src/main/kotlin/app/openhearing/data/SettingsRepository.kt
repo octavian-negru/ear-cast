@@ -37,6 +37,10 @@ interface SettingsRepository {
 
     suspend fun setMicrophoneSource(name: String)
 
+    fun observeListeningSettings(): Flow<ListeningSettings>
+
+    suspend fun setListeningSettings(settings: ListeningSettings)
+
     /** Experimental media EQ (profile applied to other apps' audio) on/off. */
     fun observeMediaEqEnabled(): Flow<Boolean>
 
@@ -55,3 +59,11 @@ interface SettingsRepository {
 
 /** Exposure units accumulated on [epochDay] (may be a past day until next write). */
 data class DailyExposure(val epochDay: Long, val units: Double)
+
+/** Names are mapped to DSP enums by the app, keeping persistence independent of audio. */
+data class ListeningSettings(
+    val noiseReduction: String = "OFF",
+    val voiceComfort: String = "GENTLE",
+    val captureMode: String = "NATURAL",
+    val speechClarity: String = "GENTLE",
+)

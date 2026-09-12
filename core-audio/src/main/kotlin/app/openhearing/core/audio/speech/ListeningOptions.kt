@@ -1,5 +1,16 @@
 package app.openhearing.core.audio.speech
 
+import app.openhearing.core.audio.InputTuning
+
+/** Broad presence lift within the captured speech band; cannot restore missing Bluetooth bandwidth. */
+enum class SpeechClarity(val gainDb: Double) {
+    OFF(0.0), GENTLE(3.0), STRONG(6.0);
+
+    companion object {
+        fun fromName(name: String): SpeechClarity = entries.firstOrNull { it.name == name } ?: GENTLE
+    }
+}
+
 /** Noise suppression is optional: headset firmware may already suppress background sound. */
 enum class NoiseReduction(val suppressionDb: Int) {
     OFF(0), GENTLE(6), STRONG(12);
@@ -22,6 +33,12 @@ enum class VoiceComfort(val reductionDb: Double) {
 enum class CaptureMode {
     NATURAL, CALL_COMPATIBLE;
 
+    fun inputTuning(supportsUnprocessed: Boolean): InputTuning = when {
+        this == CALL_COMPATIBLE -> InputTuning.COMMUNICATION
+        supportsUnprocessed -> InputTuning.RAW_UNPROCESSED
+        else -> InputTuning.RAW_VOICE_RECOGNITION
+    }
+
     companion object {
         fun fromName(name: String): CaptureMode = entries.firstOrNull { it.name == name } ?: NATURAL
     }
@@ -31,4 +48,5 @@ data class ListeningOptions(
     val noiseReduction: NoiseReduction = NoiseReduction.OFF,
     val voiceComfort: VoiceComfort = VoiceComfort.GENTLE,
     val captureMode: CaptureMode = CaptureMode.NATURAL,
+    val speechClarity: SpeechClarity = SpeechClarity.GENTLE,
 )

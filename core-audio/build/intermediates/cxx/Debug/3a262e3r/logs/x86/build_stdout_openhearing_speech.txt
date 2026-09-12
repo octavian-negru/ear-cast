@@ -1,9 +1,0 @@
-ninja: Entering directory `F:\Oct\temp\core-audio\.cxx\Debug\3a262e3r\x86'
-[1/8] Building C object CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/fftwrap.c.o
-[2/8] Building C object CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/preprocess.c.o
-[3/8] Building C object CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/mdf.c.o
-[4/8] Building C object CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/filterbank.c.o
-[5/8] Building C object CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/smallft.c.o
-[6/8] Linking C static library libspeex_preprocess.a
-[7/8] Building CXX object CMakeFiles/openhearing_speech.dir/speech_jni.cpp.o
-[8/8] Linking CXX shared library F:\Oct\temp\core-audio\build\intermediates\cxx\Debug\3a262e3r\obj\x86\libopenhearing_speech.so

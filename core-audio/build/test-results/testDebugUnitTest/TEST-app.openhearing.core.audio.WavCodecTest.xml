@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="app.openhearing.core.audio.WavCodecTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:47:58" hostname="RECENT-AIR-RA-0" time="0.009">
-  <properties/>
-  <testcase name="round-trips PCM16 samples to normalized floats()" classname="app.openhearing.core.audio.WavCodecTest" time="0.005"/>
-  <testcase name="rejects stereo and non-PCM files()" classname="app.openhearing.core.audio.WavCodecTest" time="0.001"/>
-  <testcase name="rejects garbage input()" classname="app.openhearing.core.audio.WavCodecTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

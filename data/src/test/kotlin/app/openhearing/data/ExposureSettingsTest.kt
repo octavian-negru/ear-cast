@@ -22,6 +22,16 @@ private class FakePreferencesStore : DataStore<Preferences> {
 
 class ExposureSettingsTest {
     @Test
+    fun `clarity settings default conservatively and survive repository recreation together`() = runTest {
+        val store = FakePreferencesStore()
+        val repo = DataStoreSettingsRepository(store)
+        assertEquals(ListeningSettings(), repo.observeListeningSettings().first())
+        val settings = ListeningSettings("GENTLE", "OFF", "CALL_COMPATIBLE", "STRONG")
+        repo.setListeningSettings(settings)
+        assertEquals(settings, DataStoreSettingsRepository(store).observeListeningSettings().first())
+    }
+
+    @Test
     fun `microphone choice defaults to phone and survives repository recreation`() = runTest {
         val store = FakePreferencesStore()
         val repo = DataStoreSettingsRepository(store)

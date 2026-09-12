@@ -6,10 +6,10 @@ import app.openhearing.core.audio.AudioProcessor
 import kotlin.math.pow
 
 /**
- * The full real-time hearing-assist signal chain (mono, v1):
+ * The full real-time hearing-assist signal chain (one ear):
  *
  * ```
- * input ─► EQ (audiogram gain) ─► WDRC ─► feedback guard ─► master gain ─► LIMITER ─► output
+ * input -> EQ (audiogram gain) -> three-band WDRC -> feedback guard -> master gain -> LIMITER -> output
  * ```
  *
  * The [LookaheadLimiter] is always the final stage, so nothing leaves above the
@@ -34,7 +34,7 @@ class HearingAssistChain(
     private val highPass: Biquad? =
         highPassHz?.let { Biquad.highPass(it, HIGH_PASS_Q, sampleRateHz) }
     private val eq = GainEqualizer(gainCurve, sampleRateHz)
-    private val wdrc = Wdrc(sampleRateHz)
+    private val wdrc = MultibandWdrc(sampleRateHz)
     private val guard: FeedbackGuard? =
         if (feedbackGuardEnabled) {
             FeedbackGuard(sampleRateHz, activationRms = CHAIN_GUARD_ACTIVATION_RMS)
@@ -91,12 +91,9 @@ class HearingAssistChain(
         private const val HIGH_PASS_Q = 0.707
 
         /**
-         * The guard sits AFTER the WDRC, whose ratio-3 compression above a
-         * −35 dBFS threshold squashes even full-scale input to ≈0.05 RMS — so the
-         * guard's standalone default (0.1) could never activate here. This value
-         * is calibrated to post-WDRC levels: a sustained full-scale howl lands
-         * ≈0.04–0.05 RMS, ordinary content well below. Tonality ≥ 0.9 remains
-         * the primary gate against ducking speech/music.
+         * Ratio-3 compression above -35 dBFS leaves strong tones around 0.05 RMS
+         * within a band (somewhat higher at crossovers). The standalone guard's
+         * 0.1 threshold would miss them. Tonality remains the other activation gate.
          */
         private const val CHAIN_GUARD_ACTIVATION_RMS = 0.03
 

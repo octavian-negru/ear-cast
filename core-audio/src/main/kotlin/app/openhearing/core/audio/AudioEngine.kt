@@ -20,17 +20,17 @@ interface AudioEngine {
 
 /**
  * How the platform should pre-process the microphone signal before it reaches
- * the chain. Hearing Assist uses [COMMUNICATION] so the platform's available
- * AEC/NS can provide additional feedback protection for either input source.
+ * the chain. Natural capture avoids platform call processing where supported;
+ * communication tuning is an explicit compatibility option.
  */
 enum class InputTuning {
     /** VOICE_COMMUNICATION: platform AEC/NS enabled where available. */
     COMMUNICATION,
 
-    /** UNPROCESSED: no platform effects (only where the device reports support). */
+    /** UNPROCESSED: request raw capture where reported; headset firmware may still process audio. */
     RAW_UNPROCESSED,
 
-    /** VOICE_RECOGNITION: AGC/AEC/NS disabled — the universal raw fallback. */
+    /** VOICE_RECOGNITION: Android's recommended fallback without AGC or noise suppression. */
     RAW_VOICE_RECOGNITION,
 }
 

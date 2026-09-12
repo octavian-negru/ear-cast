@@ -4,9 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.openhearing.assist.AssistController
 import app.openhearing.assist.AssistSessionFactory
+import app.openhearing.assist.toOptions
+import app.openhearing.assist.toSettings
+import app.openhearing.core.audio.AudioSessionState
+import app.openhearing.core.audio.AudioSessionStatus
 import app.openhearing.core.audio.MicrophoneSource
 import app.openhearing.core.audio.dsp.AssistPreset
 import app.openhearing.core.audio.dsp.ExposureTracker
+import app.openhearing.core.audio.speech.ListeningOptions
 import app.openhearing.data.HearingProfile
 import app.openhearing.data.ProfileRepository
 import app.openhearing.data.SettingsRepository
@@ -39,7 +44,11 @@ data class AssistUiState(
     val preset: AssistPreset = AssistPreset.STANDARD,
     val microphoneSource: MicrophoneSource = MicrophoneSource.PHONE,
     val exposure: ExposureUi = ExposureUi(),
+    val sessionStatus: AudioSessionStatus = AudioSessionStatus(),
+    val listeningOptions: ListeningOptions = ListeningOptions(),
 ) {
+    val active: Boolean get() = sessionStatus.state == AudioSessionState.CONNECTING || running
+
     companion object {
         const val DEFAULT_MASTER_GAIN_DB = 12.0
     }
@@ -106,6 +115,10 @@ constructor(
             .combine(settingsRepository.observeMicrophoneSource()) { state, microphoneName ->
                 state.copy(microphoneSource = MicrophoneSource.fromName(microphoneName))
             }
+            .combine(settingsRepository.observeListeningSettings()) { state, settings ->
+                state.copy(listeningOptions = settings.toOptions())
+            }
+            .combine(controller.sessionStatus) { state, status -> state.copy(sessionStatus = status) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), AssistUiState())
 
     /** Applies immediately (also to a running session) and persists on the active profile. */
@@ -148,6 +161,10 @@ constructor(
             settingsRepository.setMicrophoneSource(source.name)
             if (!controller.running.value) sessionFactory.prepare()
         }
+    }
+
+    fun setListeningOptions(options: ListeningOptions) {
+        viewModelScope.launch { settingsRepository.setListeningSettings(options.toSettings()) }
     }
 
     /** Prepare the controller config from the active profile. Returns true if ready. */

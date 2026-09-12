@@ -18,6 +18,7 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import app.openhearing.MainActivity
 import app.openhearing.R
+import app.openhearing.core.audio.AudioSessionState
 import app.openhearing.core.audio.dsp.ExposureTracker
 import app.openhearing.data.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,6 +55,7 @@ class AssistService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var samplingJob: Job? = null
+    private var statusJob: Job? = null
 
     // Headphones unplugged / Bluetooth disconnected: stop immediately rather than
     // fall back to the phone speaker, where mic->speaker feedback (howl) is likely.
@@ -86,6 +88,15 @@ class AssistService : Service() {
         // microphone is being used as a remote listening microphone.
         acquireWakeLock()
         controller.startEngine()
+        if (statusJob?.isActive != true) {
+            statusJob = serviceScope.launch {
+                controller.sessionStatus.collect { status ->
+                    if (status.state == AudioSessionState.FAILED || status.state == AudioSessionState.STOPPED) {
+                        stopSelf()
+                    }
+                }
+            }
+        }
         startExposureSampling()
         return START_STICKY
     }
