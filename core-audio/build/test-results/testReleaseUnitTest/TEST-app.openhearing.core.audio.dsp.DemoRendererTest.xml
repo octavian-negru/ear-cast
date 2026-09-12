@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.openhearing.core.audio.dsp.DemoRendererTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:47:58" hostname="RECENT-AIR-RA-0" time="0.228">
+  <properties/>
+  <testcase name="pathological gain never exceeds the ceiling()" classname="app.openhearing.core.audio.dsp.DemoRendererTest" time="0.047"/>
+  <testcase name="raw expansion duplicates mono into both channels()" classname="app.openhearing.core.audio.dsp.DemoRendererTest" time="0.005"/>
+  <testcase name="boosted profile is audibly louder than flat()" classname="app.openhearing.core.audio.dsp.DemoRendererTest" time="0.094"/>
+  <testcase name="raw and processed are the same length()" classname="app.openhearing.core.audio.dsp.DemoRendererTest" time="0.032"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.openhearing.core.audio.AudioRoutePolicyTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:47:58" hostname="RECENT-AIR-RA-0" time="0.047">
+  <properties/>
+  <testcase name="mono fold averages both ears without doubling the limited peak()" classname="app.openhearing.core.audio.AudioRoutePolicyTest" time="0.001"/>
+  <testcase name="unknown saved microphone values retain the phone default()" classname="app.openhearing.core.audio.AudioRoutePolicyTest" time="0.002"/>
+  <testcase name="full assist chain remains finite and limited at both SCO rates()" classname="app.openhearing.core.audio.AudioRoutePolicyTest" time="0.036"/>
+  <testcase name="SCO rates preserve four millisecond blocks and two ear processing()" classname="app.openhearing.core.audio.AudioRoutePolicyTest" time="0.002"/>
+  <testcase name="wired and LE routes retain stereo processing and requested rate()" classname="app.openhearing.core.audio.AudioRoutePolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

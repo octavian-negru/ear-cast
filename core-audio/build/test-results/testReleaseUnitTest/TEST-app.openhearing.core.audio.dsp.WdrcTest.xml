@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.openhearing.core.audio.dsp.WdrcTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:47:59" hostname="RECENT-AIR-RA-0" time="0.022">
+  <properties/>
+  <testcase name="loud signal above threshold is attenuated()" classname="app.openhearing.core.audio.dsp.WdrcTest" time="0.006"/>
+  <testcase name="compression reduces the dynamic range between quiet and loud()" classname="app.openhearing.core.audio.dsp.WdrcTest" time="0.009"/>
+  <testcase name="quiet signal below threshold is left essentially unchanged()" classname="app.openhearing.core.audio.dsp.WdrcTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

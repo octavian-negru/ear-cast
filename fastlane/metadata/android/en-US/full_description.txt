@@ -1,0 +1,29 @@
+OpenHearing is a free, open-source hearing-assistance app for Android. It runs a
+pure-tone hearing check, builds a personalized amplification profile from the
+result, and uses it to amplify quiet sound — like speech — in real time, with any
+headset or earbuds.
+
+Features:
+* Pure-tone hearing check (per ear, per frequency) with an adaptive staircase,
+  shown as a chart — or enter results from a professional hearing test manually
+* A personalized sound profile per ear; save several and switch between them
+* Real-time hearing assist, per ear: multi-band gain, dynamic-range compression,
+  a feedback/howl guard, and live volume control while it runs
+* Environment presets (standard / conversation / outdoors) and a quick-settings
+  tile for one-tap on/off
+* Experimental: apply your sound profile to music and videos from other apps
+* A hard output-loudness limiter and a comfort calibration so sound never gets
+  uncomfortably loud, plus an always-available instant stop; assist stops
+  automatically if your headphones disconnect
+* Accessibility-first: large controls, high-contrast theme, scalable text
+* Completely private: no accounts, no analytics, no ads, no network access. Audio
+  is processed on-device and never recorded or transmitted.
+
+IMPORTANT: OpenHearing is a sound-amplification and hearing-assistance tool. It is
+NOT a medical device, NOT a certified hearing aid, and NOT a substitute for a
+professional hearing exam. It does not diagnose or treat any condition. If you
+have concerns about your hearing, please see an audiologist or doctor. Keep the
+volume comfortable and stop if anything is too loud.
+
+OpenHearing is independent and not affiliated with or endorsed by Apple. "AirPods"
+is a trademark of Apple Inc., used only to describe hardware compatibility.

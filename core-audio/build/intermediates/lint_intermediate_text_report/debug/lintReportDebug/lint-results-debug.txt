@@ -1,0 +1,42 @@
+F:\Oct\OpenHearing\core-audio\src\main\kotlin\app\openhearing\core\audio\AssistAudioRoute.kt:96: Warning: Field requires API level 31 (current min is 26): android.media.AudioDeviceInfo#TYPE_BLE_HEADSET [InlinedApi]
+            selected.type == AudioDeviceInfo.TYPE_BLE_HEADSET
+                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F:\Oct\OpenHearing\core-audio\src\main\kotlin\app\openhearing\core\audio\AssistAudioRoute.kt:158: Warning: Field requires API level 31 (current min is 26): android.media.AudioDeviceInfo#TYPE_BLE_HEADSET [InlinedApi]
+        val BLUETOOTH_TYPES = setOf(AudioDeviceInfo.TYPE_BLE_HEADSET, AudioDeviceInfo.TYPE_BLUETOOTH_SCO)
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F:\Oct\OpenHearing\core-audio\src\main\kotlin\app\openhearing\core\audio\AssistAudioRoute.kt:163: Warning: Field requires API level 31 (current min is 26): android.media.AudioDeviceInfo#TYPE_BLE_HEADSET [InlinedApi]
+            AudioDeviceInfo.TYPE_BLE_HEADSET,
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F:\Oct\OpenHearing\core-audio\src\main\kotlin\app\openhearing\core\audio\AssistAudioRoute.kt:174: Warning: Field requires API level 31 (current min is 26): android.media.AudioDeviceInfo#TYPE_BLE_HEADSET [InlinedApi]
+            AudioDeviceInfo.TYPE_BLE_HEADSET,
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F:\Oct\OpenHearing\core-audio\src\main\kotlin\app\openhearing\core\audio\AssistAudioRoute.kt:175: Warning: Field requires API level 28 (current min is 26): android.media.AudioDeviceInfo#TYPE_HEARING_AID [InlinedApi]
+            AudioDeviceInfo.TYPE_HEARING_AID,
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F:\Oct\OpenHearing\core-audio\src\main\kotlin\app\openhearing\core\audio\AssistAudioRoute.kt:176: Warning: Field requires API level 31 (current min is 26): android.media.AudioDeviceInfo#TYPE_BLE_SPEAKER [InlinedApi]
+            AudioDeviceInfo.TYPE_BLE_SPEAKER,
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "InlinedApi":
+   This check scans through all the Android API field references in the
+   application and flags certain constants, such as static final integers and
+   Strings, which were introduced in later versions. These will actually be
+   copied into the class files rather than being referenced, which means that
+   the value is available even when running on older devices. In some cases
+   that's fine, and in other cases it can result in a runtime crash or
+   incorrect behavior. It depends on the context, so consider the code
+   carefully and decide whether it's safe and can be suppressed or whether the
+   code needs to be guarded.
+
+   If you really want to use this API and don't need to support older devices
+   just set the minSdkVersion in your build.gradle or AndroidManifest.xml
+   files.
+
+   If your code is deliberately accessing newer APIs, and you have ensured
+   (e.g. with conditional execution) that this code will only ever be called
+   on a supported platform, then you can annotate your class or method with
+   the @TargetApi annotation specifying the local minimum SDK to apply, such
+   as @TargetApi(11), such that this check considers 11 rather than your
+   manifest file's minimum SDK as the required API level.
+
+0 errors, 6 warnings

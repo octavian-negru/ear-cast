@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.openhearing.core.audio.dsp.ExposureMeteringTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:47:59" hostname="RECENT-AIR-RA-0" time="0.054">
+  <properties/>
+  <testcase name="reference hours at reference level is exactly one hundred percent()" classname="app.openhearing.core.audio.dsp.ExposureMeteringTest" time="0.004"/>
+  <testcase name="windows accumulate across multiple blocks()" classname="app.openhearing.core.audio.dsp.ExposureMeteringTest" time="0.004"/>
+  <testcase name="day rollover clears carried units()" classname="app.openhearing.core.audio.dsp.ExposureMeteringTest" time="0.001"/>
+  <testcase name="silence accrues nothing()" classname="app.openhearing.core.audio.dsp.ExposureMeteringTest" time="0.001"/>
+  <testcase name="three dB more level halves the time to the same units()" classname="app.openhearing.core.audio.dsp.ExposureMeteringTest" time="0.002"/>
+  <testcase name="metered processor delegates and observes post-limiter output()" classname="app.openhearing.core.audio.dsp.ExposureMeteringTest" time="0.025"/>
+  <testcase name="meter reports the RMS of a known sine()" classname="app.openhearing.core.audio.dsp.ExposureMeteringTest" time="0.005"/>
+  <testcase name="drain resets the accumulators()" classname="app.openhearing.core.audio.dsp.ExposureMeteringTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

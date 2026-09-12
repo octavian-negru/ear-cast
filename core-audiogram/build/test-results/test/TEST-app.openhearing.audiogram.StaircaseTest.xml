@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.openhearing.audiogram.StaircaseTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:21:54" hostname="RECENT-AIR-RA-0" time="0.169">
+  <properties/>
+  <testcase name="returns the floor level when audible at the bottom of the range()" classname="app.openhearing.audiogram.StaircaseTest" time="0.001"/>
+  <testcase name="requires two ascending responses before declaring a threshold()" classname="app.openhearing.audiogram.StaircaseTest" time="0.001"/>
+  <testcase name="reports NoResponse when the threshold is beyond the test range()" classname="app.openhearing.audiogram.StaircaseTest" time="0.003"/>
+  <testcase name="[1] 0.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.031"/>
+  <testcase name="[2] 5.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.009"/>
+  <testcase name="[3] 10.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.003"/>
+  <testcase name="[4] 25.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.001"/>
+  <testcase name="[5] 31.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.002"/>
+  <testcase name="[6] 33.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.001"/>
+  <testcase name="[7] 40.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.006"/>
+  <testcase name="[8] 55.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.002"/>
+  <testcase name="[9] 70.0" classname="app.openhearing.audiogram.StaircaseTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

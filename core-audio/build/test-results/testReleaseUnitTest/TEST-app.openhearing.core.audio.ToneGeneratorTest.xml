@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.openhearing.core.audio.ToneGeneratorTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-12T16:47:58" hostname="RECENT-AIR-RA-0" time="0.029">
+  <properties/>
+  <testcase name="frequency is approximately correct (zero-crossing count)()" classname="app.openhearing.core.audio.ToneGeneratorTest" time="0.009"/>
+  <testcase name="clamps amplitude to the safety ceiling()" classname="app.openhearing.core.audio.ToneGeneratorTest" time="0.004"/>
+  <testcase name="never exceeds the requested amplitude()" classname="app.openhearing.core.audio.ToneGeneratorTest" time="0.002"/>
+  <testcase name="produces the requested number of samples()" classname="app.openhearing.core.audio.ToneGeneratorTest" time="0.002"/>
+  <testcase name="level mapping is monotonic and capped()" classname="app.openhearing.core.audio.ToneGeneratorTest" time="0.002"/>
+  <testcase name="forces a minimum ramp even if zero is requested()" classname="app.openhearing.core.audio.ToneGeneratorTest" time="0.001"/>
+  <testcase name="ramps gently — onset and offset start near silence()" classname="app.openhearing.core.audio.ToneGeneratorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

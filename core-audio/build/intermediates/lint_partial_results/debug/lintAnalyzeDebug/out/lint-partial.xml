@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.7.3" type="partial_results">
+    <map id="SetAndClearCommunicationDevice">
+        <location id="0"
+            file="${:core-audio*debug*MAIN*sourceProvider*0*javaDir*2}/app/openhearing/core/audio/AssistAudioRoute.kt"
+            line="102"
+            column="23"
+            startOffset="4734"
+            endLine="102"
+            endColumn="63"
+            endOffset="4774"/>
+        <entry
+            name="foundClearCommunicationDevice"
+            boolean="true"/>
+    </map>
+    <map id="UnusedResources">
+        <entry
+            name="model"
+            string=""/>
+    </map>
+
+</incidents>

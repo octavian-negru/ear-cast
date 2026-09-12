@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.openhearing.airpods.AirPodsStateTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:45:26" hostname="RECENT-AIR-RA-0" time="0.039">
+  <properties/>
+  <testcase name="protocol-unavailable is a distinct, non-throwing outcome()" classname="app.openhearing.airpods.AirPodsStateTest" time="0.033"/>
+  <testcase name="connected state carries model and per-ear battery()" classname="app.openhearing.airpods.AirPodsStateTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
