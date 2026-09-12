@@ -1,0 +1,49 @@
+# Gradle
+.gradle/
+**/build/
+
+# Kotlin/Gradle tooling
+.kotlin/
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Local Android SDK configuration
+local.properties
+
+# Android build and packaging outputs
+*.apk
+*.aab
+*.apks
+*.aab.sha256
+captures/
+
+# Native and CMake build outputs
+.cxx/
+**/.cxx/
+externalNativeBuild/
+**/externalNativeBuild/
+
+# Signing keys and local secrets
+*.jks
+*.keystore
+*.p12
+*.pfx
+secrets.properties
+google-services.json
+
+# Generated reports and coverage data
+**/reports/
+**/test-results/
+*.hprof
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
