@@ -20,9 +20,8 @@ interface AudioEngine {
 
 /**
  * How the platform should pre-process the microphone signal before it reaches
- * the chain. On-body assist wants the platform AEC/NS ([COMMUNICATION]) as extra
- * feedback protection; remote-mic wants the signal untouched — far-field TV or
- * music reads as "noise" to a communication-tuned suppressor and gets mangled.
+ * the chain. Hearing Assist uses [COMMUNICATION] so the platform's available
+ * AEC/NS can provide additional feedback protection for either input source.
  */
 enum class InputTuning {
     /** VOICE_COMMUNICATION: platform AEC/NS enabled where available. */

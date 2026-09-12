@@ -1,0 +1,4 @@
+F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/x86/CMakeFiles/speex_preprocess.dir
+F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/x86/CMakeFiles/openhearing_speech.dir
+F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/x86/CMakeFiles/edit_cache.dir
+F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/x86/CMakeFiles/rebuild_cache.dir

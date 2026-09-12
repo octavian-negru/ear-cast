@@ -69,8 +69,8 @@ personalized amplification profile, and boost quiet speech in real time.
 - 🔊 **Real-time hearing assist, per ear** — each ear gets its own fitted gain
   curve (stereo), with wide dynamic-range compression, a feedback/howl guard, and
   **live volume control while it runs**.
-- 📺 **Remote microphone** — set the phone next to the TV or across the table and
-  its sound streams to your earbuds (like Live Listen, but for any headphones).
+- 🎤 **Phone or headset microphone** — choose the input in Hearing assist;
+  place the phone next to a TV or across the table to use it as a remote mic.
 - 🎭 **Hear the difference** — play a sample sound and flip between the original
   and the version shaped through your profile, mid-playback.
 - ⏱️ **Listening meter** — a relative gauge of how loud and how long assist has
@@ -93,12 +93,13 @@ personalized amplification profile, and boost quiet speech in real time.
 
 ## How to use
 
-**Headset microphone input:** In Hearing assist, select **Headset microphone**
-to capture sound at your headset, process it on the phone, and play it back through
-the same headset. **Phone microphone** remains available. Wired/USB microphones
-and Bluetooth two-way call audio are supported through Android's routing APIs;
-output-only Bluetooth devices cannot supply microphone audio. Classic Bluetooth
-uses mono call audio. Device compatibility and latency need hardware validation.
+**Microphone input:** In Hearing assist, choose **Phone microphone** to place the
+phone near a TV, speaker, or person across the table and stream that sound to your
+headphones. Choose **Headset microphone** to capture sound at your headset and
+play it back through the same headset. Wired/USB microphones and Bluetooth
+two-way call audio are supported through Android's routing APIs; output-only
+Bluetooth devices cannot supply microphone audio. Classic Bluetooth uses mono
+call audio. Device compatibility and latency need hardware validation.
 See [setup, compatibility, and testing](docs/HEADSET_MICROPHONE.md).
 
 1. **Install** — grab the APK from
@@ -114,10 +115,10 @@ See [setup, compatibility, and testing](docs/HEADSET_MICROPHONE.md).
 4. **Review your results** — a per-ear chart plus the suggested amplification
    (half-gain rule). Each check is saved as a dated profile, so you can keep a
    history and switch between profiles.
-5. **Turn on Hearing assist** — grant microphone access, pick an environment
-   preset, tap **Start assist**. Sound around you is amplified per ear in real
-   time; adjust the volume live, and tap **Stop assist** any time (or use the
-   quick-settings tile).
+5. **Turn on Hearing assist** — grant microphone access, choose the **Phone
+   microphone** or **Headset microphone**, pick an environment preset, and tap
+   **Start assist**. Sound is amplified per ear in real time; adjust the volume
+   live, and tap **Stop assist** any time (or use the quick-settings tile).
 6. **Calibrate comfort** (Settings) — preview the maximum loudness and lower it
    until comfortable; that caps how loud assist mode can ever get. The optional
    **media EQ** (experimental) and high-contrast theme live here too.

@@ -1,0 +1,9 @@
+# ninja log v5
+72	1383	8109489302275455	CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/fftwrap.c.o	3c3640584ad443cb
+244	1451	8109489302947656	CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/filterbank.c.o	e58aad856214309b
+5	1705	8109489305277336	CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/preprocess.c.o	77ae5a8292399244
+18	1745	8109489305742534	CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/mdf.c.o	7e3ec62886637a7e
+214	1820	8109489306367795	CMakeFiles/speex_preprocess.dir/vendor/speexdsp/libspeexdsp/smallft.c.o	4b4d461572b8de45
+1821	10268	8109489326280994	libspeex_preprocess.a	5ef93f4400159d9a
+289	22986	8109489516333717	CMakeFiles/openhearing_speech.dir/speech_jni.cpp.o	b88fd80b0ba4b7d2
+23007	23866	8109489524728688	F:/Oct/temp/core-audio/build/intermediates/cxx/Debug/3a262e3r/obj/armeabi-v7a/libopenhearing_speech.so	afe85cc61bb4a788

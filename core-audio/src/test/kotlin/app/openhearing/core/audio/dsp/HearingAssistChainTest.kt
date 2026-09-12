@@ -118,11 +118,10 @@ class HearingAssistChainTest {
     }
 
     @Test
-    fun `disabling the guard stops the sustained-tone ducking (remote-mic mode)`() {
-        // A held musical note: exactly what the guard false-triggers on when the
-        // phone listens to a TV across the room. Flat curve + block-by-block
-        // streaming (like the live engine) so the guard fully engages and the
-        // limiter stays out of the comparison.
+    fun `disabling the guard stops sustained-tone ducking`() {
+        // A held musical note exercises the guard's sustained-tone behavior.
+        // Flat curve + block-by-block streaming (like the live engine) lets the
+        // guard fully engage while the limiter stays out of the comparison.
         val flat = GainCurve(listOf(GainPoint(Hertz(250.0), 0.0), GainPoint(Hertz(8000.0), 0.0)))
         val guarded = HearingAssistChain(flat, sampleRate, masterGainDb = 0.0)
         val unguarded =

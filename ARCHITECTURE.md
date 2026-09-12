@@ -50,7 +50,8 @@ processed audio, reports connecting/running/failure state, and releases routing
 on every exit. The processor factory receives the transport's sample rate before
 building DSP. Classic SCO uses mono device output, with a bounded average of the
 two limited ear channels. The microphone preference is persisted in `:data` and
-shared by the assist screen and tile; remote mic always selects the phone input.
+shared by the assist screen and tile; choosing the phone microphone provides the
+remote-listening use case inside the same Hearing Assist session.
 See [headset microphone routing](docs/HEADSET_MICROPHONE.md) for platform limits
 and required hardware validation.
 

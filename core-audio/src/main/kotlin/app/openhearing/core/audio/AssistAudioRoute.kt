@@ -65,7 +65,7 @@ internal class AssistAudioRoute(private val context: Context, private val onLost
             val outputs = manager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
             output = PHONE_OUTPUT_TYPES.firstNotNullOfOrNull { type -> outputs.firstOrNull { it.type == type } }
         }
-        check(!requireHeadphones || output != null) { "Connect headphones before starting remote microphone mode." }
+        check(!requireHeadphones || output != null) { "Connect headphones before starting Hearing Assist." }
         val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(attributes)
             .setOnAudioFocusChangeListener({ change ->

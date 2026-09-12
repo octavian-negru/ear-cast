@@ -25,10 +25,9 @@ class HearingAssistChain(
     /** Optional low-cut (e.g. wind/rumble for the outdoors preset); null = off. */
     highPassHz: Double? = null,
     /**
-     * The feedback guard's tonality detector false-triggers on sustained musical
-     * notes, so remote-mic mode (phone far from the ears — acoustic feedback is
-     * physically impossible, and headphones are mandatory there) disables it.
-     * On-body assist MUST keep it enabled. The limiter is unaffected either way.
+     * The feedback guard is enabled for every production Hearing Assist input
+     * source. This switch remains available for focused DSP tests; the limiter
+     * is unaffected either way.
      */
     feedbackGuardEnabled: Boolean = true,
 ) : AudioProcessor {

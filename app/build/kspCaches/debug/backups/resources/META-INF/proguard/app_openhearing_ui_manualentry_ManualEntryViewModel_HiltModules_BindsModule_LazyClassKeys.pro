@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class app.openhearing.ui.manualentry.ManualEntryViewModel

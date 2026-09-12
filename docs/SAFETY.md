@@ -26,12 +26,9 @@ constants, never redefine its own limits.
 5. **Feedback / howl guard.** Assist mode must detect and suppress acoustic
    feedback before it becomes loud (Phase 2). The guard's activation threshold is
    calibrated to post-WDRC levels inside the chain (see `HearingAssistChain`).
-   **Remote-mic mode is the one sanctioned exception:** the guard is bypassed
-   there because the phone is metres from the ears (no acoustic loop is
-   possible) and it false-ducks on sustained musical notes — and that bypass is
-   only safe because remote-mic *requires* headphones (Start is disabled on the
-   phone speaker, with no override). The limiter is unaffected and remains the
-   final stage in every mode.
+   The phone microphone can also be used for remote listening, but it is still
+   Hearing Assist: the feedback guard remains enabled and the output limiter is
+   still the final stage.
 6. **Fail safe, not loud.** On any error, glitch, or uncertainty (including
    uncalibrated output), attenuate or mute — never pass audio through at full gain.
 

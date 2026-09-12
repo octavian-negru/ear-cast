@@ -2,7 +2,8 @@
 
 Hearing assist now offers **Phone microphone** and **Headset microphone**.
 Choose the source before starting; the choice is saved and also used by the
-quick-settings tile. Remote microphone mode always uses the phone microphone.
+quick-settings tile. For remote listening, choose **Phone microphone** and place
+the phone near the sound source; there is no separate remote-microphone mode.
 
 With headset input, the signal path is:
 
@@ -21,12 +22,13 @@ microphone feeds cannot be selected through these APIs.
 1. Pair and connect the headset in Android settings. For classic Bluetooth,
    enable its call audio option as well as media audio.
 2. Open Hearing assist with a saved hearing profile.
-3. Select **Headset microphone** and tap **Start assist**.
+3. Select **Headset microphone** or **Phone microphone**, then tap **Start assist**.
 4. Allow microphone access. Wait for **Connecting audio…** to finish.
 5. The screen shows the actual microphone name and processing sample rate once
    both the input and output routes are verified. Adjust amplification as usual.
 6. Stop assist before changing microphones. Use **Phone microphone** if the
-   headset does not provide a compatible two-way connection.
+   headset does not provide a compatible two-way connection, or when using the
+   phone as a remote microphone.
 
 The service continues with the screen off. Stop is available during connection,
 on the assist screen, in the notification, and through the tile. Losing the

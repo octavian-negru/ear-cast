@@ -1,0 +1,32 @@
+[
+{
+  "directory": "F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/arm64-v8a",
+  "command": "C:\\Users\\Utilizator\\AppData\\Local\\Android\\Sdk\\ndk\\27.2.12479018\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=aarch64-none-linux-android26 --sysroot=C:/Users/Utilizator/AppData/Local/Android/Sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/windows-x86_64/sysroot -DEXPORT=\"\" -DFLOATING_POINT -DUSE_SMALLFT -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/include -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/libspeexdsp -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu99 -o CMakeFiles\\speex_preprocess.dir\\vendor\\speexdsp\\libspeexdsp\\preprocess.c.o -c F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\preprocess.c",
+  "file": "F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\preprocess.c"
+},
+{
+  "directory": "F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/arm64-v8a",
+  "command": "C:\\Users\\Utilizator\\AppData\\Local\\Android\\Sdk\\ndk\\27.2.12479018\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=aarch64-none-linux-android26 --sysroot=C:/Users/Utilizator/AppData/Local/Android/Sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/windows-x86_64/sysroot -DEXPORT=\"\" -DFLOATING_POINT -DUSE_SMALLFT -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/include -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/libspeexdsp -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu99 -o CMakeFiles\\speex_preprocess.dir\\vendor\\speexdsp\\libspeexdsp\\mdf.c.o -c F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\mdf.c",
+  "file": "F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\mdf.c"
+},
+{
+  "directory": "F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/arm64-v8a",
+  "command": "C:\\Users\\Utilizator\\AppData\\Local\\Android\\Sdk\\ndk\\27.2.12479018\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=aarch64-none-linux-android26 --sysroot=C:/Users/Utilizator/AppData/Local/Android/Sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/windows-x86_64/sysroot -DEXPORT=\"\" -DFLOATING_POINT -DUSE_SMALLFT -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/include -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/libspeexdsp -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu99 -o CMakeFiles\\speex_preprocess.dir\\vendor\\speexdsp\\libspeexdsp\\fftwrap.c.o -c F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\fftwrap.c",
+  "file": "F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\fftwrap.c"
+},
+{
+  "directory": "F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/arm64-v8a",
+  "command": "C:\\Users\\Utilizator\\AppData\\Local\\Android\\Sdk\\ndk\\27.2.12479018\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=aarch64-none-linux-android26 --sysroot=C:/Users/Utilizator/AppData/Local/Android/Sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/windows-x86_64/sysroot -DEXPORT=\"\" -DFLOATING_POINT -DUSE_SMALLFT -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/include -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/libspeexdsp -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu99 -o CMakeFiles\\speex_preprocess.dir\\vendor\\speexdsp\\libspeexdsp\\filterbank.c.o -c F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\filterbank.c",
+  "file": "F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\filterbank.c"
+},
+{
+  "directory": "F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/arm64-v8a",
+  "command": "C:\\Users\\Utilizator\\AppData\\Local\\Android\\Sdk\\ndk\\27.2.12479018\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=aarch64-none-linux-android26 --sysroot=C:/Users/Utilizator/AppData/Local/Android/Sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/windows-x86_64/sysroot -DEXPORT=\"\" -DFLOATING_POINT -DUSE_SMALLFT -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/include -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/libspeexdsp -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu99 -o CMakeFiles\\speex_preprocess.dir\\vendor\\speexdsp\\libspeexdsp\\smallft.c.o -c F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\smallft.c",
+  "file": "F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\vendor\\speexdsp\\libspeexdsp\\smallft.c"
+},
+{
+  "directory": "F:/Oct/temp/core-audio/.cxx/Debug/3a262e3r/arm64-v8a",
+  "command": "C:\\Users\\Utilizator\\AppData\\Local\\Android\\Sdk\\ndk\\27.2.12479018\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=aarch64-none-linux-android26 --sysroot=C:/Users/Utilizator/AppData/Local/Android/Sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dopenhearing_speech_EXPORTS -IF:/Oct/temp/core-audio/src/main/cpp/vendor/speexdsp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\openhearing_speech.dir\\speech_jni.cpp.o -c F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\speech_jni.cpp",
+  "file": "F:\\Oct\\temp\\core-audio\\src\\main\\cpp\\speech_jni.cpp"
+}
+]
