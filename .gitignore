@@ -1,6 +1,8 @@
 # Gradle
 .gradle/
 **/build/
+**/out/
+**/outputs/
 
 # Kotlin/Gradle tooling
 .kotlin/
@@ -19,6 +21,8 @@ local.properties
 *.aab
 *.apks
 *.aab.sha256
+*.class
+*.dex
 captures/
 
 # Native and CMake build outputs
