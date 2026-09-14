@@ -55,14 +55,19 @@ remote-listening use case inside the same Hearing Assist session.
 See [headset microphone routing](docs/HEADSET_MICROPHONE.md) for platform limits
 and required hardware validation.
 
-Optional speech enhancement uses the bundled RNNoise full neural model before
-per-ear processing. Stateful SpeexDSP resampling adapts Bluetooth capture rates
+Optional speech enhancement uses either the bundled full RNNoise model or full
+DPDFNet8 models through the pinned sherpa-onnx C API, before per-ear processing.
+Both have worker-owned native state; DPDFNet has a separate JNI library and uses
+bundled model files verified before loading. Stateful SpeexDSP resampling adapts Bluetooth capture rates
 to the model's 48 kHz input; the original and enhanced spectra are mixed with
 matching delay to retain ambience. Optional speech-confidence-based upward gain
-raises quiet speech before the existing per-ear chains and output limiters.
+raises quiet speech with RNNoise before the per-ear chains and output limiters.
+Speech clarity is a high shelf after WDRC, preventing compression from undoing
+the requested consonant lift. Feedback protection and final limiting follow it.
 An opt-in bounded recorder copies processing taps to a separate writer thread;
 normal audio processing performs no diagnostic file I/O. See [audio clarity next steps](docs/AUDIO_CLARITY_NEXT_STEPS.md)
-for the library comparison and pending quality validation.
+for the library comparison and pending quality validation; the current focus is
+[speech understanding](docs/SPEECH_UNDERSTANDING.md).
 
 ### `:airpods-protocol`
 AirPods Pro 2/3 detection, battery/state, and transparency routing over BLE /

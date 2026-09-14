@@ -5,7 +5,7 @@ i:
     .venv/bin/python -m pip install -r audio-quality/requirements.txt
 
 build:
-    ./gradlew build
+    bash ./gradlew build
 
 test:
-    ./gradlew test
+    bash ./gradlew test

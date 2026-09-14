@@ -3,7 +3,7 @@ package app.openhearing.core.audio.dsp
 import app.openhearing.audiogram.GainCurve
 
 /**
- * Environment presets layered on top of the user's fitted gain curve. Deliberately
+ * Speech profiles layered on top of the user's fitted gain curve. Deliberately
  * gentle: the profile does the personalization; a preset only nudges it for a
  * situation. The limiter downstream bounds everything regardless.
  */
@@ -17,8 +17,6 @@ enum class AssistPreset(
     /** Extra clarity in the speech band (1–4 kHz). */
     CONVERSATION(null),
 
-    /** Low-cut against wind and handling rumble. */
-    OUTDOORS(OUTDOORS_HIGH_PASS_HZ),
     ;
 
     companion object {
@@ -29,8 +27,6 @@ enum class AssistPreset(
         fun fromName(name: String?): AssistPreset = entries.firstOrNull { it.name == name } ?: STANDARD
     }
 }
-
-private const val OUTDOORS_HIGH_PASS_HZ = 150.0
 
 /** Applies [preset] to this fitted curve (pure; the original curve is untouched). */
 fun GainCurve.withPreset(preset: AssistPreset): GainCurve = when (preset) {
@@ -47,5 +43,5 @@ fun GainCurve.withPreset(preset: AssistPreset): GainCurve = when (preset) {
                 }
             },
         )
-    AssistPreset.STANDARD, AssistPreset.OUTDOORS -> this
+    AssistPreset.STANDARD -> this
 }

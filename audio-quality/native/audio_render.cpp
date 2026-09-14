@@ -1,4 +1,7 @@
 #include "neural_denoiser.h"
+#ifdef OPENHEARING_HAS_DPDFNET
+#include "dpdfnet_denoiser.h"
+#endif
 #include "speex/speex_preprocess.h"
 
 #include <algorithm>
@@ -20,8 +23,8 @@ static_assert(sizeof(float) == 4 && std::numeric_limits<float>::is_iec559,
               "The workbench requires IEEE float32");
 int main(int argc, char** argv) {
     try {
-        if (argc != 7) throw std::invalid_argument(
-            "Usage: audio_render off|speex|rnnoise rate suppression_db boost_db input.f32 output.f32");
+        if (argc != 7 && argc != 8) throw std::invalid_argument(
+            "Usage: audio_render off|speex|rnnoise|dpdfnet rate suppression_db boost_db input.f32 output.f32 [model.onnx]");
         const std::string mode(argv[1]);
         const int rate = std::stoi(argv[2]);
         const int suppression = std::stoi(argv[3]);
@@ -30,7 +33,9 @@ int main(int argc, char** argv) {
             throw std::invalid_argument("Unsupported PCM rate");
         if (suppression < 0 || suppression > 18 || !std::isfinite(boost) || boost < 0 || boost > 12)
             throw std::invalid_argument("Invalid enhancement strength");
-        if (mode != "off" && mode != "speex" && mode != "rnnoise") throw std::invalid_argument("Unknown backend");
+        if (mode != "off" && mode != "speex" && mode != "rnnoise" && mode != "dpdfnet")
+            throw std::invalid_argument("Unknown backend");
+        if ((mode == "dpdfnet") != (argc == 8)) throw std::invalid_argument("Only DPDFNet requires a model path");
         if (mode != "rnnoise" && boost != 0) throw std::invalid_argument("Boost requires RNNoise confidence");
         if (std::ifstream(argv[6]).good()) throw std::invalid_argument("Output already exists");
         std::ifstream input(argv[5], std::ios::binary | std::ios::ate);
@@ -44,9 +49,20 @@ int main(int argc, char** argv) {
         const int frames = rate / 100;
         int delay = 0;
         std::unique_ptr<openhearing::NeuralDenoiser> neural;
+#ifdef OPENHEARING_HAS_DPDFNET
+        std::unique_ptr<openhearing::DpdfnetDenoiser> detailed;
+#endif
         using SpeexPtr = std::unique_ptr<SpeexPreprocessState, decltype(&speex_preprocess_state_destroy)>;
         SpeexPtr speex(nullptr, speex_preprocess_state_destroy);
-        if (mode == "rnnoise") {
+        if (mode == "dpdfnet") {
+#ifdef OPENHEARING_HAS_DPDFNET
+            const int model_rate = rate <= 16000 ? rate : 48000;
+            detailed = std::make_unique<openhearing::DpdfnetDenoiser>(rate, model_rate, suppression, argv[7]);
+            delay = detailed->delay_samples();
+#else
+            throw std::runtime_error("Build the renderer with OPENHEARING_SHERPA_RUNTIME_DIR to enable DPDFNet");
+#endif
+        } else if (mode == "rnnoise") {
             neural = std::make_unique<openhearing::NeuralDenoiser>(rate, suppression, boost);
             delay = neural->delay_samples();
         } else if (mode == "speex") {
@@ -76,6 +92,9 @@ int main(int argc, char** argv) {
             }
             const auto started = std::chrono::steady_clock::now();
             if (neural) neural->process(frame.data(), frames);
+#ifdef OPENHEARING_HAS_DPDFNET
+            if (detailed) detailed->process(frame.data(), frames);
+#endif
             if (speex) {
                 for (int i = 0; i < frames; ++i)
                     pcm[i] = static_cast<spx_int16_t>(std::clamp(frame[i] * 32768.0f, -32768.0f, 32767.0f));

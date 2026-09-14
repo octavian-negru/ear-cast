@@ -9,7 +9,7 @@ import kotlin.math.pow
  * The full real-time hearing-assist signal chain (one ear):
  *
  * ```
- * input -> EQ (audiogram gain) -> three-band WDRC -> feedback guard -> master gain -> LIMITER -> output
+ * input -> fitted EQ -> WDRC -> speech presence -> feedback guard -> master gain -> LIMITER -> output
  * ```
  *
  * The [LookaheadLimiter] is always the final stage, so nothing leaves above the
@@ -30,11 +30,18 @@ class HearingAssistChain(
      * is unaffected either way.
      */
     feedbackGuardEnabled: Boolean = true,
+    /** Applied after WDRC so compression does not undo the consonant lift. */
+    speechPresenceDb: Double = 0.0,
 ) : AudioProcessor {
+    init {
+        require(speechPresenceDb.isFinite() && speechPresenceDb in 0.0..6.0)
+    }
     private val highPass: Biquad? =
         highPassHz?.let { Biquad.highPass(it, HIGH_PASS_Q, sampleRateHz) }
     private val eq = GainEqualizer(gainCurve, sampleRateHz)
     private val wdrc = MultibandWdrc(sampleRateHz)
+    private val presence = if (speechPresenceDb == 0.0) null else
+        Biquad.highShelf(minOf(1_800.0, sampleRateHz * 0.2), speechPresenceDb, sampleRateHz)
     private val guard: FeedbackGuard? =
         if (feedbackGuardEnabled) {
             FeedbackGuard(sampleRateHz, activationRms = CHAIN_GUARD_ACTIVATION_RMS)
@@ -63,6 +70,9 @@ class HearingAssistChain(
         }
         eq.process(buffer)
         wdrc.process(buffer)
+        presence?.let { filter ->
+            for (i in buffer.indices) buffer[i] = filter.processSample(buffer[i].toDouble()).toFloat()
+        }
         guard?.process(buffer)
         val gain = masterGainLinear // one volatile read per block
         for (i in buffer.indices) {
@@ -75,6 +85,7 @@ class HearingAssistChain(
         highPass?.reset()
         eq.reset()
         wdrc.reset()
+        presence?.reset()
         guard?.reset()
         limiter.reset()
     }

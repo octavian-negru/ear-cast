@@ -24,14 +24,32 @@ VARIANTS = {
     "rnnoise_quiet_12db": ("rnnoise", 6, 12),
 }
 
+DPDFNET_VARIANTS = {
+    "dpdfnet8_gentle": ("dpdfnet", 6, 0),
+    "dpdfnet8_strong": ("dpdfnet", 12, 0),
+}
 
-def native_render(renderer, samples, rate, variant):
+DPDFNET_HASHES = {
+    "dpdfnet8.onnx": "2751c1f5a4e849d23a07c675b4c838158b249b42152f10cc318522dd339134f0",
+    "dpdfnet8_8khz.onnx": "c061bcc56b803fa2fa97d448a45db6d966f7d17aff1304e464455d748745ea62",
+    "dpdfnet8_48khz_hr.onnx": "7b3afbb260a08fe9af3d16e3bda992971be1e7e951d1dee7c2d235f5c43f5631",
+}
+
+
+def native_render(renderer, samples, rate, variant, dpdfnet_models=None):
     with tempfile.TemporaryDirectory(prefix="openhearing-quality-") as temporary:
         source, target = Path(temporary) / "input.f32", Path(temporary) / "output.f32"
         np.asarray(samples, dtype="<f4").tofile(source)
-        backend, suppression, boost = VARIANTS[variant]
+        backend, suppression, boost = (VARIANTS | DPDFNET_VARIANTS)[variant]
+        command = [str(renderer), backend, str(rate), str(suppression), str(boost), str(source), str(target)]
+        if backend == "dpdfnet":
+            if dpdfnet_models is None:
+                raise ValueError("DPDFNet requires the bundled model directory")
+            model = ("dpdfnet8_8khz.onnx" if rate == 8000 else
+                     "dpdfnet8.onnx" if rate == 16000 else "dpdfnet8_48khz_hr.onnx")
+            command.append(str((dpdfnet_models / model).resolve(strict=True)))
         result = subprocess.run(
-            [str(renderer), backend, str(rate), str(suppression), str(boost), str(source), str(target)],
+            command,
             check=True, capture_output=True, text=True, timeout=max(120, int(len(samples) / rate * 100)),
         )
         info = json.loads(result.stdout)
@@ -75,7 +93,7 @@ def deepfilter_render(model_directory, samples, rate):
     }
 
 
-def evaluate(manifest_path, renderer, output_directory, deepfilter_model=None, seed=2026):
+def evaluate(manifest_path, renderer, output_directory, deepfilter_model=None, seed=2026, dpdfnet_models=None):
     manifest = json.loads(manifest_path.read_text())
     cases = manifest["cases"]
     if not cases:
@@ -83,6 +101,12 @@ def evaluate(manifest_path, renderer, output_directory, deepfilter_model=None, s
     renderer = renderer.resolve(strict=True)
     output_directory.mkdir(parents=True, exist_ok=False)
     results, blind_key, seen, input_hashes = [], {}, set(), {}
+    variants = VARIANTS | DPDFNET_VARIANTS if dpdfnet_models is not None else VARIANTS
+    model_hashes = {}
+    if dpdfnet_models is not None:
+        model_hashes = {name: file_sha256(dpdfnet_models / name) for name in DPDFNET_HASHES}
+        if model_hashes != DPDFNET_HASHES:
+            raise ValueError("DPDFNet replay must use the same pinned models as the app")
     rng = random.Random(seed)
     for case in cases:
         name = case["id"]
@@ -104,8 +128,8 @@ def evaluate(manifest_path, renderer, output_directory, deepfilter_model=None, s
         case_directory = output_directory / name
         case_directory.mkdir()
         outputs = {}
-        for variant in VARIANTS:
-            audio, timing = native_render(renderer, noisy, rate, variant)
+        for variant in variants:
+            audio, timing = native_render(renderer, noisy, rate, variant, dpdfnet_models)
             outputs[variant] = audio
             wavfile.write(case_directory / f"{variant}.wav", rate, audio.astype(np.float32))
             results.append({"case": name, "variant": variant, "timing": timing,
@@ -130,6 +154,7 @@ def evaluate(manifest_path, renderer, output_directory, deepfilter_model=None, s
     report = {
         "schema": 1, "manifest": manifest, "results": results,
         "renderer_sha256": file_sha256(renderer), "evaluated_inputs_sha256": input_hashes,
+        "dpdfnet_models_sha256": model_hashes,
         "notes": "No automatic pass verdict: listening and per-condition acceptance criteria are required. "
                  "Native timings exclude initialization and I/O; DFN uses offline inference and is not comparable latency.",
     }
@@ -143,9 +168,10 @@ def main():
     parser.add_argument("--renderer", type=Path, required=True, help="Existing audio_render executable; never built here")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--deepfilter-model", type=Path)
+    parser.add_argument("--dpdfnet-models", type=Path, help="Bundled models; renderer needs DPDFNet support")
     parser.add_argument("--seed", type=int, default=2026)
     args = parser.parse_args()
-    evaluate(args.manifest.resolve(), args.renderer, args.output, args.deepfilter_model, args.seed)
+    evaluate(args.manifest.resolve(), args.renderer, args.output, args.deepfilter_model, args.seed, args.dpdfnet_models)
 
 
 if __name__ == "__main__":

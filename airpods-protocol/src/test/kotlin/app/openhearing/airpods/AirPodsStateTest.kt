@@ -12,18 +12,22 @@ import org.junit.jupiter.api.Test
 class AirPodsStateTest {
     @Test
     fun `connected state carries model and per-ear battery`() {
-        val state = AirPodsState.Connected(
-            AirPodsModel.AIRPODS_PRO_2,
-            leftBatteryPercent = 80,
-            rightBatteryPercent = 75,
-        )
+        val state =
+            AirPodsState.Connected(
+                AirPodsModel.AIRPODS_PRO_2,
+                leftBatteryPercent = 80,
+                rightBatteryPercent = 75,
+            )
         assertEquals(AirPodsModel.AIRPODS_PRO_2, state.model)
         assertEquals(80, state.leftBatteryPercent)
     }
 
     @Test
     fun `protocol-unavailable is a distinct, non-throwing outcome`() {
-        val result: ConnectResult = ConnectResult.ProtocolUnavailable("control channel handshake unconfirmed")
+        val result: ConnectResult =
+            ConnectResult.ProtocolUnavailable(
+                "control channel handshake unconfirmed",
+            )
         assertTrue(result is ConnectResult.ProtocolUnavailable)
     }
 }

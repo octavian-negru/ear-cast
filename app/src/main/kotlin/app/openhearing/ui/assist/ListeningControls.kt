@@ -21,6 +21,7 @@ import app.openhearing.core.audio.speech.ListeningOptions
 import app.openhearing.core.audio.speech.NoiseReduction
 import app.openhearing.core.audio.speech.QuietSpeech
 import app.openhearing.core.audio.speech.SpeechClarity
+import app.openhearing.core.audio.speech.SpeechEngine
 import app.openhearing.core.audio.speech.VoiceComfort
 
 @Composable
@@ -29,6 +30,11 @@ internal fun ListeningControls(options: ListeningOptions, enabled: Boolean, onCh
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
+            QualityChoice(
+                stringResource(R.string.assist_speech_engine),
+                listOf("RNNoise", "DPDFNet8"), options.speechEngine.ordinal, enabled,
+            ) { onChange(options.copy(speechEngine = SpeechEngine.entries[it])) }
+            Text(stringResource(R.string.assist_engine_description), style = MaterialTheme.typography.bodySmall)
             QualityChoice(
                 stringResource(R.string.assist_capture_mode),
                 listOf(stringResource(R.string.assist_capture_natural), stringResource(R.string.assist_capture_call)),
@@ -58,11 +64,15 @@ internal fun ListeningControls(options: ListeningOptions, enabled: Boolean, onCh
             Text(stringResource(R.string.assist_noise_description), style = MaterialTheme.typography.bodySmall)
             QualityChoice(
                 stringResource(R.string.assist_quiet_speech), strengths, options.quietSpeech.ordinal,
-                enabled && options.noiseReduction != NoiseReduction.OFF,
+                enabled && options.noiseReduction != NoiseReduction.OFF && options.speechEngine == SpeechEngine.RNNOISE,
             ) {
                 onChange(options.copy(quietSpeech = QuietSpeech.entries[it]))
             }
-            Text(stringResource(R.string.assist_quiet_speech_description), style = MaterialTheme.typography.bodySmall)
+            Text(
+                stringResource(if (options.speechEngine == SpeechEngine.RNNOISE)
+                    R.string.assist_quiet_speech_description else R.string.assist_dpdfnet_level_description),
+                style = MaterialTheme.typography.bodySmall,
+            )
             if (!enabled) {
                 Text(stringResource(R.string.assist_quality_restart), style = MaterialTheme.typography.bodySmall)
             }

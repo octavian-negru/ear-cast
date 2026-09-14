@@ -8,8 +8,8 @@ the phone near the sound source; there is no separate remote-microphone mode.
 With headset input, the signal path is:
 
 ```
-Headset microphone -> optional denoise + bass/presence shaping
-                  -> per-ear fitted gain + three-band compression + feedback guard
+Headset microphone -> optional RNNoise/DPDFNet8 + bass shaping
+                  -> per-ear fitted gain + compression + speech shelf + feedback guard
                   -> output limiter -> same headset speakers
 ```
 
@@ -63,9 +63,16 @@ also avoids the classic Bluetooth two-way call playback path.
 
 ## Processing and verification
 
-Speech clarity is a broad +3 or +6 dB presence filter near 2.4–2.5 kHz. Bass
-reduction is a -6 or -12 dB low shelf at 450 Hz, applied to all sound; it does not
-identify or cancel the wearer's voice. Neither control creates missing bandwidth.
+Speech clarity is a +3 or +6 dB high shelf applied **after** per-ear compression,
+so compression does not undo the consonant lift. Its transition is 1.8 kHz
+(1.6 kHz at 8 kHz capture). Bass reduction remains a -6 or -12 dB low shelf at
+450 Hz before fitting; it softens boomy sound without identifying the wearer.
+Neither control creates missing Bluetooth bandwidth.
+
+The reported headset baseline is Standard, Natural, Speech Strong, Bass Gentle,
+Noise Reduction Strong, Quiet Speech Boost Off. Keep it fixed when comparing
+RNNoise with the new DPDFNet8 engine. The new model and shelf changes have not
+been built or listening-tested here. See [speech understanding](SPEECH_UNDERSTANDING.md).
 
 Each ear now uses independent three-band WDRC envelopes, split at 700 and 2400 Hz
 with phase-aligned fourth-order Linkwitz-Riley crossovers. Loud bass compresses
@@ -75,16 +82,18 @@ settings, not a calibrated hearing-aid prescription. The low-band release is
 120 ms; the speech bands retain 80 ms release and 5 ms attack. The fitted EQ is
 upstream; the feedback guard, master cap and final lookahead limiter remain downstream.
 
-Optional RNNoise neural enhancement runs once on the mono microphone signal,
-before per-ear fitting. Gentle retains about 50% dry contribution, Strong about
+Optional neural enhancement runs once on the mono microphone signal,
+before per-ear fitting. Choose RNNoise or DPDFNet8; only one runs. Gentle retains about 50% dry contribution, Strong about
 25%, blended in the same delayed spectrum before synthesis. These are not hard
-attenuation limits. The full model runs at 48 kHz; quality-10 SpeexDSP resampling
+attenuation limits. The RNNoise model runs at 48 kHz; quality-10 SpeexDSP resampling
 adapts 8/16/24/32/44.1 kHz capture without recreating missing bandwidth. Optional
-Quiet speech boost adds up to 6 or 12 dB when the model reports speech, with
+RNNoise Quiet speech boost adds up to 6 or 12 dB when the model reports speech, with
 slow gain changes and peak headroom control. It defaults to Off and requires
 noise reduction; it never gates the signal. The final output limiter remains downstream. The adapter buffers 10 ms frames across capture block boundaries;
 model and resampler delays are additional. Off bypasses this stage without frame
-delay. The worker releases native state on stop, connection or capture failure.
+delay. DPDFNet8 uses full models for 8/16/48 kHz and its own longer delay; see the
+speech-understanding notes. The worker releases native state on stop, connection
+or capture failure.
 The old Speex denoiser remains a source-level comparison baseline. See
 [audio clarity research and next steps](AUDIO_CLARITY_NEXT_STEPS.md) for the library
 comparison, deferred tests and the five-metre recording protocol.

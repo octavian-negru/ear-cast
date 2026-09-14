@@ -13,3 +13,14 @@ target_link_libraries(speech_leveler_test PRIVATE neural_speech)
 add_test(NAME speech_leveler COMMAND speech_leveler_test)
 add_executable(audio_render native/audio_render.cpp)
 target_link_libraries(audio_render PRIVATE neural_speech speex_preprocess)
+
+# Optional complete DPDFNet replay uses pre-existing Linux v1.13.8 libraries.
+# Nothing is downloaded or built by the evaluation scripts.
+if(TARGET detailed_speech)
+    target_link_libraries(audio_render PRIVATE detailed_speech)
+    target_compile_definitions(audio_render PRIVATE OPENHEARING_HAS_DPDFNET=1)
+    add_executable(dpdfnet_speech_test native/dpdfnet_speech_test.cpp)
+    target_link_libraries(dpdfnet_speech_test PRIVATE detailed_speech)
+    add_test(NAME dpdfnet_speech COMMAND dpdfnet_speech_test
+        ${CMAKE_CURRENT_SOURCE_DIR}/../core-audio/src/main/assets/speech-models)
+endif()

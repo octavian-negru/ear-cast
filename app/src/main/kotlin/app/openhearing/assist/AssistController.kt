@@ -16,6 +16,9 @@ import app.openhearing.core.audio.dsp.OutputLevelMeter
 import app.openhearing.core.audio.dsp.StereoAssistChain
 import app.openhearing.core.audio.diagnostics.SessionDiagnostics
 import app.openhearing.core.audio.speech.ListeningOptions
+import app.openhearing.core.audio.speech.NativeDpdfnetDenoiser
+import app.openhearing.core.audio.speech.SpeechEngine
+import app.openhearing.core.audio.speech.FrameDenoiser
 import app.openhearing.core.audio.speech.NativeRnnoiseDenoiser
 import app.openhearing.core.audio.speech.NoiseReduction
 import app.openhearing.core.audio.speech.SpeechFrontEnd
@@ -85,6 +88,7 @@ class AssistController
 constructor(
     @ApplicationContext context: Context,
 ) {
+    private val applicationContext = context.applicationContext
     private val diagnosticRoot = File(context.noBackupFilesDir, "audio-diagnostics")
     private val sharedRoot = File(context.cacheDir, "shared")
     private val _diagnostics = MutableStateFlow(DiagnosticUiState())
@@ -216,6 +220,7 @@ constructor(
                 ceilingLinear = current.ceilingLinear,
                 highPassHz = current.highPassHz,
                 feedbackGuardEnabled = true,
+                speechPresenceDb = c.listeningOptions.speechClarity.gainDb,
             )
             val right = HearingAssistChain(
                 gainCurve = current.rightGainCurve,
@@ -224,20 +229,13 @@ constructor(
                 ceilingLinear = current.ceilingLinear,
                 highPassHz = current.highPassHz,
                 feedbackGuardEnabled = true,
+                speechPresenceDb = c.listeningOptions.speechClarity.gainDb,
             )
             val newChain = StereoAssistChain(left, right, actual.framesPerBlock)
             chain = newChain
             // The meter taps the buffer AFTER the chain (post-limiter), so it
             // sees exactly what reaches the device; the chain stays untouched.
-            val denoiser = if (c.listeningOptions.noiseReduction == NoiseReduction.OFF) {
-                null
-            } else {
-                NativeRnnoiseDenoiser(
-                    actual.sampleRateHz,
-                    c.listeningOptions.noiseReduction.suppressionDb,
-                    c.listeningOptions.quietSpeech.maximumGainDb,
-                )
-            }
+            val denoiser = createDenoiser(actual.sampleRateHz, c.listeningOptions)
             val recording = if (recordRequested) createDiagnostics(actual, current) else null
             SpeechFrontEnd(
                 actual.sampleRateHz,
@@ -247,6 +245,13 @@ constructor(
                 recording,
             )
         }
+    }
+
+    private fun createDenoiser(rate: Int, options: ListeningOptions): FrameDenoiser? = when {
+        options.noiseReduction == NoiseReduction.OFF -> null
+        options.speechEngine == SpeechEngine.DPDFNET ->
+            NativeDpdfnetDenoiser(applicationContext, rate, options.noiseReduction.suppressionDb)
+        else -> NativeRnnoiseDenoiser(rate, options.noiseReduction.suppressionDb, options.quietSpeech.maximumGainDb)
     }
 
     @Synchronized
@@ -269,7 +274,7 @@ constructor(
                     "initial_master_gain_db" to c.masterGainDb.toString(),
                     "ceiling_linear" to c.ceilingLinear.toString(),
                     "left_fit" to c.leftGainCurve.points.toString(), "right_fit" to c.rightGainCurve.points.toString(),
-                    "rnnoise_revision" to "70f1d256acd4b34a572f999a05c87bf00b67730d",
+                    "bundled_rnnoise_revision" to "70f1d256acd4b34a572f999a05c87bf00b67730d",
                 ),
             ) { directory, error ->
                 _diagnostics.value = _diagnostics.value.copy(

@@ -11,6 +11,16 @@ enum class SpeechClarity(val gainDb: Double) {
     }
 }
 
+/** Alternate complete speech enhancers; never run both suppressors in series. */
+enum class SpeechEngine {
+    RNNOISE, DPDFNET;
+
+    companion object {
+        // Preserve the engine that existing users have already compared on their headset.
+        fun fromName(name: String): SpeechEngine = entries.firstOrNull { it.name == name } ?: RNNOISE
+    }
+}
+
 /**
  * Neural speech enhancement. suppressionDb sets the retained dry contribution
  * (6 dB = about 50%, 12 dB = about 25%), not a guaranteed total attenuation bound.
@@ -63,4 +73,5 @@ data class ListeningOptions(
     val captureMode: CaptureMode = CaptureMode.NATURAL,
     val speechClarity: SpeechClarity = SpeechClarity.GENTLE,
     val quietSpeech: QuietSpeech = QuietSpeech.OFF,
+    val speechEngine: SpeechEngine = SpeechEngine.RNNOISE,
 )

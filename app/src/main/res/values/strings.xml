@@ -77,7 +77,10 @@
     <string name="assist_connection_failed">Audio could not connect. Reconnect the headset and try again.</string>
     <string name="assist_bluetooth_call_quality">Bluetooth microphone active: mono call audio. Detail may be limited and nearby voices may be suppressed by the earbuds. For clearer surrounding sound, try the phone microphone.</string>
     <string name="assist_sound_quality">Sound clarity</string>
-    <string name="assist_quality_description">Natural capture avoids extra call processing where supported. Use Call mode if Natural cannot connect. Speech clarity brings out consonants; bass reduction softens boomy sound.</string>
+    <string name="assist_quality_description">Speech clarity lifts consonant detail; bass reduction softens boomy voices. Natural capture avoids extra call processing where supported. Use Call mode if Natural cannot connect.</string>
+    <string name="assist_speech_engine">Speech enhancement</string>
+    <string name="assist_engine_description">DPDFNet8 is a more demanding speech model. Start with Gentle noise reduction and compare word clarity with RNNoise. Both run on this device; Off noise reduction bypasses the model.</string>
+    <string name="assist_dpdfnet_level_description">DPDFNet8 uses your fitted amplification and volume setting. The separate quiet-speech boost is available with RNNoise.</string>
     <string name="assist_capture_mode">Microphone processing</string>
     <string name="assist_capture_natural">Natural</string>
     <string name="assist_capture_call">Call mode</string>
@@ -94,11 +97,10 @@
     <string name="assist_quiet_speech_description">Gradually lifts quiet speech with noise reduction enabled. Off keeps the original speech level. Strong can also make background sound louder.</string>
 
     <!-- Presets -->
-    <string name="preset_title">Environment</string>
+    <string name="preset_title">Speech profile</string>
     <string name="preset_standard">Standard</string>
     <string name="preset_conversation">Conversation</string>
-    <string name="preset_outdoors">Outdoors</string>
-    <string name="preset_while_running">Environment changes apply the next time you start assist.</string>
+    <string name="preset_while_running">Speech profile changes apply the next time you start assist.</string>
 
     <!-- Profiles -->
     <string name="profiles_title">Saved profiles</string>

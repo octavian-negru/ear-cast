@@ -67,4 +67,5 @@ data class ListeningSettings(
     val captureMode: String = "NATURAL",
     val speechClarity: String = "GENTLE",
     val quietSpeech: String = "OFF",
+    val speechEngine: String = "RNNOISE",
 )

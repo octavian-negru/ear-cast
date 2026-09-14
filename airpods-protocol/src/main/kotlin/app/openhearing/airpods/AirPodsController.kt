@@ -45,16 +45,23 @@ enum class AirPodsModel {
 sealed interface AirPodsState {
     data object Disconnected : AirPodsState
 
-    data class Connected(val model: AirPodsModel, val leftBatteryPercent: Int?, val rightBatteryPercent: Int?) :
-        AirPodsState
+    data class Connected(
+        val model: AirPodsModel,
+        val leftBatteryPercent: Int?,
+        val rightBatteryPercent: Int?,
+    ) : AirPodsState
 }
 
 /** Result of attempting to open the (UNVERIFIED) control channel. */
 sealed interface ConnectResult {
-    data class Success(val model: AirPodsModel) : ConnectResult
+    data class Success(
+        val model: AirPodsModel,
+    ) : ConnectResult
 
     data object NoDeviceBonded : ConnectResult
 
     /** The control channel could not be established — expected while UNVERIFIED. */
-    data class ProtocolUnavailable(val detail: String) : ConnectResult
+    data class ProtocolUnavailable(
+        val detail: String,
+    ) : ConnectResult
 }

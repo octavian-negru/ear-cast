@@ -1,5 +1,18 @@
 # Audio clarity: implementation, library review and next steps
 
+## Latest: speech understanding and remaining muffling
+
+The user has now tested the earlier changes and reports substantially better sound.
+The latest source update moves speech clarity after WDRC, adds the complete
+DPDFNet8 Android engine with three pinned full models, and removes Outdoors from
+the selector. The user's Standard/Natural/Speech Strong/Bass Gentle/Noise Strong/
+Boost Off combination is preserved as the baseline. **This newest update has not
+been built or run.** See [speech understanding changes and next comparison](SPEECH_UNDERSTANDING.md)
+for the current implementation, library decision and prioritized validation.
+
+The sections below retain the earlier RNNoise/DeepFilterNet research and workbench
+history; DPDFNet8 is now an additional integrated engine, not an unimplemented proposal.
+
 Research and source review: 2026-09-14. **No builds, compiler invocations, Gradle
 tasks or executable DSP tests were run, and no build tools were installed.**
 

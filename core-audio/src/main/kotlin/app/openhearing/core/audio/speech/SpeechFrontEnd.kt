@@ -10,7 +10,8 @@ import app.openhearing.core.audio.dsp.Biquad
  * The input is mono duplicated into interleaved stereo by the capture engine.
  * Denoising uses fixed frames across arbitrary I/O block boundaries, with one frame
  * of adapter buffering plus the denoiser's own algorithm/resampler delay, with no
- * allocations in process. Off adds no buffering or noise gate.
+ * Kotlin frame allocations in process. A native backend may allocate internally.
+ * Off adds no buffering or noise gate. Consonant shaping runs after downstream WDRC.
  * The downstream processor must end in an output limiter.
  */
 class SpeechFrontEnd(
@@ -25,12 +26,6 @@ class SpeechFrontEnd(
         null
     } else {
         Biquad.lowShelf(450.0, -options.voiceComfort.reductionDb, sampleRateHz)
-    }
-    private val presence = if (options.speechClarity == SpeechClarity.OFF) {
-        null
-    } else {
-        // Stay well inside Nyquist, including the 8 kHz narrowband fallback.
-        Biquad.peaking(minOf(2_500.0, sampleRateHz * 0.3), options.speechClarity.gainDb, 0.8, sampleRateHz)
     }
     private val inputFrame = FloatArray(denoiser?.frameSize ?: 0)
     private val outputFrame = FloatArray(inputFrame.size)
@@ -50,7 +45,8 @@ class SpeechFrontEnd(
             val input = buffer[i].takeIf { it.isFinite() } ?: 0f
             val cleaned = denoise(input)
             val low = bass?.processSample(cleaned.toDouble()) ?: cleaned.toDouble()
-            val output = (presence?.processSample(low) ?: low).toFloat()
+            // Speech presence belongs after WDRC in each downstream ear chain.
+            val output = low.toFloat()
             buffer[i] = output
             buffer[i + 1] = output
         }
@@ -61,9 +57,11 @@ class SpeechFrontEnd(
 
     override fun onStreamStarted(metadata: Map<String, String>) {
         val delay = denoiser?.algorithmDelaySamples
-        diagnostics?.streamStarted(metadata + mapOf(
+        diagnostics?.streamStarted(metadata + denoiser?.diagnosticMetadata.orEmpty() + mapOf(
             "enhancement_delay_samples" to if (denoiser == null) "0" else
                 delay?.let { (it + denoiser.frameSize).toString() }.orEmpty(),
+            "enhanced_tap" to "mono_enhancement_and_bass_before_fitting",
+            "speech_presence_position" to "after_per_ear_wdrc_before_feedback_guard_and_limiter",
         ))
     }
 

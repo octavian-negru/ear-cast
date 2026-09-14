@@ -91,6 +91,24 @@ class Biquad(
             )
         }
 
+        /** RBJ high shelf with slope S=1; lifts consonant detail across the available upper band. */
+        fun highShelf(cutoffHz: Double, gainDb: Double, sampleRateHz: Int): Biquad {
+            require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0)
+            require(gainDb.isFinite())
+            val a = 10.0.pow(gainDb / 40.0)
+            val w0 = 2.0 * PI * cutoffHz / sampleRateHz
+            val c = cos(w0)
+            val beta = sqrt(2.0 * a) * sin(w0)
+            val a0 = (a + 1) - (a - 1) * c + beta
+            return Biquad(
+                a * ((a + 1) + (a - 1) * c + beta) / a0,
+                -2 * a * ((a - 1) + (a + 1) * c) / a0,
+                a * ((a + 1) + (a - 1) * c - beta) / a0,
+                2 * ((a - 1) - (a + 1) * c) / a0,
+                ((a + 1) - (a - 1) * c - beta) / a0,
+            )
+        }
+
         /**
          * Peaking-EQ biquad: boosts/cuts [gainDb] around [centerHz] with bandwidth
          * controlled by [q]. This is how the audiogram's per-frequency insertion

@@ -301,7 +301,6 @@ private fun PresetSelector(preset: AssistPreset, running: Boolean, onChange: (As
 private fun presetLabel(preset: AssistPreset): String = when (preset) {
     AssistPreset.STANDARD -> stringResource(R.string.preset_standard)
     AssistPreset.CONVERSATION -> stringResource(R.string.preset_conversation)
-    AssistPreset.OUTDOORS -> stringResource(R.string.preset_outdoors)
 }
 
 @Composable

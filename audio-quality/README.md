@@ -31,7 +31,8 @@ plays audio automatically. **The code and tests have been written, not executed.
 The ZIP contains a four-channel float WAV, `blocks.csv` and `metadata.json`.
 Channels are captured mono, enhanced mono, limited left and limited right. These
 are synchronous processing-clock taps, not automatically aligned acoustic events.
-Enhanced includes neural leveling and bass/presence shaping. Limited channels are
+Enhanced includes neural processing and bass shaping. Speech presence now runs
+after per-ear WDRC and therefore appears in the limited channels. Limited channels are
 before PCM16 output conversion; classic SCO averages the two limited ears for playback.
 The fixed model/resampler delay plus the Kotlin frame adapter is recorded. It
 does not include Android/Bluetooth buffering. Final limiter/filter delay is not
@@ -144,3 +145,37 @@ with delay compensation and 12 dB ambience retention, and records package versio
 and model-file hashes. This is an offline quality challenger, not an Android DFN
 implementation or a directly comparable CPU/latency benchmark. Android integration
 still requires pinned per-ABI native libraries and golden-output validation.
+
+## DPDFNet8: replay the Android adapter
+
+The app now bundles a separate complete DPDFNet8 engine. The workbench can link
+the same production C++ adapter on a Linux build host with **existing** sherpa-onnx
+v1.13.8 and ONNX Runtime 1.28.2 shared libraries. Supply a directory containing
+`libsherpa-onnx-c-api.so`, `libonnxruntime.so` and their required runtime dependencies:
+
+```bash
+cmake -S audio-quality -B /tmp/quality-dpdfnet -DCMAKE_BUILD_TYPE=Release -DOPENHEARING_SHERPA_RUNTIME_DIR=/path/to/linux/lib
+cmake --build /tmp/quality-dpdfnet
+LD_LIBRARY_PATH=/path/to/linux/lib ctest --test-dir /tmp/quality-dpdfnet --output-on-failure
+LD_LIBRARY_PATH=/path/to/linux/lib python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/quality-dpdfnet/audio_render --dpdfnet-models core-audio/src/main/assets/speech-models --output /tmp/dpdfnet-comparison
+```
+
+These commands are deferred instructions, not commands executed during this update.
+Without the runtime-directory option, the original RNNoise/Speex workbench remains
+available. Enabling DPDFNet adds Gentle/Strong replay; hashes must match the app's
+bundled models. The adapter uses the same state, resampling, five-hop model/STFT
+delay and aligned dry mix as Android. It flushes enough zero frames to preserve
+the entire model tail instead of relying on the upstream one-hop streaming flush.
+
+The native test checks actual-model initialization, finite output, dry delay and
+strength mixing at all six capture rates. It does not prove the wet model's
+intelligibility or replace golden-output validation. Kotlin tests verify that
+consonant lift survives active WDRC and remains bounded by the final limiter.
+The renderer isolates enhancement; it does not include the Kotlin fitting,
+post-WDRC shelf or final limiter. Use post-limiter device taps to assess those.
+
+Use the user's reported headset baseline: Standard, Natural, Speech Strong,
+Bass Gentle, Noise Reduction Strong, Quiet Speech Boost Off. Compare RNNoise and
+DPDFNet8 at matched listening levels; stronger treble or a lower noise floor is
+not sufficient evidence of better word understanding. See
+[speech understanding notes](../docs/SPEECH_UNDERSTANDING.md).

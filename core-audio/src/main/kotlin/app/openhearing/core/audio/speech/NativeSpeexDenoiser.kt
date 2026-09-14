@@ -5,6 +5,7 @@ interface FrameDenoiser : AutoCloseable {
     val frameSize: Int
     /** Algorithm delay excluding SpeechFrontEnd's frame adapter; null if not established. */
     val algorithmDelaySamples: Int? get() = null
+    val diagnosticMetadata: Map<String, String> get() = emptyMap()
     fun process(frame: FloatArray)
 }
 
