@@ -16,8 +16,8 @@ continues to bypass the denoiser. Compare both microphone sources using the same
 talker before increasing strength. Bass reduction can be turned Off if voices
 sound thin. Presence EQ and fitted amplification are separate from denoising.
 
-The implementation supplies the model's 48 kHz, mono, 480-sample contract. SCO
-8/16 kHz input is converted with the stateful **SpeexDSP quality-10 resampler**,
+The implementation supplies the model's 48 kHz, mono, 480-sample contract. Capture
+at 8, 16, 24, 32 or 44.1 kHz is converted with the **SpeexDSP quality-10 resampler**,
 enhanced, then converted back. All intermediate samples remain floating point;
 RNNoise receives PCM16-scale floats, not normalized floats or re-quantized shorts.
 Resampling does not recreate frequencies absent from the capture.
@@ -25,9 +25,10 @@ Resampling does not recreate frequencies absent from the capture.
 Gentle retains approximately 50% dry contribution, Strong approximately 25%.
 The blend happens in the same delayed spectrum before synthesis, preventing a
 timing mismatch between paths. These are blend settings, not guaranteed 6/12 dB
-attenuation limits. There is no VAD gate, speaker-selection rule, added AGC, or
-second denoiser. The existing per-ear fitting, compression, feedback guard,
-master-gain cap and final output limiters remain downstream.
+attenuation limits. There is no VAD gate, speaker-selection rule or second denoiser.
+An optional quiet-speech leveler is available as described below. The existing
+per-ear fitting, compression, feedback guard, master-gain cap and final output
+limiters remain downstream.
 
 Native state is owned by the audio worker and released on session exit. Invalid
 frames or initialization failures become session errors, rather than silently
@@ -74,90 +75,77 @@ that can be dropped into a generic Android ONNX call: model configuration,
 feature normalization, STFT/ISTFT, temporal state and filter application must
 agree. A proper integration should package pinned Android libraries for each ABI
 and reuse its complete processing implementation, or reproduce that contract
-against golden outputs. This remains future work; this change does not include
-a placeholder DFN backend or claim a quality ranking based on popularity.
+against golden outputs. Android deployment remains future work. The separate workbench now includes an
+offline comparison using the complete upstream Python pipeline, not a placeholder
+Android backend or a quality ranking based on popularity.
 
-## Next steps, in priority order
+## Implementation update: quality workbench and compatibility
 
-### 1. Establish what the headset actually captures
+The subsequent implementation adds these pieces without building or executing tests:
 
-Add an explicitly enabled diagnostic recording mode with synchronized taps before
-enhancement, after enhancement and after limiting. Keep files local. Record the
-routed input/output, requested and actual stream rate, Android source, headset
-model, firmware, and processing settings. Record input RMS/peak/clipped-sample
-count and capture overruns; output level alone cannot reveal missing input.
+- **Local diagnostic recording:** a one-session UI switch, notes, three processing
+  taps (four WAV channels), timing/level/route metadata, ZIP export and deletion.
+  Disk I/O runs on a separate worker behind a preallocated bounded queue. A full
+  queue ends recording without delaying playback. Recordings last at most 30
+  seconds and stay in app-private storage excluded from backup.
+- **Quiet speech boost:** an opt-in 6/12 dB upward leveler after RNNoise. Its
+  confidence-weighted target grows gradually, relaxes when speech ends and is
+  constrained by each frame's peak. It never attenuates below unity or gates
+  low-confidence audio. Off remains the default; it requires noise reduction.
+  Existing fitted gains and final output limiters remain downstream.
+- **Compatibility:** SCO attempts 16 kHz then 8 kHz on both older and newer Android.
+  Other routes can try 48, 44.1, 32, 24, 16 and 8 kHz, prioritizing mutually
+  advertised PCM rates. Unsupported stream creation/start configurations are
+  released before trying another. Natural capture can fall back from Unprocessed
+  to Voice recognition; it never silently selects Call processing. The selected
+  microphone/output must still be verified before processed audio is submitted.
+- **Headset discovery:** wait for the input endpoint after connection, handle a
+  missing address through an unambiguous matching name, and reject conflicting
+  known addresses or indistinguishable candidates. This does not add access to
+  private transparency microphones or A2DP microphone capture.
+- **Evaluation:** a dedicated [audio-quality workbench](../audio-quality/README.md)
+  contains native tests, Kotlin regression tests, a production-linked renderer,
+  real-speech mixture generation, reference metrics, blind level-matched listening
+  files, diagnostic extraction and explicit acceptance gates. An optional offline
+  DeepFilterNet3 backend invokes its complete upstream pipeline with a local model.
 
-Use a repeatable speaker at 0.5, 2 and 5 metres, in quiet, fan noise, speech babble
-and a reverberant room. Include soft consonants, speech onsets after silence,
-two simultaneous talkers, wearer speech, music and important environmental sounds.
-Capture the headset microphone and phone microphone at the same listener position;
-then separately capture the phone near the speaker. The latter is a placement
-comparison, not a software-quality comparison.
+The capture ring now reserves at least 100 ms of PCM to absorb short inference
+bursts. This is capacity, not an intentional 100 ms playback delay. Sustained
+processing slower than capture still needs device profiling. Per-block timings,
+output underruns and timestamp-derived capture backlog help expose that problem;
+input overrun count and headset firmware remain explicitly unknown where Android
+cannot provide them. Notes can carry the firmware and physical test conditions.
 
-Android [documents](https://developer.android.com/media/platform/mediarecorder)
-requesting unprocessed capture where supported, with voice-recognition capture
-as an alternative. That API choice does not prove the Bluetooth firmware feed is
-raw. If the distant voice is already absent in the pre-enhancement tap, prioritize
-an ambient-capable microphone, external/remote mic, or microphone placement.
-Do not invent a five-metre sensitivity guarantee or claim that upsampling restores
-information. The app currently receives mono capture, not a synchronized raw
-earbud microphone array suitable for beamforming.
+### Remaining work, in priority order
 
-### 2. Run the deferred correctness checks on a build machine
+1. On a build machine, run the workbench's native tests and the app's Kotlin tests.
+   Build debug/release for all configured ABIs, check R8/JNI/model loading and
+   16 KB library alignment, and exercise failure/stop/reconnect paths on hardware.
+   **No build or runtime test result is claimed yet.**
+2. Capture actual headset and phone-microphone recordings at 0.5, 2 and 5 metres
+   in quiet, fan noise, babble and a reverberant room. Use identical source
+   positions for microphone comparisons; separately assess a phone placed near
+   the talker. If speech is missing in the raw tap, prioritize capture hardware
+   or placement. Neither model enhancement nor resampling can restore an absent
+   captured signal.
+3. Run the production-linked Off/Speex/RNNoise/quiet-boost comparisons and optional
+   DFN3 challenger on the same real speech. Predeclare acceptance criteria. Use
+   blind, level-matched listening and per-condition word/onset retention alongside
+   [STOI/ESTOI](https://github.com/mpariente/pystoi). The supplied numeric gate is
+   illustrative; its thresholds have not been validated on this headset.
+4. Integrate DFN3 on Android only after evaluating its quality advantage: pin the
+   model, complete C API implementation and per-ABI libraries, then compare against
+   golden offline outputs. No Android DFN runtime is bundled by this update.
+5. Use measured levels to tune quiet-speech gain and WDRC fitting. Compare models
+   trained with actual room responses and SCO filtering if reverberation dominates.
+   Preserve general environmental listening as a separate goal from speech focus.
+6. Measure CPU/battery/temperature and capture continuity before changing worker
+   scheduling, SIMD dispatch, model size or Oboe I/O. Latency remains secondary to
+   intelligibility and uninterrupted capture.
 
-- Build debug and release for the four configured Android ABIs; check JNI loading,
-  model initialization, release/R8 retention and 16 KB native-library alignment.
-- Run `SpeechFrontEndTest` and the existing downstream limiter/WDRC tests. The
-  extended framing test covers 8, 16 and 48 kHz with irregular and oversized blocks.
-- Run the added `neural_speech_test` CMake/CTest target on a host with a C/C++
-  toolchain and JDK/JNI headers. It checks bundled-model initialization, dry/wet
-  temporal alignment, weak-signal float preservation in the dry reference,
-  resampler frame counts, silence, invalid input and incorrect frame lengths.
-- Exercise start/stop, route loss, initialization failure and repeated sessions on
-  real hardware. Check recording continuity while the full model runs; tolerating
-  lag does not mean accepting dropped capture frames.
-
-These tests are authored but **not run**. Static source inspection, resource XML
-parsing, source/model checksums and path/interface checks are the only validation
-performed in this environment. They cannot certify compilability or sound quality.
-
-### 3. Compare quality before tuning defaults
-
-Replay the same captured input through Off, the old Speex baseline, RNNoise
-Gentle/Strong and standard DeepFilterNet3. Use blind, level-matched listening;
-louder output can masquerade as clearer output. Listen for missing words,
-consonants, pumping, tonal artifacts and loss of useful surrounding sounds.
-
-With clean aligned references, use [STOI/ESTOI](https://github.com/mpariente/pystoi)
-as supplementary intelligibility measurements. For non-reference recordings,
-[DNSMOS and DNS challenge tools](https://github.com/microsoft/DNS-Challenge) can
-provide another signal. Do not select a model solely because it makes background
-noise quieter or scores better on one metric. Predeclare acceptance criteria:
-improved distant-word recognition and listener preference in target conditions,
-no onset loss in quiet speech, and acceptable environmental-sound retention.
-Report failures per condition, not just an overall average.
-
-### 4. Improve audibility and reverberation based on that evidence
-
-If speech survives capture but stays too quiet, evaluate bounded, slowly varying
-speech-aware input leveling and refit the multiband WDRC knees/gains using measured
-levels. Limit gain growth during noise-only periods without muting low-confidence
-frames. Preserve the output limiter and evaluate own-voice comfort and pumping.
-Current digital gains are not calibrated hearing-aid prescriptions.
-
-If room reflections dominate, compare DeepFilterNet and training/adaptation with
-measured room responses and actual SCO-filtered speech. RNNoise's upstream
-[training instructions](https://github.com/xiph/rnnoise#readme) support room-response
-augmentation. A denoiser is not automatically a dereverberator, and clean 48 kHz
-benchmark results do not establish performance on an 8/16 kHz headset feed.
-
-Keep speech focus and general environmental listening as distinct quality goals.
-A model trained to remove non-speech can remove sounds a hearing-assistance user
-wants to hear. Preserve an accessible Off option and evaluate that tradeoff explicitly.
-
-### 5. Optimize deployment and latency only after quality selection
-
-Measure per-frame processing time, capture loss, temperature/battery behavior and
-end-to-end delay. Then address worker buffering and CPU dispatch, package/model
-size and possibly Oboe I/O. Keep model changes subject to the same recording-based
-comparison; lower latency alone is not an intelligibility improvement.
+See [the workbench README](../audio-quality/README.md) for file formats, deferred
+commands, limitations and an end-to-end evaluation procedure. No build tools or
+Python dependencies were installed, and no evaluation code was executed here.
+Source-only checks covered Python syntax trees, JSON/XML parsing and diff
+whitespace. Kotlin/C++ compilation, Android lint and runtime behavior remain
+unverified until the deferred build and test work is performed.

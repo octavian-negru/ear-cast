@@ -201,6 +201,7 @@ private fun AssistControls(
         enabled = !state.active,
         onChange = viewModel::setListeningOptions,
     )
+    DiagnosticControls(viewModel, state.active)
 
     if (state.profiles.size > 1) {
         ProfilesCard(

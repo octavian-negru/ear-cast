@@ -39,7 +39,7 @@ class SpeechFrontEndTest {
 
     @Test
     fun `denoising preserves sample order and constant delay across uneven blocks`() {
-        for (rate in listOf(8_000, 16_000, 48_000)) {
+        for (rate in listOf(8_000, 16_000, 24_000, 32_000, 44_100, 48_000)) {
             val frameSize = rate / 100
             val denoiser = FakeDenoiser(frameSize)
             val processor = SpeechFrontEnd(rate, bypass, AudioProcessor {}, denoiser)
@@ -58,7 +58,7 @@ class SpeechFrontEndTest {
 
     @Test
     fun `speech presence lifts consonant band and bass reduction leaves it intact at all rates`() {
-        for (rate in listOf(8_000, 16_000, 48_000)) {
+        for (rate in listOf(8_000, 16_000, 24_000, 32_000, 44_100, 48_000)) {
             val clarity = bypass.copy(speechClarity = SpeechClarity.GENTLE)
             assertTrue(responseDb(rate, 2400.0, clarity) in 2.5..3.1)
             assertTrue(abs(responseDb(rate, 200.0, clarity)) < 0.2)
@@ -71,11 +71,12 @@ class SpeechFrontEndTest {
     @Test
     fun `conditioning stays finite and final stereo output stays limited during loud transients`() {
         val curve = GainCurve(listOf(GainPoint(Hertz(500.0), 30.0), GainPoint(Hertz(2500.0), 30.0)))
-        for (rate in listOf(8_000, 16_000, 48_000)) {
+        for (rate in listOf(8_000, 16_000, 24_000, 32_000, 44_100, 48_000)) {
             val frames = rate / 250
             fun ear() = HearingAssistChain(curve, rate, 30.0, ceilingLinear = 0.3f)
             val options = ListeningOptions(voiceComfort = VoiceComfort.STRONG, speechClarity = SpeechClarity.STRONG)
-            SpeechFrontEnd(rate, options, StereoAssistChain(ear(), ear(), frames), FakeDenoiser(rate / 100)).use { chain ->
+            val downstream = StereoAssistChain(ear(), ear(), frames)
+            SpeechFrontEnd(rate, options, downstream, FakeDenoiser(rate / 100)).use { chain ->
                 repeat(300) { block ->
                     val audio = FloatArray(frames * 2) { i ->
                         when {

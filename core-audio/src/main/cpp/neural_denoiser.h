@@ -4,6 +4,7 @@
 #include <memory>
 #include "rnnoise.h"
 #include "speex/speex_resampler.h"
+#include "speech_leveler.h"
 
 namespace openhearing {
 
@@ -11,9 +12,10 @@ namespace openhearing {
 // The caller must retain the existing hearing-assist output limiter downstream.
 class NeuralDenoiser {
 public:
-    NeuralDenoiser(int sample_rate, int suppression_db);
+    NeuralDenoiser(int sample_rate, int suppression_db, float maximum_gain_db = 0);
     void process(float* samples, int count);
     int frame_size() const { return frame_size_; }
+    int delay_samples() const { return delay_samples_; }
 
 private:
     using RnnPtr = std::unique_ptr<DenoiseState, decltype(&rnnoise_destroy)>;
@@ -26,6 +28,8 @@ private:
     static constexpr int kModelFrame = 480;
     int frame_size_;
     float dry_mix_;
+    int delay_samples_;
+    SpeechLeveler leveler_;
     RnnPtr rnn_{nullptr, rnnoise_destroy};
     ResamplerPtr up_{nullptr, speex_resampler_destroy};
     ResamplerPtr down_{nullptr, speex_resampler_destroy};

@@ -35,7 +35,11 @@ internal class AssistAudioStreams(
         return AudioRecord.Builder()
             .setAudioSource(source)
             .setAudioFormat(platformFormat(PlatformAudioFormat.CHANNEL_IN_MONO))
-            .setBufferSizeInBytes(maxOf(minimum, format.framesPerBlock * Short.SIZE_BYTES * 2))
+            // Absorb short inference/scheduling bursts; latency optimization is deferred.
+            .setBufferSizeInBytes(
+                maxOf(minimum, format.framesPerBlock * Short.SIZE_BYTES * 2,
+                    format.sampleRateHz / 10 * Short.SIZE_BYTES),
+            )
             .build()
     }
 

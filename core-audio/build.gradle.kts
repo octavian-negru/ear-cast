@@ -33,6 +33,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    sourceSets.getByName("test").java.srcDir(rootProject.file("audio-quality/kotlin"))
 }
 
 dependencies {

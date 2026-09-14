@@ -48,7 +48,7 @@ void aligned_mix() {
 }
 
 void rates_and_weak_input() {
-    for (int rate : {8000, 16000, 48000}) {
+    for (int rate : {8000, 16000, 24000, 32000, 44100, 48000}) {
         // Internal 0 dB setting is a delayed dry reference for adapter tests.
         openhearing::NeuralDenoiser reference(rate, 0);
         std::vector<float> frame(reference.frame_size());
@@ -94,12 +94,38 @@ void rates_and_weak_input() {
         }
     }
 }
+
+void declared_delay_matches_impulse() {
+    for (int rate : {8000, 16000, 24000, 32000, 44100, 48000}) {
+        openhearing::NeuralDenoiser processor(rate, 0);
+        const int size = processor.frame_size();
+        const int impulse = 2 * size;
+        std::vector<float> frame(size);
+        float maximum = 0;
+        int maximum_index = -1;
+        for (int block = 0; block < 30; ++block) {
+            std::fill(frame.begin(), frame.end(), 0.0f);
+            if (block == 2) frame[0] = 0.01f;
+            processor.process(frame.data(), size);
+            for (int i = 0; i < size; ++i) {
+                if (std::abs(frame[i]) > maximum) {
+                    maximum = std::abs(frame[i]);
+                    maximum_index = block * size + i;
+                }
+            }
+        }
+        require(maximum > 0.001f, "Dry impulse disappeared");
+        require(std::abs(maximum_index - impulse - processor.delay_samples()) <= 1,
+                "Declared model/resampler delay is incorrect");
+    }
+}
 }
 
 int main() {
     try {
         aligned_mix();
         rates_and_weak_input();
+        declared_delay_matches_impulse();
         std::cout << "Neural speech adapter checks passed\n";
         return 0;
     } catch (const std::exception& e) {

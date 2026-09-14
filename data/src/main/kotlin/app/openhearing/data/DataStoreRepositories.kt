@@ -30,6 +30,7 @@ private object Keys {
     val VOICE_COMFORT = stringPreferencesKey("voice_comfort")
     val CAPTURE_MODE = stringPreferencesKey("capture_mode")
     val SPEECH_CLARITY = stringPreferencesKey("speech_clarity")
+    val QUIET_SPEECH = stringPreferencesKey("quiet_speech")
     val MEDIA_EQ_ENABLED = booleanPreferencesKey("media_eq_enabled")
     val PROFILES = stringPreferencesKey("profiles")
     val ACTIVE_PROFILE_ID = stringPreferencesKey("active_profile_id")
@@ -84,6 +85,7 @@ class DataStoreSettingsRepository(private val dataStore: DataStore<Preferences>)
             voiceComfort = it[Keys.VOICE_COMFORT] ?: defaults.voiceComfort,
             captureMode = it[Keys.CAPTURE_MODE] ?: defaults.captureMode,
             speechClarity = it[Keys.SPEECH_CLARITY] ?: defaults.speechClarity,
+            quietSpeech = it[Keys.QUIET_SPEECH] ?: defaults.quietSpeech,
         )
     }
 
@@ -93,6 +95,7 @@ class DataStoreSettingsRepository(private val dataStore: DataStore<Preferences>)
             it[Keys.VOICE_COMFORT] = settings.voiceComfort
             it[Keys.CAPTURE_MODE] = settings.captureMode
             it[Keys.SPEECH_CLARITY] = settings.speechClarity
+            it[Keys.QUIET_SPEECH] = settings.quietSpeech
         }
     }
 

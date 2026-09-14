@@ -2,6 +2,7 @@ package app.openhearing.assist
 
 import android.content.Context
 import android.media.AudioManager
+import android.os.Build
 import app.openhearing.audiogram.GainCurve
 import app.openhearing.core.audio.AndroidAudioEngine
 import app.openhearing.core.audio.AudioFormat
@@ -13,6 +14,7 @@ import app.openhearing.core.audio.dsp.LevelWindow
 import app.openhearing.core.audio.dsp.MeteredAudioProcessor
 import app.openhearing.core.audio.dsp.OutputLevelMeter
 import app.openhearing.core.audio.dsp.StereoAssistChain
+import app.openhearing.core.audio.diagnostics.SessionDiagnostics
 import app.openhearing.core.audio.speech.ListeningOptions
 import app.openhearing.core.audio.speech.NativeRnnoiseDenoiser
 import app.openhearing.core.audio.speech.NoiseReduction
@@ -21,6 +23,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,6 +38,15 @@ data class ExposureSnapshot(
     val sessionUnits: Double = 0.0,
     val unflushedUnits: Double = 0.0,
     val lastRmsDbfs: Double = Double.NEGATIVE_INFINITY,
+)
+
+/** Recording is opt-in for one start only, never restored by a tile or process restart. */
+data class DiagnosticUiState(
+    val armed: Boolean = false,
+    val saving: Boolean = false,
+    val notes: String = "",
+    val message: String = "",
+    val lastDirectory: File? = null,
 )
 
 /** Immutable configuration for an assist session, derived from the active profile. */
@@ -72,6 +85,10 @@ class AssistController
 constructor(
     @ApplicationContext context: Context,
 ) {
+    private val diagnosticRoot = File(context.noBackupFilesDir, "audio-diagnostics")
+    private val sharedRoot = File(context.cacheDir, "shared")
+    private val _diagnostics = MutableStateFlow(DiagnosticUiState())
+    val diagnostics: StateFlow<DiagnosticUiState> = _diagnostics.asStateFlow()
     private val manager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val _sessionStatus = MutableStateFlow(AudioSessionStatus())
     val sessionStatus: StateFlow<AudioSessionStatus> = _sessionStatus.asStateFlow()
@@ -117,6 +134,52 @@ constructor(
 
     fun hasConfig(): Boolean = config != null
 
+    fun armDiagnostics(armed: Boolean) {
+        if (!_running.value && _sessionStatus.value.state != AudioSessionState.CONNECTING &&
+            !_diagnostics.value.saving) {
+            _diagnostics.value = _diagnostics.value.copy(armed = armed)
+        }
+    }
+
+    fun setDiagnosticNotes(notes: String) {
+        if (!_running.value && !_diagnostics.value.saving) {
+            _diagnostics.value = _diagnostics.value.copy(notes = notes.take(512))
+        }
+    }
+
+    /** Restore access to completed local files without re-arming recording. Call on an I/O dispatcher. */
+    @Synchronized
+    fun refreshDiagnostics() {
+        if (_diagnostics.value.saving || _diagnostics.value.lastDirectory != null) return
+        val latest = diagnosticRoot.listFiles()?.filter {
+            File(it, "metadata.json").isFile && File(it, "stages.wav").isFile
+        }?.maxByOrNull { File(it, "metadata.json").lastModified() }
+        if (latest != null && !_diagnostics.value.saving && _diagnostics.value.lastDirectory == null) {
+            _diagnostics.value = _diagnostics.value.copy(lastDirectory = latest, message = "Local recording available")
+        }
+    }
+
+    /** Call on an I/O dispatcher. Never deletes a recording still being written. */
+    @Synchronized
+    fun deleteDiagnostics() {
+        if (_diagnostics.value.saving || _running.value ||
+            _sessionStatus.value.state == AudioSessionState.CONNECTING) return
+        val folders = diagnosticRoot.listFiles()?.filter { it.isDirectory }.orEmpty()
+        val exports = sharedRoot.listFiles()?.filter {
+            it.name.startsWith("sound-") && (it.extension == "zip" || it.extension == "tmp")
+        }.orEmpty()
+        val deletedFolders = folders.map { it.deleteRecursively() }.all { it }
+        val deletedExports = exports.map { it.delete() }.all { it }
+        _diagnostics.value = _diagnostics.value.copy(
+            lastDirectory = null,
+            message = if (deletedFolders && deletedExports) {
+                "Local recordings deleted"
+            } else {
+                "Some files could not be deleted"
+            },
+        )
+    }
+
     /**
      * Adjusts master gain immediately, including while the engine is running.
      * The chain clamps to the safety cap and the limiter stays downstream.
@@ -129,7 +192,9 @@ constructor(
     /** Build the per-ear chains from the current config and start the real-time loop. */
     fun startEngine() {
         val c = config ?: return
-        if (engine.isRunning) return
+        if (engine.isRunning || _sessionStatus.value.state == AudioSessionState.CONNECTING) return
+        val recordRequested = _diagnostics.value.armed
+        _diagnostics.value = _diagnostics.value.copy(armed = false)
         outputMeter.drain() // discard anything left from a previous session
         engine.startSession(
             AudioFormat(
@@ -164,16 +229,57 @@ constructor(
             chain = newChain
             // The meter taps the buffer AFTER the chain (post-limiter), so it
             // sees exactly what reaches the device; the chain stays untouched.
+            val denoiser = if (c.listeningOptions.noiseReduction == NoiseReduction.OFF) {
+                null
+            } else {
+                NativeRnnoiseDenoiser(
+                    actual.sampleRateHz,
+                    c.listeningOptions.noiseReduction.suppressionDb,
+                    c.listeningOptions.quietSpeech.maximumGainDb,
+                )
+            }
+            val recording = if (recordRequested) createDiagnostics(actual, current) else null
             SpeechFrontEnd(
                 actual.sampleRateHz,
                 c.listeningOptions,
                 MeteredAudioProcessor(newChain, outputMeter),
-                if (c.listeningOptions.noiseReduction == NoiseReduction.OFF) {
-                    null
-                } else {
-                    NativeRnnoiseDenoiser(actual.sampleRateHz, c.listeningOptions.noiseReduction.suppressionDb)
-                },
+                denoiser,
+                recording,
             )
+        }
+    }
+
+    @Synchronized
+    private fun createDiagnostics(actual: AudioFormat, c: AssistConfig): SessionDiagnostics? {
+        return try {
+            check(!_diagnostics.value.saving) { "Previous recording is still saving" }
+            val bytes = diagnosticRoot.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+            check(bytes < 96L * 1024 * 1024) { "Recording storage is full. Export and delete local recordings first." }
+            _diagnostics.value = _diagnostics.value.copy(saving = true, message = "Recording up to 30 seconds locally")
+            SessionDiagnostics(
+                File(diagnosticRoot, UUID.randomUUID().toString()), actual.sampleRateHz, actual.framesPerBlock,
+                mapOf(
+                    "created_utc" to java.time.Instant.now().toString(),
+                    "phone" to "${Build.MANUFACTURER} ${Build.MODEL}",
+                    "android_sdk" to Build.VERSION.SDK_INT.toString(),
+                    "headset_firmware" to "unavailable_via_android_audio_api_see_notes",
+                    "notes" to _diagnostics.value.notes,
+                    "requested_sample_rate" to c.sampleRateHz.toString(),
+                    "settings" to c.listeningOptions.toString(),
+                    "initial_master_gain_db" to c.masterGainDb.toString(),
+                    "ceiling_linear" to c.ceilingLinear.toString(),
+                    "left_fit" to c.leftGainCurve.points.toString(), "right_fit" to c.rightGainCurve.points.toString(),
+                    "rnnoise_revision" to "70f1d256acd4b34a572f999a05c87bf00b67730d",
+                ),
+            ) { directory, error ->
+                _diagnostics.value = _diagnostics.value.copy(
+                    saving = false, lastDirectory = directory,
+                    message = error ?: "Recording saved on this device",
+                )
+            }
+        } catch (e: Exception) {
+            _diagnostics.value = _diagnostics.value.copy(saving = false, message = e.message ?: "Recording unavailable")
+            null // Diagnostic storage failure must not end hearing assistance.
         }
     }
 

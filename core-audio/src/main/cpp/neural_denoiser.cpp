@@ -8,9 +8,11 @@
 
 namespace openhearing {
 
-NeuralDenoiser::NeuralDenoiser(int sample_rate, int suppression_db)
-    : frame_size_(sample_rate / 100), dry_mix_(1.0f) {
-    if ((sample_rate != 8000 && sample_rate != 16000 && sample_rate != kModelRate) ||
+NeuralDenoiser::NeuralDenoiser(int sample_rate, int suppression_db, float maximum_gain_db)
+    : frame_size_(sample_rate / 100), dry_mix_(1.0f), delay_samples_(2 * frame_size_),
+      leveler_(maximum_gain_db) {
+    if ((sample_rate != 8000 && sample_rate != 16000 && sample_rate != 24000 &&
+         sample_rate != 32000 && sample_rate != 44100 && sample_rate != kModelRate) ||
         suppression_db < 0 || suppression_db > 18) {
         throw std::invalid_argument("Unsupported neural speech processor configuration");
     }
@@ -28,6 +30,8 @@ NeuralDenoiser::NeuralDenoiser(int sample_rate, int suppression_db)
     if (sample_rate != kModelRate) {
         up_ = make_resampler(sample_rate, kModelRate);
         down_ = make_resampler(kModelRate, sample_rate);
+        delay_samples_ += speex_resampler_get_input_latency(up_.get()) +
+                          speex_resampler_get_output_latency(down_.get());
     }
 }
 
@@ -46,7 +50,7 @@ void NeuralDenoiser::resample(SpeexResamplerState* state, const float* input, in
     auto consumed = static_cast<spx_uint32_t>(input_count);
     auto produced = static_cast<spx_uint32_t>(output_count);
     const int error = speex_resampler_process_float(state, 0, input, &consumed, output, &produced);
-    // All supported rates have an exact integer ratio and use continuous 10 ms frames.
+    // Every supported rate has an integer sample count per continuous 10 ms frame.
     if (error != RESAMPLER_ERR_SUCCESS || consumed != static_cast<spx_uint32_t>(input_count) ||
         produced != static_cast<spx_uint32_t>(output_count)) {
         throw std::runtime_error("Speech resampler returned an incomplete frame");
@@ -68,8 +72,10 @@ void NeuralDenoiser::process(float* samples, int count) {
     for (float& sample : model_input_) sample *= 32768.0f;
     // Blend in the SAME delayed spectrum before synthesis (see vendor patch).
     // A VAD score never switches off the audio or decides which speaker is audible.
-    rnnoise_process_frame_with_dry_mix(rnn_.get(), model_output_.data(), model_input_.data(), dry_mix_);
+    const float speech_probability = rnnoise_process_frame_with_dry_mix(
+        rnn_.get(), model_output_.data(), model_input_.data(), dry_mix_);
     for (float& sample : model_output_) sample /= 32768.0f;
+    leveler_.process(model_output_.data(), kModelFrame, speech_probability);
     if (down_) {
         resample(down_.get(), model_output_.data(), kModelFrame, samples, count);
     } else {

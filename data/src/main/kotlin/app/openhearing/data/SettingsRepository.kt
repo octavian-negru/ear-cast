@@ -66,4 +66,5 @@ data class ListeningSettings(
     val voiceComfort: String = "GENTLE",
     val captureMode: String = "NATURAL",
     val speechClarity: String = "GENTLE",
+    val quietSpeech: String = "OFF",
 )

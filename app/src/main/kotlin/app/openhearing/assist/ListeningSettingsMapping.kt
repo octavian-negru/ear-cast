@@ -3,6 +3,7 @@ package app.openhearing.assist
 import app.openhearing.core.audio.speech.CaptureMode
 import app.openhearing.core.audio.speech.ListeningOptions
 import app.openhearing.core.audio.speech.NoiseReduction
+import app.openhearing.core.audio.speech.QuietSpeech
 import app.openhearing.core.audio.speech.SpeechClarity
 import app.openhearing.core.audio.speech.VoiceComfort
 import app.openhearing.data.ListeningSettings
@@ -12,6 +13,7 @@ fun ListeningSettings.toOptions(): ListeningOptions = ListeningOptions(
     voiceComfort = VoiceComfort.fromName(voiceComfort),
     captureMode = CaptureMode.fromName(captureMode),
     speechClarity = SpeechClarity.fromName(speechClarity),
+    quietSpeech = QuietSpeech.fromName(quietSpeech),
 )
 
 fun ListeningOptions.toSettings(): ListeningSettings = ListeningSettings(
@@ -19,4 +21,5 @@ fun ListeningOptions.toSettings(): ListeningSettings = ListeningSettings(
     voiceComfort = voiceComfort.name,
     captureMode = captureMode.name,
     speechClarity = speechClarity.name,
+    quietSpeech = quietSpeech.name,
 )

@@ -7,7 +7,8 @@ namespace {
 struct Session {
     openhearing::NeuralDenoiser denoiser;
     std::vector<float> frame;
-    Session(int rate, int suppression) : denoiser(rate, suppression), frame(denoiser.frame_size()) {}
+    Session(int rate, int suppression, float boost)
+        : denoiser(rate, suppression, boost), frame(denoiser.frame_size()) {}
 };
 
 void fail(JNIEnv* env, const char* message) {
@@ -18,13 +19,24 @@ void fail(JNIEnv* env, const char* message) {
 
 extern "C" JNIEXPORT jlong JNICALL
 Java_app_openhearing_core_audio_speech_NativeRnnoiseDenoiser_create(
-    JNIEnv* env, jobject, jint rate, jint suppression) {
+    JNIEnv* env, jobject, jint rate, jint suppression, jfloat boost) {
     try {
-        return reinterpret_cast<jlong>(new Session(rate, suppression));
+        return reinterpret_cast<jlong>(new Session(rate, suppression, boost));
     } catch (const std::exception& e) {
         fail(env, e.what());
         return 0;
     }
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_app_openhearing_core_audio_speech_NativeRnnoiseDenoiser_delaySamples(
+    JNIEnv* env, jobject, jlong handle) {
+    auto* session = reinterpret_cast<Session*>(handle);
+    if (!session) {
+        fail(env, "Speech processor is closed");
+        return 0;
+    }
+    return session->denoiser.delay_samples();
 }
 
 extern "C" JNIEXPORT void JNICALL

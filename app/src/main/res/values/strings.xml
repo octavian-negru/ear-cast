@@ -89,6 +89,9 @@
     <string name="assist_quality_strong">Strong</string>
     <string name="assist_noise_description">Gentle reduces background noise while keeping more surrounding sound. Strong focuses more on speech and may soften quiet voices or other sounds. Compare with Off if distant voices disappear.</string>
     <string name="assist_quality_restart">Stop assist to change sound clarity settings.</string>
+    <string name="assist_quiet_speech">Quiet speech boost</string>
+    <string name="assist_mono_output">This output provides mono sound.</string>
+    <string name="assist_quiet_speech_description">Gradually lifts quiet speech with noise reduction enabled. Off keeps the original speech level. Strong can also make background sound louder.</string>
 
     <!-- Presets -->
     <string name="preset_title">Environment</string>

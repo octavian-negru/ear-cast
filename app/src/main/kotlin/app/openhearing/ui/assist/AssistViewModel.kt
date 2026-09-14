@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -70,6 +71,15 @@ constructor(
     private val settingsRepository: SettingsRepository,
     private val sessionFactory: AssistSessionFactory,
 ) : ViewModel() {
+    val diagnostics = controller.diagnostics
+    init {
+        viewModelScope.launch(Dispatchers.IO) { controller.refreshDiagnostics() }
+    }
+    fun armDiagnostics(armed: Boolean) = controller.armDiagnostics(armed)
+    fun setDiagnosticNotes(notes: String) = controller.setDiagnosticNotes(notes)
+    fun deleteDiagnostics() {
+        viewModelScope.launch(Dispatchers.IO) { controller.deleteDiagnostics() }
+    }
     private val masterGain = MutableStateFlow(AssistUiState.DEFAULT_MASTER_GAIN_DB)
 
     private val session =

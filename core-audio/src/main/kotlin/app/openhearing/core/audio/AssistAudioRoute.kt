@@ -46,7 +46,6 @@ internal class AssistAudioRoute(private val context: Context, private val onLost
     var communication = false
         private set
     val sco: Boolean get() = output?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-    val legacy: Boolean get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.S
 
     val attributes: AudioAttributes
         get() = AudioAttributes.Builder()
@@ -87,7 +86,7 @@ internal class AssistAudioRoute(private val context: Context, private val onLost
         }
         val inputs = manager.getDevices(AudioManager.GET_DEVICES_INPUTS)
         val usable = candidates.filter { device ->
-            device.type in BLUETOOTH_TYPES || inputs.any { sameHeadset(it, device) }
+            device.type in BLUETOOTH_TYPES || matchingInput(inputs, device) != null
         }
         val selected = HEADSET_TYPES.firstNotNullOfOrNull { type -> usable.firstOrNull { it.type == type } }
             ?: error("No headset microphone is available. Enable headset call audio or use the phone microphone.")
@@ -113,8 +112,13 @@ internal class AssistAudioRoute(private val context: Context, private val onLost
                 awaitRoute(keepRunning) { scoConnected }
             }
         }
-        input = manager.getDevices(AudioManager.GET_DEVICES_INPUTS).firstOrNull { sameHeadset(it, selected) }
-            ?: error("Android did not expose this headset's microphone. Try the phone microphone.")
+        // Some devices publish the input endpoint after the SCO/LE connection callback.
+        var selectedInput: AudioDeviceInfo? = null
+        awaitRoute(keepRunning) {
+            selectedInput = matchingInput(manager.getDevices(AudioManager.GET_DEVICES_INPUTS), selected)
+            selectedInput != null
+        }
+        input = checkNotNull(selectedInput)
     }
 
     private fun awaitRoute(keepRunning: () -> Boolean, ready: () -> Boolean) {
@@ -144,13 +148,15 @@ internal class AssistAudioRoute(private val context: Context, private val onLost
         focus?.let { runCatching { manager.abandonAudioFocusRequest(it) } }
     }
 
-    private fun sameHeadset(candidate: AudioDeviceInfo, selected: AudioDeviceInfo): Boolean =
-        candidate.type == selected.type &&
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                candidate.address == selected.address
-            } else {
-                candidate.productName.toString() == selected.productName.toString()
-            }
+    private fun matchingInput(inputs: Array<AudioDeviceInfo>, selected: AudioDeviceInfo): AudioDeviceInfo? {
+        fun identity(device: AudioDeviceInfo) = HeadsetIdentity(
+            device.id, device.type,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) device.address else "",
+            device.productName.toString(),
+        )
+        val id = matchingHeadsetInput(inputs.map(::identity), identity(selected))
+        return inputs.firstOrNull { it.id == id }
+    }
 
     private companion object {
         const val CONNECT_TIMEOUT_MS = 10_000L

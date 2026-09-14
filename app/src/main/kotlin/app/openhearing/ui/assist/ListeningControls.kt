@@ -19,6 +19,7 @@ import app.openhearing.core.audio.AudioSessionStatus
 import app.openhearing.core.audio.speech.CaptureMode
 import app.openhearing.core.audio.speech.ListeningOptions
 import app.openhearing.core.audio.speech.NoiseReduction
+import app.openhearing.core.audio.speech.QuietSpeech
 import app.openhearing.core.audio.speech.SpeechClarity
 import app.openhearing.core.audio.speech.VoiceComfort
 
@@ -39,23 +40,40 @@ internal fun ListeningControls(options: ListeningOptions, enabled: Boolean, onCh
                 stringResource(R.string.assist_quality_gentle),
                 stringResource(R.string.assist_quality_strong),
             )
-            QualityChoice(stringResource(R.string.assist_speech_clarity), strengths, options.speechClarity.ordinal, enabled) {
+            QualityChoice(
+                stringResource(R.string.assist_speech_clarity), strengths, options.speechClarity.ordinal, enabled,
+            ) {
                 onChange(options.copy(speechClarity = SpeechClarity.entries[it]))
             }
-            QualityChoice(stringResource(R.string.assist_voice_comfort), strengths, options.voiceComfort.ordinal, enabled) {
+            QualityChoice(
+                stringResource(R.string.assist_voice_comfort), strengths, options.voiceComfort.ordinal, enabled,
+            ) {
                 onChange(options.copy(voiceComfort = VoiceComfort.entries[it]))
             }
-            QualityChoice(stringResource(R.string.assist_noise_reduction), strengths, options.noiseReduction.ordinal, enabled) {
+            QualityChoice(
+                stringResource(R.string.assist_noise_reduction), strengths, options.noiseReduction.ordinal, enabled,
+            ) {
                 onChange(options.copy(noiseReduction = NoiseReduction.entries[it]))
             }
             Text(stringResource(R.string.assist_noise_description), style = MaterialTheme.typography.bodySmall)
-            if (!enabled) Text(stringResource(R.string.assist_quality_restart), style = MaterialTheme.typography.bodySmall)
+            QualityChoice(
+                stringResource(R.string.assist_quiet_speech), strengths, options.quietSpeech.ordinal,
+                enabled && options.noiseReduction != NoiseReduction.OFF,
+            ) {
+                onChange(options.copy(quietSpeech = QuietSpeech.entries[it]))
+            }
+            Text(stringResource(R.string.assist_quiet_speech_description), style = MaterialTheme.typography.bodySmall)
+            if (!enabled) {
+                Text(stringResource(R.string.assist_quality_restart), style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }
 
 @Composable
-private fun QualityChoice(title: String, labels: List<String>, selected: Int, enabled: Boolean, onChange: (Int) -> Unit) {
+private fun QualityChoice(
+    title: String, labels: List<String>, selected: Int, enabled: Boolean, onChange: (Int) -> Unit,
+) {
     Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 12.dp))
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
         labels.forEachIndexed { index, label ->
@@ -79,8 +97,10 @@ internal fun SessionAudioStatus(status: AudioSessionStatus) {
         )
         AudioSessionState.RUNNING -> {
             Text(status.message.orEmpty(), style = MaterialTheme.typography.bodySmall)
-            if (status.monoOutput) {
+            if (status.bluetoothCallAudio) {
                 Text(stringResource(R.string.assist_bluetooth_call_quality), style = MaterialTheme.typography.bodySmall)
+            } else if (status.monoOutput) {
+                Text(stringResource(R.string.assist_mono_output), style = MaterialTheme.typography.bodySmall)
             }
         }
         else -> Unit

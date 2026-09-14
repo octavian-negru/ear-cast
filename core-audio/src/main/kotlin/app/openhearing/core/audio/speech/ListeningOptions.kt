@@ -48,9 +48,19 @@ enum class CaptureMode {
     }
 }
 
+/** Opt-in upward leveling after neural enhancement; confidence never gates audio. */
+enum class QuietSpeech(val maximumGainDb: Float) {
+    OFF(0f), GENTLE(6f), STRONG(12f);
+
+    companion object {
+        fun fromName(name: String): QuietSpeech = entries.firstOrNull { it.name == name } ?: OFF
+    }
+}
+
 data class ListeningOptions(
     val noiseReduction: NoiseReduction = NoiseReduction.OFF,
     val voiceComfort: VoiceComfort = VoiceComfort.GENTLE,
     val captureMode: CaptureMode = CaptureMode.NATURAL,
     val speechClarity: SpeechClarity = SpeechClarity.GENTLE,
+    val quietSpeech: QuietSpeech = QuietSpeech.OFF,
 )

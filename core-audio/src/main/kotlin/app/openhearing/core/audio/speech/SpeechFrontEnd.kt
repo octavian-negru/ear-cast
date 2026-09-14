@@ -1,6 +1,8 @@
 package app.openhearing.core.audio.speech
 
 import app.openhearing.core.audio.AudioProcessor
+import app.openhearing.core.audio.AudioStreamObserver
+import app.openhearing.core.audio.diagnostics.SessionDiagnostics
 import app.openhearing.core.audio.dsp.Biquad
 
 /**
@@ -16,7 +18,9 @@ class SpeechFrontEnd(
     options: ListeningOptions,
     private val downstream: AudioProcessor,
     private val denoiser: FrameDenoiser? = null,
-) : AudioProcessor, AutoCloseable {
+    private val diagnostics: SessionDiagnostics? = null,
+) : AudioProcessor, AutoCloseable, AudioStreamObserver {
+    override val wantsStreamDiagnostics: Boolean get() = diagnostics != null
     private val bass = if (options.voiceComfort == VoiceComfort.OFF) {
         null
     } else {
@@ -40,6 +44,8 @@ class SpeechFrontEnd(
     override fun process(buffer: FloatArray) {
         check(!closed)
         require(buffer.size % 2 == 0)
+        val started = if (diagnostics != null) System.nanoTime() else 0L
+        diagnostics?.input(buffer)
         for (i in buffer.indices step 2) {
             val input = buffer[i].takeIf { it.isFinite() } ?: 0f
             val cleaned = denoise(input)
@@ -48,7 +54,21 @@ class SpeechFrontEnd(
             buffer[i] = output
             buffer[i + 1] = output
         }
+        diagnostics?.enhanced(buffer)
         downstream.process(buffer)
+        diagnostics?.output(buffer, System.nanoTime() - started)
+    }
+
+    override fun onStreamStarted(metadata: Map<String, String>) {
+        val delay = denoiser?.algorithmDelaySamples
+        diagnostics?.streamStarted(metadata + mapOf(
+            "enhancement_delay_samples" to if (denoiser == null) "0" else
+                delay?.let { (it + denoiser.frameSize).toString() }.orEmpty(),
+        ))
+    }
+
+    override fun onCaptureTiming(readFrames: Long, hardwareFrames: Long, timestampNanos: Long, outputUnderruns: Int) {
+        diagnostics?.captureTiming(readFrames, hardwareFrames, timestampNanos, outputUnderruns)
     }
 
     private fun denoise(input: Float): Float {
@@ -67,7 +87,11 @@ class SpeechFrontEnd(
     override fun close() {
         if (!closed) {
             closed = true
-            denoiser?.close()
+            try {
+                denoiser?.close()
+            } finally {
+                diagnostics?.close()
+            }
         }
     }
 }

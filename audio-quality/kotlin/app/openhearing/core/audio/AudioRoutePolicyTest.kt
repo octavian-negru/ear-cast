@@ -14,14 +14,41 @@ class AudioRoutePolicyTest {
     private val requested = AudioFormat(48_000, 2, 192, microphoneSource = MicrophoneSource.HEADSET)
 
     @Test
+    fun `mono devices and SCO use one output channel while unspecified devices retain stereo`() {
+        assertEquals(1, AudioRoutePolicy.outputChannels(2, false, intArrayOf(1)))
+        assertEquals(1, AudioRoutePolicy.outputChannels(2, true, intArrayOf(1, 2)))
+        assertEquals(2, AudioRoutePolicy.outputChannels(2, false, intArrayOf()))
+        assertEquals(2, AudioRoutePolicy.outputChannels(2, false, intArrayOf(1, 2)))
+    }
+
+    @Test
+    fun `SCO always offers wideband then narrowband without silently enabling call effects`() {
+        val natural = requested.copy(inputTuning = InputTuning.RAW_UNPROCESSED)
+        val formats = AudioRoutePolicy.candidateFormats(natural, true, intArrayOf(), intArrayOf())
+        assertEquals(listOf(16_000, 16_000, 8_000, 8_000), formats.map { it.sampleRateHz })
+        assertEquals(InputTuning.RAW_VOICE_RECOGNITION, formats[1].inputTuning)
+        assertTrue(formats.none { it.inputTuning == InputTuning.COMMUNICATION })
+        assertTrue(formats.all { it.microphoneSource == MicrophoneSource.HEADSET && it.channelCount == 2 })
+    }
+
+    @Test
+    fun `mutually advertised rate is tried first but other valid PCM rates remain fallbacks`() {
+        val formats = AudioRoutePolicy.candidateFormats(requested, false, intArrayOf(44_100), intArrayOf(44_100))
+        assertEquals(44_100, formats.first().sampleRateHz)
+        assertTrue(formats.any { it.sampleRateHz == 48_000 })
+        assertTrue(formats.all { it.framesPerBlock > 0 })
+    }
+
+    @Test
     fun `wired and LE routes retain stereo processing and requested rate`() {
-        assertEquals(requested, AudioRoutePolicy.processingFormat(requested, sco = false, legacy = false))
+        assertEquals(requested, AudioRoutePolicy.candidateFormats(requested, false, intArrayOf(), intArrayOf()).first())
     }
 
     @Test
     fun `SCO rates preserve four millisecond blocks and two ear processing`() {
-        for ((legacy, rate) in listOf(false to 16_000, true to 8_000)) {
-            val format = AudioRoutePolicy.processingFormat(requested, sco = true, legacy = legacy)
+        for (rate in listOf(16_000, 8_000)) {
+            val format = AudioRoutePolicy.candidateFormats(requested, true, intArrayOf(), intArrayOf())
+                .first { it.sampleRateHz == rate }
             assertEquals(rate, format.sampleRateHz)
             assertEquals(4.0, format.framesPerBlock * 1000.0 / rate)
             assertEquals(2, format.channelCount)
@@ -42,8 +69,7 @@ class AudioRoutePolicyTest {
     @Test
     fun `full assist chain remains finite and limited at both SCO rates`() {
         val curve = GainCurve(listOf(250.0, 1000.0, 4000.0, 8000.0).map { GainPoint(Hertz(it), 30.0) })
-        for (legacy in listOf(false, true)) {
-            val format = AudioRoutePolicy.processingFormat(requested, sco = true, legacy = legacy)
+        for (format in AudioRoutePolicy.candidateFormats(requested, true, intArrayOf(), intArrayOf())) {
             fun ear() = HearingAssistChain(curve, format.sampleRateHz, masterGainDb = 30.0, ceilingLinear = 0.4f)
             val chain = StereoAssistChain(ear(), ear(), format.framesPerBlock)
             val mono = FloatArray(format.framesPerBlock)

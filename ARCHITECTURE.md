@@ -2,8 +2,8 @@
 
 OpenHearing is a multi-module Kotlin/Android app following MVVM + clean layering.
 The guiding principle: **the safety-critical and signal-processing logic lives in
-pure-Kotlin/JVM modules, decoupled from Android audio/BLE I/O, so it can be
-exhaustively unit-tested without a device or emulator.**
+Kotlin/JVM DSP classes and a native speech-processing library, decoupled from
+Android audio/BLE I/O, so the algorithms can be tested without a device or emulator.**
 
 ## Modules and dependency direction
 
@@ -58,7 +58,10 @@ and required hardware validation.
 Optional speech enhancement uses the bundled RNNoise full neural model before
 per-ear processing. Stateful SpeexDSP resampling adapts Bluetooth capture rates
 to the model's 48 kHz input; the original and enhanced spectra are mixed with
-matching delay to retain ambience. See [audio clarity next steps](docs/AUDIO_CLARITY_NEXT_STEPS.md)
+matching delay to retain ambience. Optional speech-confidence-based upward gain
+raises quiet speech before the existing per-ear chains and output limiters.
+An opt-in bounded recorder copies processing taps to a separate writer thread;
+normal audio processing performs no diagnostic file I/O. See [audio clarity next steps](docs/AUDIO_CLARITY_NEXT_STEPS.md)
 for the library comparison and pending quality validation.
 
 ### `:airpods-protocol`
@@ -92,6 +95,12 @@ exceed the safety ceiling on the way to the device, regardless of upstream gain.
   for pure logic; Robolectric/instrumented tests for Android-touching code.
 - **`:airpods-protocol`**: can only be partially unit-tested; the protocol itself
   is validated on real hardware using the scripts in `docs/PROTOCOL.md`.
+
+New clarity, route-policy and diagnostic tests live together in
+[`audio-quality/`](audio-quality/README.md): native tests link production DSP, JVM
+tests are wired into `:core-audio`, and Python tools prepare real-speech corpora,
+evaluate reference metrics and export blind listening comparisons. The suite never
+automatically compiles a renderer or downloads a model.
 
 ## Tech stack
 

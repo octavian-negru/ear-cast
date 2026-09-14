@@ -79,8 +79,10 @@ Optional RNNoise neural enhancement runs once on the mono microphone signal,
 before per-ear fitting. Gentle retains about 50% dry contribution, Strong about
 25%, blended in the same delayed spectrum before synthesis. These are not hard
 attenuation limits. The full model runs at 48 kHz; quality-10 SpeexDSP resampling
-adapts 8/16 kHz capture without recreating missing bandwidth. No VAD gate or extra
-AGC is added. The adapter buffers 10 ms frames across capture block boundaries;
+adapts 8/16/24/32/44.1 kHz capture without recreating missing bandwidth. Optional
+Quiet speech boost adds up to 6 or 12 dB when the model reports speech, with
+slow gain changes and peak headroom control. It defaults to Off and requires
+noise reduction; it never gates the signal. The final output limiter remains downstream. The adapter buffers 10 ms frames across capture block boundaries;
 model and resampler delays are additional. Off bypasses this stage without frame
 delay. The worker releases native state on stop, connection or capture failure.
 The old Speex denoiser remains a source-level comparison baseline. See
@@ -105,24 +107,31 @@ See [Google Oboe](https://github.com/google/oboe),
 | Connection | Implementation | Limits |
 |---|---|---|
 | Wired headset / USB headset | Explicit microphone and matching output preference | Requires an input device exposed by Android |
-| Classic Bluetooth HFP/SCO, Android 12+ | Communication device selection; 16 kHz mono device I/O | Call bandwidth, mono playback; headset/phone support varies |
-| Classic Bluetooth HFP/SCO, Android 8–11 | Wait for SCO connection; conservative 8 kHz mono I/O | Narrowband; call audio must be available outside phone calls |
+| Classic Bluetooth HFP/SCO, Android 12+ | Communication device selection; tries 16 then 8 kHz mono I/O | Call bandwidth, mono playback; headset/phone support varies |
+| Classic Bluetooth HFP/SCO, Android 8–11 | Wait for SCO connection; tries 16 then 8 kHz mono I/O | Actual bandwidth varies; call audio must be available outside phone calls |
 | Bluetooth LE Audio headset, Android 12+ | Communication device selection when exposed by Android | Requires compatible phone, headset and OS; stereo is not guaranteed |
 | A2DP-only headphones / output-only hearing aids | Phone microphone mode | No microphone uplink to process |
+
+Non-SCO routes prefer mutually advertised rates, with fallbacks among 48, 44.1,
+32, 24, 16 and 8 kHz. Natural capture can retry voice-recognition capture if raw
+capture cannot start; it does not silently select Call processing. Device matching
+accepts missing addresses only when the remaining identity is unambiguous.
+These source changes still require hardware validation.
 
 The listed PCM rates are app I/O configurations, not measurements of the negotiated
 Bluetooth codec or acoustic bandwidth. A 16 kHz stream can carry audio that the
 headset/phone negotiated at a narrower bandwidth.
 
-Classic Bluetooth processes both ear profiles and averages their limited outputs
+Classic Bluetooth and devices advertising mono-only output process both ear profiles and averages their limited outputs
 for mono playback. It cannot deliver independent left/right gain to the ears on
 that route. Unsupported EQ bands above the selected rate's Nyquist frequency are
 omitted by the existing equalizer. Device I/O uses PCM16 and DSP uses float samples.
 
 Assist retains approximately 4 ms processing blocks (192 frames at 48 kHz,
 64 at 16 kHz, 32 at 8 kHz), an urgent audio worker, and a low-latency AudioTrack
-request. Buffers use the larger of Android's minimum and two blocks; input buffer
-size is based on mono input, not stereo output. **Block duration is not end-to-end
+request. Capture buffers use the largest of Android's minimum, two blocks and
+100 ms of mono PCM to tolerate short scheduling stalls. Playback buffers use the
+larger of Android's minimum and two blocks. **Block duration is not end-to-end
 latency.** Radio transport, headset firmware, Android resampling/buffering and
 the DSP limiter all add delay. No measured latency or universal compatibility is
 claimed. Wired connections are the first hardware baseline to measure.
@@ -156,4 +165,9 @@ rates and saved selection. They do not validate Android's actual routing or radi
 
 Routing uses AudioManager with the existing `MODIFY_AUDIO_SETTINGS` permission.
 No scanning, account, root access or new network permission is needed. Audio is
-streamed locally between the connected headset and phone and is never saved or uploaded.
+streamed locally between the connected headset and phone. Saving is off by default.
+The optional Sound comparison recording control records one session for up to
+30 seconds in private local storage; Export opens the Android share chooser and
+Delete removes local recordings and cached exports. Nothing uploads automatically.
+See the [audio quality workbench](../audio-quality/README.md) for extraction,
+reference-based evaluation and blind listening instructions.

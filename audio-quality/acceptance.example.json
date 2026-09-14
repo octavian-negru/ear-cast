@@ -1,0 +1,12 @@
+{
+  "notes": "Illustrative goals, not validated thresholds. Predeclare criteria using your corpus before evaluating changes.",
+  "cases": ["r16000_levelm50_snrm5", "r16000_levelm35_snr0"],
+  "variants": {
+    "rnnoise_gentle": {
+      "estoi_delta": {"min": 0.0},
+      "si_sdr_delta_db": {"min": 0.0},
+      "noise_only_attenuation_db": {"min": 1.0},
+      "samples_at_or_above_full_scale": {"max": 0}
+    }
+  }
+}

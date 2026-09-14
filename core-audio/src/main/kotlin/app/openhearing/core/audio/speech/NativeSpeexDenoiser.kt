@@ -3,6 +3,8 @@ package app.openhearing.core.audio.speech
 /** A mono, fixed-frame denoiser. Owned and closed by the audio worker, never shared between sessions. */
 interface FrameDenoiser : AutoCloseable {
     val frameSize: Int
+    /** Algorithm delay excluding SpeechFrontEnd's frame adapter; null if not established. */
+    val algorithmDelaySamples: Int? get() = null
     fun process(frame: FloatArray)
 }
 
