@@ -14,7 +14,7 @@ import app.openhearing.core.audio.dsp.MeteredAudioProcessor
 import app.openhearing.core.audio.dsp.OutputLevelMeter
 import app.openhearing.core.audio.dsp.StereoAssistChain
 import app.openhearing.core.audio.speech.ListeningOptions
-import app.openhearing.core.audio.speech.NativeSpeexDenoiser
+import app.openhearing.core.audio.speech.NativeRnnoiseDenoiser
 import app.openhearing.core.audio.speech.NoiseReduction
 import app.openhearing.core.audio.speech.SpeechFrontEnd
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -171,7 +171,7 @@ constructor(
                 if (c.listeningOptions.noiseReduction == NoiseReduction.OFF) {
                     null
                 } else {
-                    NativeSpeexDenoiser(actual.sampleRateHz, c.listeningOptions.noiseReduction.suppressionDb)
+                    NativeRnnoiseDenoiser(actual.sampleRateHz, c.listeningOptions.noiseReduction.suppressionDb)
                 },
             )
         }

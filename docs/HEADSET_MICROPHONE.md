@@ -75,12 +75,17 @@ settings, not a calibrated hearing-aid prescription. The low-band release is
 120 ms; the speech bands retain 80 ms release and 5 ms attack. The fitted EQ is
 upstream; the feedback guard, master cap and final lookahead limiter remain downstream.
 
-Optional SpeexDSP suppression runs once on the mono microphone signal, before
-per-ear fitting: Gentle allows up to 6 dB attenuation, Strong up to 12 dB. AGC,
-dereverberation and echo cancellation in Speex stay disabled. The adapter buffers
-10 ms frames across capture block boundaries; Off bypasses it with no added frame
-delay. Do not stack Strong suppression onto an already muffled earbud microphone.
-The worker releases native state on stop, connection failure and capture failure.
+Optional RNNoise neural enhancement runs once on the mono microphone signal,
+before per-ear fitting. Gentle retains about 50% dry contribution, Strong about
+25%, blended in the same delayed spectrum before synthesis. These are not hard
+attenuation limits. The full model runs at 48 kHz; quality-10 SpeexDSP resampling
+adapts 8/16 kHz capture without recreating missing bandwidth. No VAD gate or extra
+AGC is added. The adapter buffers 10 ms frames across capture block boundaries;
+model and resampler delays are additional. Off bypasses this stage without frame
+delay. The worker releases native state on stop, connection or capture failure.
+The old Speex denoiser remains a source-level comparison baseline. See
+[audio clarity research and next steps](AUDIO_CLARITY_NEXT_STEPS.md) for the library
+comparison, deferred tests and the five-metre recording protocol.
 
 JVM signal tests check flat crossover reconstruction, preservation of a quiet
 high-frequency tone alongside loud bass, block continuity/reset, filter response,

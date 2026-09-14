@@ -87,7 +87,7 @@
     <string name="assist_quality_off">Off</string>
     <string name="assist_quality_gentle">Gentle</string>
     <string name="assist_quality_strong">Strong</string>
-    <string name="assist_noise_description">Start with noise reduction Off for Bluetooth earbuds. Try Gentle for steady hiss or fan noise. Strong may soften speech.</string>
+    <string name="assist_noise_description">Gentle reduces background noise while keeping more surrounding sound. Strong focuses more on speech and may soften quiet voices or other sounds. Compare with Off if distant voices disappear.</string>
     <string name="assist_quality_restart">Stop assist to change sound clarity settings.</string>
 
     <!-- Presets -->

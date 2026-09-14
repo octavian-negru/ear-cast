@@ -7,7 +7,8 @@ import app.openhearing.core.audio.dsp.Biquad
  * Conditions the mono microphone BEFORE per-ear fitting, compression and limiting.
  * The input is mono duplicated into interleaved stereo by the capture engine.
  * Denoising uses fixed frames across arbitrary I/O block boundaries, with one frame
- * of buffering and no allocations in process. Off adds no buffering or noise gate.
+ * of adapter buffering plus the denoiser's own algorithm/resampler delay, with no
+ * allocations in process. Off adds no buffering or noise gate.
  * The downstream processor must end in an output limiter.
  */
 class SpeechFrontEnd(

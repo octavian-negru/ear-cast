@@ -55,6 +55,12 @@ remote-listening use case inside the same Hearing Assist session.
 See [headset microphone routing](docs/HEADSET_MICROPHONE.md) for platform limits
 and required hardware validation.
 
+Optional speech enhancement uses the bundled RNNoise full neural model before
+per-ear processing. Stateful SpeexDSP resampling adapts Bluetooth capture rates
+to the model's 48 kHz input; the original and enhanced spectra are mixed with
+matching delay to retain ambience. See [audio clarity next steps](docs/AUDIO_CLARITY_NEXT_STEPS.md)
+for the library comparison and pending quality validation.
+
 ### `:airpods-protocol`
 AirPods Pro 2/3 detection, battery/state, and transparency routing over BLE /
 L2CAP CoC. The protocol is **reverse-engineered and UNVERIFIED** (see

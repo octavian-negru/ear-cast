@@ -39,17 +39,21 @@ class SpeechFrontEndTest {
 
     @Test
     fun `denoising preserves sample order and constant delay across uneven blocks`() {
-        val denoiser = FakeDenoiser(160)
-        val processor = SpeechFrontEnd(16_000, bypass, AudioProcessor {}, denoiser)
-        val input = FloatArray(1600) { (it + 1) / 1600f }
-        val output = render(processor, input, intArrayOf(64, 17, 1, 199))
-        for (i in output.indices) {
-            assertEquals(if (i < 160) 0f else input[i - 160] * 0.5f, output[i], 1e-7f)
+        for (rate in listOf(8_000, 16_000, 48_000)) {
+            val frameSize = rate / 100
+            val denoiser = FakeDenoiser(frameSize)
+            val processor = SpeechFrontEnd(rate, bypass, AudioProcessor {}, denoiser)
+            val input = FloatArray(frameSize * 10) { (it + 1) / (frameSize * 10f) }
+            val output = render(processor, input, intArrayOf(64, 17, 1, 199, 1024))
+            for (i in output.indices) {
+                val expected = if (i < frameSize) 0f else input[i - frameSize] * 0.5f
+                assertEquals(expected, output[i], 1e-7f)
+            }
+            assertEquals(10, denoiser.calls)
+            processor.close()
+            processor.close()
+            assertEquals(1, denoiser.closes)
         }
-        assertEquals(10, denoiser.calls)
-        processor.close()
-        processor.close()
-        assertEquals(1, denoiser.closes)
     }
 
     @Test

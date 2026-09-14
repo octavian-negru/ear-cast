@@ -11,7 +11,11 @@ enum class SpeechClarity(val gainDb: Double) {
     }
 }
 
-/** Noise suppression is optional: headset firmware may already suppress background sound. */
+/**
+ * Neural speech enhancement. suppressionDb sets the retained dry contribution
+ * (6 dB = about 50%, 12 dB = about 25%), not a guaranteed total attenuation bound.
+ * Off preserves environmental sound; headset firmware may already suppress it.
+ */
 enum class NoiseReduction(val suppressionDb: Int) {
     OFF(0), GENTLE(6), STRONG(12);
 
