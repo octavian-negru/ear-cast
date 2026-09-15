@@ -1,5 +1,8 @@
 # Speech understanding update
 
+For the subsequent gain and clarity retuning, see [Gentler gain and speech
+contrast](COMFORT_TUNING.md). The notes below describe the earlier engine update.
+
 The user reports a substantial improvement with the earlier RNNoise integration,
 but remaining muffling. Their best headset settings are **Standard, Natural,
 Speech Strong, Bass Gentle, Noise Reduction Strong, Quiet Speech Boost Off**.

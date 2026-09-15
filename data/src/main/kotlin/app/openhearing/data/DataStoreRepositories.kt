@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.openhearing.audiogram.Audiogram
 import app.openhearing.audiogram.AudiogramCodec
+import app.openhearing.common.SafetyConstants
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -248,7 +249,7 @@ class DataStoreProfileRepository(
     }
 
     private companion object {
-        const val DEFAULT_MASTER_CAP_DB = 20.0
+        const val DEFAULT_MASTER_CAP_DB = SafetyConstants.DEFAULT_MASTER_GAIN_CAP_DB
     }
 }
 
@@ -256,7 +257,7 @@ class DataStoreProfileRepository(
 fun newProfileFrom(
     audiogram: Audiogram,
     name: String,
-    masterGainCapDb: Double = 20.0,
+    masterGainCapDb: Double = SafetyConstants.DEFAULT_MASTER_GAIN_CAP_DB,
 ) = HearingProfile(
     id = UUID.randomUUID().toString(),
     name = name,

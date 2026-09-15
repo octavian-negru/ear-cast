@@ -6,6 +6,7 @@ import app.openhearing.assist.AssistController
 import app.openhearing.assist.AssistSessionFactory
 import app.openhearing.assist.toOptions
 import app.openhearing.assist.toSettings
+import app.openhearing.common.SafetyConstants
 import app.openhearing.core.audio.AudioSessionState
 import app.openhearing.core.audio.AudioSessionStatus
 import app.openhearing.core.audio.MicrophoneSource
@@ -51,7 +52,7 @@ data class AssistUiState(
     val active: Boolean get() = sessionStatus.state == AudioSessionState.CONNECTING || running
 
     companion object {
-        const val DEFAULT_MASTER_GAIN_DB = 12.0
+        const val DEFAULT_MASTER_GAIN_DB = SafetyConstants.DEFAULT_MASTER_GAIN_CAP_DB
     }
 }
 

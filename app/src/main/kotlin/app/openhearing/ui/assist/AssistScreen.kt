@@ -329,7 +329,8 @@ private fun GainControl(
             Slider(
                 value = masterGainDb.toFloat(),
                 onValueChange = { onChange(it.toDouble()) },
-                valueRange = 0f..SafetyConstants.MAX_MASTER_GAIN_CAP_DB.toFloat(),
+                valueRange =
+                    SafetyConstants.MIN_MASTER_GAIN_DB.toFloat()..SafetyConstants.MAX_MASTER_GAIN_CAP_DB.toFloat(),
                 modifier = Modifier.semantics { contentDescription = sliderDescription },
             )
         }

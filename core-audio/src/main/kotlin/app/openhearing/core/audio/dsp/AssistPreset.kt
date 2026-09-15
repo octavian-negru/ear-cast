@@ -20,7 +20,7 @@ enum class AssistPreset(
     ;
 
     companion object {
-        const val CONVERSATION_BOOST_DB = 4.0
+        const val CONVERSATION_BOOST_DB = 2.0
         const val SPEECH_BAND_LOW_HZ = 1_000.0
         const val SPEECH_BAND_HIGH_HZ = 4_000.0
 

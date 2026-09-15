@@ -316,6 +316,11 @@ class AssistController
                         "requested_sample_rate" to c.sampleRateHz.toString(),
                         "settings" to c.listeningOptions.toString(),
                         "initial_master_gain_db" to c.masterGainDb.toString(),
+                        "gain_shaping" to "overlap_corrected_peaks_v2",
+                        "speech_presence_trim_db" to (-c.listeningOptions.speechClarity.gainDb).toString(),
+                        "quiet_speech_max_gain_db" to
+                            c.listeningOptions.quietSpeech.maximumGainDb
+                                .toString(),
                         "ceiling_linear" to c.ceilingLinear.toString(),
                         "left_fit" to c.leftGainCurve.points.toString(),
                         "right_fit" to c.rightGainCurve.points.toString(),

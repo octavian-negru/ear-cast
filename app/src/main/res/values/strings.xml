@@ -61,8 +61,8 @@
     <string name="assist_no_profile">Run the hearing check first so assist mode can use your sound profile.</string>
     <string name="assist_on">Assist is ON</string>
     <string name="assist_off">Assist is off</string>
-    <string name="assist_amplification">Amplification: +%1$d dB</string>
-    <string name="assist_amplification_slider">Amplification level in decibels</string>
+    <string name="assist_amplification">Volume adjustment: %1$+d dB</string>
+    <string name="assist_amplification_slider">Volume adjustment in decibels</string>
     <string name="assist_start">Start assist</string>
     <string name="assist_start_anyway">Start anyway</string>
     <string name="assist_stop_button">Stop assist</string>
@@ -77,7 +77,7 @@
     <string name="assist_connection_failed">Audio could not connect. Reconnect the headset and try again.</string>
     <string name="assist_bluetooth_call_quality">Bluetooth microphone active: mono call audio. Detail may be limited and nearby voices may be suppressed by the earbuds. For clearer surrounding sound, try the phone microphone.</string>
     <string name="assist_sound_quality">Sound clarity</string>
-    <string name="assist_quality_description">Speech clarity lifts consonant detail; bass reduction softens boomy voices. Natural capture avoids extra call processing where supported. Use Call mode if Natural cannot connect.</string>
+    <string name="assist_quality_description">Speech clarity softens lower frequencies to bring consonants forward without extra treble volume; bass reduction softens boomy voices. Natural capture avoids extra call processing where supported. Use Call mode if Natural cannot connect.</string>
     <string name="assist_speech_engine">Speech enhancement</string>
     <string name="assist_engine_description">DPDFNet8 is a more demanding speech model. Start with Gentle noise reduction and compare word clarity with RNNoise. Both run on this device; Off noise reduction bypasses the model.</string>
     <string name="assist_dpdfnet_level_description">DPDFNet8 uses your fitted amplification and volume setting. The separate quiet-speech boost is available with RNNoise.</string>

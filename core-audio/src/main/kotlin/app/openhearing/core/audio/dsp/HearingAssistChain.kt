@@ -3,6 +3,7 @@ package app.openhearing.core.audio.dsp
 import app.openhearing.audiogram.GainCurve
 import app.openhearing.common.SafetyConstants
 import app.openhearing.core.audio.AudioProcessor
+import kotlin.math.exp
 import kotlin.math.pow
 
 /**
@@ -30,7 +31,7 @@ class HearingAssistChain(
      * is unaffected either way.
      */
     feedbackGuardEnabled: Boolean = true,
-    /** Applied after WDRC so compression does not undo the consonant lift. */
+    /** Relative consonant emphasis after WDRC, with the shelf's added gain removed. */
     speechPresenceDb: Double = 0.0,
 ) : AudioProcessor {
     init {
@@ -47,6 +48,9 @@ class HearingAssistChain(
         } else {
             Biquad.highShelf(minOf(1_800.0, sampleRateHz * 0.2), speechPresenceDb, sampleRateHz)
         }
+
+    // Retain the upper/lower speech contrast without another absolute treble boost.
+    private val presenceTrim = 10.0.pow(-speechPresenceDb / 20.0)
     private val guard: FeedbackGuard? =
         if (feedbackGuardEnabled) {
             FeedbackGuard(sampleRateHz, activationRms = CHAIN_GUARD_ACTIVATION_RMS)
@@ -55,14 +59,15 @@ class HearingAssistChain(
         }
     private val limiter = LookaheadLimiter(ceilingLinear, sampleRateHz)
 
-    // Master gain can never exceed the safety cap, and never attenuates below unity
-    // here (the user's volume cap scales this separately, upstream). Volatile so the
-    // UI thread can adjust it while the audio thread keeps processing; the limiter
-    // downstream bounds the output regardless of when the new value lands.
+    // Permit attenuation of the fitted signal. One volatile target read per block;
+    // the audio thread ramps from silence at start and smooths live changes.
     @Volatile
     private var masterGainLinear: Float = linearGain(masterGainDb)
+    private var smoothedGain = 0.0
+    private val gainRiseCoef = exp(-1.0 / (0.060 * sampleRateHz))
+    private val gainFallCoef = exp(-1.0 / (0.015 * sampleRateHz))
 
-    /** Live-adjustable master gain; clamped to [0, SafetyConstants.MAX_MASTER_GAIN_CAP_DB]. */
+    /** Live-adjustable master gain, bounded by the shared attenuation/boost limits. */
     fun setMasterGainDb(db: Double) {
         masterGainLinear = linearGain(db)
     }
@@ -76,12 +81,16 @@ class HearingAssistChain(
         eq.process(buffer)
         wdrc.process(buffer)
         presence?.let { filter ->
-            for (i in buffer.indices) buffer[i] = filter.processSample(buffer[i].toDouble()).toFloat()
+            for (i in buffer.indices) {
+                buffer[i] = filter.processSample(buffer[i].toDouble()).toFloat()
+            }
         }
         guard?.process(buffer)
         val gain = masterGainLinear // one volatile read per block
         for (i in buffer.indices) {
-            buffer[i] = buffer[i] * gain
+            val coefficient = if (gain > smoothedGain) gainRiseCoef else gainFallCoef
+            smoothedGain = coefficient * smoothedGain + (1.0 - coefficient) * gain
+            buffer[i] = (buffer[i] * presenceTrim * smoothedGain).toFloat()
         }
         limiter.processInPlace(buffer)
     }
@@ -93,6 +102,7 @@ class HearingAssistChain(
         presence?.reset()
         guard?.reset()
         limiter.reset()
+        smoothedGain = 0.0
     }
 
     companion object {
@@ -116,7 +126,8 @@ class HearingAssistChain(
         private fun linearGain(db: Double): Float =
             10.0
                 .pow(
-                    db.coerceIn(0.0, SafetyConstants.MAX_MASTER_GAIN_CAP_DB) / 20.0,
+                    (if (db.isFinite()) db else SafetyConstants.MIN_MASTER_GAIN_DB)
+                        .coerceIn(SafetyConstants.MIN_MASTER_GAIN_DB, SafetyConstants.MAX_MASTER_GAIN_CAP_DB) / 20.0,
                 ).toFloat()
     }
 }

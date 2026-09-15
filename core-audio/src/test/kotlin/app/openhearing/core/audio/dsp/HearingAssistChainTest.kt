@@ -73,17 +73,17 @@ class HearingAssistChainTest {
     }
 
     @Test
-    fun `live master gain change takes effect between blocks`() {
-        val chain = HearingAssistChain(curve, sampleRate, masterGainDb = 0.0)
+    fun `live master gain change reaches the requested level after its ramp`() {
+        val chain = HearingAssistChain(curve, sampleRate, masterGainDb = 0.0, feedbackGuardEnabled = false)
         // Settle the chain, then compare the same input at 0 dB vs +12 dB.
         chain.process(sine(amp = 0.02, freq = 2000.0, n = sampleRate))
         val quiet = sine(amp = 0.02, freq = 2000.0, n = sampleRate / 10)
         chain.process(quiet)
         chain.setMasterGainDb(12.0)
-        val boosted = sine(amp = 0.02, freq = 2000.0, n = sampleRate / 10)
+        val boosted = sine(amp = 0.02, freq = 2000.0, n = sampleRate / 2)
         chain.process(boosted)
         assertTrue(
-            rms(boosted, 0) > rms(quiet, 0) * 2.0,
+            rms(boosted, sampleRate / 4) > rms(quiet, 0) * 3.8,
             "raising master gain live should audibly boost output",
         )
     }

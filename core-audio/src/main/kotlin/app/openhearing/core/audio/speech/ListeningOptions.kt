@@ -2,7 +2,7 @@ package app.openhearing.core.audio.speech
 
 import app.openhearing.core.audio.InputTuning
 
-/** Broad presence lift within the captured speech band; cannot restore missing Bluetooth bandwidth. */
+/** Relative presence emphasis without added treble gain; cannot restore missing Bluetooth bandwidth. */
 enum class SpeechClarity(
     val gainDb: Double,
 ) {
@@ -83,8 +83,8 @@ enum class QuietSpeech(
     val maximumGainDb: Float,
 ) {
     OFF(0f),
-    GENTLE(6f),
-    STRONG(12f),
+    GENTLE(3f),
+    STRONG(6f),
     ;
 
     companion object {

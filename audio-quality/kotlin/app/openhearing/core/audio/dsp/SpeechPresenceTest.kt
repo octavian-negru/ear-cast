@@ -17,19 +17,22 @@ class SpeechPresenceTest {
     private val flat = GainCurve(listOf(GainPoint(Hertz(1_000.0), 0.0)))
 
     @Test
-    fun `consonant lift survives active compression without lifting bass`() {
+    fun `clarity preserves consonant contrast without raising upper band volume`() {
         for (rate in rates) {
             val consonant = minOf(5_000.0, rate * 0.4)
             // Loud enough to engage WDRC; a boost before ratio-3 compression
             // would retain only about one third of the requested gain.
-            val before = render(rate, consonant, 0.0)
-            val after = render(rate, consonant, 6.0)
-            val lift = 20 * log10(rms(after, rate / 2) / rms(before, rate / 2))
-            assertTrue(lift in 5.0..6.1, "$rate Hz: upper speech band lift was $lift dB")
-            val bassBefore = render(rate, 200.0, 0.0)
-            val bassAfter = render(rate, 200.0, 6.0)
-            val bassLift = 20 * log10(rms(bassAfter, rate / 2) / rms(bassBefore, rate / 2))
-            assertTrue(abs(bassLift) < 0.1, "$rate Hz: speech shaping also amplified bass")
+            for (strength in listOf(3.0, 6.0)) {
+                val before = render(rate, consonant, 0.0)
+                val after = render(rate, consonant, strength)
+                val lift = 20 * log10(rms(after, rate / 2) / rms(before, rate / 2))
+                assertTrue(lift in -1.0..0.1, "$rate Hz: upper speech level changed by $lift dB")
+                val bassBefore = render(rate, 200.0, 0.0)
+                val bassAfter = render(rate, 200.0, strength)
+                val bassLift = 20 * log10(rms(bassAfter, rate / 2) / rms(bassBefore, rate / 2))
+                assertTrue(abs(bassLift + strength) < 0.1, "$rate Hz: lower band trim was $bassLift dB")
+                assertTrue(lift - bassLift > strength - 1.0, "$rate Hz: consonant contrast was lost")
+            }
         }
     }
 

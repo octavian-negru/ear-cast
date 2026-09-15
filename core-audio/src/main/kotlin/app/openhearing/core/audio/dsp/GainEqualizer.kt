@@ -3,34 +3,44 @@ package app.openhearing.core.audio.dsp
 import app.openhearing.audiogram.GainCurve
 
 /**
- * Realizes a [GainCurve]'s per-frequency insertion gain as a cascade of peaking
- * biquads — one band centred on each measured frequency. This is the frequency-
- * shaping stage of the hearing-assist chain.
+ * Approximates a [GainCurve] with overlapping peaking filters. During setup,
+ * each band's gain is corrected against the response of the entire cascade,
+ * so neighbouring filters do not each add their full prescribed gain again.
  *
- * It is an approximation (neighbouring bands overlap and sum), which is acceptable
- * for a v1 linear fit; a more exact filterbank can replace it behind this class.
- * Mono in/out (v1 processes a single channel — see HearingAssistChain).
+ * Targets are fitted at measured frequencies; between them the response is
+ * smooth but approximate. Out-of-band gain returns towards unity. Fitting is
+ * bounded and happens only at construction, never on the audio processing path.
  */
 class GainEqualizer(
     gainCurve: GainCurve,
-    private val sampleRateHz: Int,
+    sampleRateHz: Int,
     q: Double = Biquad.DEFAULT_Q,
 ) {
-    private val bands: List<Biquad> =
+    private val points =
         gainCurve.points
             .filter { it.frequency.value > 0 && it.frequency.value < sampleRateHz / 2.0 }
-            .map { point ->
-                Biquad.peaking(
-                    centerHz = point.frequency.value,
-                    gainDb = point.gainDb,
-                    q = q,
-                    sampleRateHz = sampleRateHz,
-                )
+            .distinctBy { it.frequency.value }
+    private val bands: List<Biquad> =
+        run {
+            val gains = DoubleArray(points.size)
+            val filters = points.map { Biquad.peaking(it.frequency.value, 0.0, q, sampleRateHz) }.toMutableList()
+            repeat(FIT_PASSES) {
+                for (i in points.indices) {
+                    val point = points[i]
+                    val actual = filters.sumOf { it.responseDb(point.frequency.value, sampleRateHz) }
+                    // Damping avoids chasing adjacent bands; retain the prescription's
+                    // sign and magnitude bounds even for closely spaced measurements.
+                    gains[i] =
+                        (gains[i] + 0.5 * (point.gainDb - actual))
+                            .coerceIn(minOf(0.0, point.gainDb), maxOf(0.0, point.gainDb))
+                    filters[i] = Biquad.peaking(point.frequency.value, gains[i], q, sampleRateHz)
+                }
             }
+            filters
+        }
 
     /** Apply the EQ to [buffer] in place. */
     fun process(buffer: FloatArray) {
-        if (bands.isEmpty()) return
         for (i in buffer.indices) {
             var s = buffer[i].toDouble()
             for (band in bands) {
@@ -41,4 +51,8 @@ class GainEqualizer(
     }
 
     fun reset() = bands.forEach { it.reset() }
+
+    private companion object {
+        const val FIT_PASSES = 32
+    }
 }

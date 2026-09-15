@@ -2,6 +2,7 @@ package app.openhearing.core.audio.dsp
 
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -39,6 +40,23 @@ class Biquad(
         x2 = 0.0
         y1 = 0.0
         y2 = 0.0
+    }
+
+    /** Magnitude response without touching filter state; used only during EQ setup. */
+    internal fun responseDb(
+        frequencyHz: Double,
+        sampleRateHz: Int,
+    ): Double {
+        val omega = 2.0 * PI * frequencyHz / sampleRateHz
+        val numeratorReal = b0 + b1 * cos(omega) + b2 * cos(2.0 * omega)
+        val numeratorImaginary = -b1 * sin(omega) - b2 * sin(2.0 * omega)
+        val denominatorReal = 1.0 + a1 * cos(omega) + a2 * cos(2.0 * omega)
+        val denominatorImaginary = -a1 * sin(omega) - a2 * sin(2.0 * omega)
+        return 10.0 *
+            log10(
+                (numeratorReal * numeratorReal + numeratorImaginary * numeratorImaginary) /
+                    (denominatorReal * denominatorReal + denominatorImaginary * denominatorImaginary),
+            )
     }
 
     /** Replace coefficients in place (keeps state) — used when gain is retuned. */

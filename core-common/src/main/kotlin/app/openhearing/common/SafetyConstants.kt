@@ -38,7 +38,10 @@ object SafetyConstants {
      * decibels. The user can lower this but a hard maximum still applies. The UI
      * must always expose this cap plus an instant mute.
      */
-    const val DEFAULT_MASTER_GAIN_CAP_DB: Double = 30.0
+    const val DEFAULT_MASTER_GAIN_CAP_DB: Double = 6.0
+
+    /** Allow the volume control to attenuate even when fitted gain is too strong. */
+    const val MIN_MASTER_GAIN_DB: Double = -12.0
 
     /** Largest master gain cap the UI may ever offer, in decibels. */
     const val MAX_MASTER_GAIN_CAP_DB: Double = 40.0
