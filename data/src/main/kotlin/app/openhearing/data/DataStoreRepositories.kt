@@ -34,6 +34,7 @@ private object Keys {
     val QUIET_SPEECH = stringPreferencesKey("quiet_speech")
     val SPEECH_ENGINE = stringPreferencesKey("speech_engine")
     val MEDIA_EQ_ENABLED = booleanPreferencesKey("media_eq_enabled")
+    val MEDIA_BOOST_DB = floatPreferencesKey("media_boost_db")
     val PROFILES = stringPreferencesKey("profiles")
     val ACTIVE_PROFILE_ID = stringPreferencesKey("active_profile_id")
     val EXPOSURE_EPOCH_DAY = longPreferencesKey("exposure_epoch_day")
@@ -110,6 +111,18 @@ class DataStoreSettingsRepository(
 
     override suspend fun setMediaEqEnabled(enabled: Boolean) {
         dataStore.edit { it[Keys.MEDIA_EQ_ENABLED] = enabled }
+    }
+
+    override fun observeMediaBoostDb(): Flow<Float> =
+        dataStore.data.map { preferences ->
+            val saved = preferences[Keys.MEDIA_BOOST_DB]
+            saved?.takeIf { it.isFinite() }?.coerceIn(0f, SafetyConstants.MAX_MEDIA_BOOST_DB)
+                ?: SafetyConstants.DEFAULT_MEDIA_BOOST_DB
+        }
+
+    override suspend fun setMediaBoostDb(db: Float) {
+        require(db.isFinite())
+        dataStore.edit { it[Keys.MEDIA_BOOST_DB] = db.coerceIn(0f, SafetyConstants.MAX_MEDIA_BOOST_DB) }
     }
 
     override fun observeExposureToday(): Flow<DailyExposure> =

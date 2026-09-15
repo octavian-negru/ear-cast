@@ -7,7 +7,7 @@ import kotlin.math.sqrt
 
 /**
  * One media-EQ band: [cutoffHz] is the band's upper edge (as the platform
- * DynamicsProcessing effect expects), gains are per ear and already capped.
+ * DynamicsProcessing effect expects). Gains are relative cuts, with no positive boost.
  */
 data class MediaEqBand(
     val centerHz: Double,
@@ -18,10 +18,10 @@ data class MediaEqBand(
 
 /**
  * Pure planning for the experimental media EQ: samples the fitted per-ear curves
- * at the standard audiometric centers and caps every boost at
- * [SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB] (never a cut below 0 dB — media EQ
- * only compensates, it doesn't attenuate). The platform-effect wiring lives in
- * the app layer; this math is unit-tested here.
+ * at standard audiometric centers, then removes the largest gain across BOTH
+ * ears before bounding the adjustment range. This preserves spectral contrast
+ * and ear balance without adding gain to already-mastered media. Normalizing
+ * before clamping also avoids flattening every high-loss band to the same boost.
  */
 object MediaEqPlanner {
     val BAND_CENTERS_HZ = listOf(250.0, 500.0, 1_000.0, 2_000.0, 4_000.0, 8_000.0)
@@ -33,8 +33,13 @@ object MediaEqPlanner {
         leftCurve: GainCurve,
         rightCurve: GainCurve,
         maxBandGainDb: Double = SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB,
-    ): List<MediaEqBand> =
-        BAND_CENTERS_HZ.mapIndexed { index, center ->
+    ): List<MediaEqBand> {
+        require(maxBandGainDb.isFinite() && maxBandGainDb >= 0.0)
+        val left = BAND_CENTERS_HZ.map { leftCurve.gainAt(Hertz(it)) }
+        val right = BAND_CENTERS_HZ.map { rightCurve.gainAt(Hertz(it)) }
+        require((left + right).all { it.isFinite() })
+        val reference = maxOf(left.max(), right.max())
+        return BAND_CENTERS_HZ.mapIndexed { index, center ->
             val cutoff =
                 if (index == BAND_CENTERS_HZ.lastIndex) {
                     TOP_CUTOFF_HZ
@@ -44,8 +49,9 @@ object MediaEqPlanner {
             MediaEqBand(
                 centerHz = center,
                 cutoffHz = cutoff,
-                leftGainDb = leftCurve.gainAt(Hertz(center)).coerceIn(0.0, maxBandGainDb),
-                rightGainDb = rightCurve.gainAt(Hertz(center)).coerceIn(0.0, maxBandGainDb),
+                leftGainDb = (left[index] - reference).coerceIn(-maxBandGainDb, 0.0),
+                rightGainDb = (right[index] - reference).coerceIn(-maxBandGainDb, 0.0),
             )
         }
+    }
 }

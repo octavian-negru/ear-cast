@@ -5,6 +5,7 @@ import app.openhearing.audiogram.halfGainFitting
 import app.openhearing.core.audio.AbPlayer
 import app.openhearing.core.audio.ToneGenerator
 import app.openhearing.core.audio.TonePlayer
+import app.openhearing.mediaeq.MediaEqController
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,11 +23,11 @@ object AudioModule {
     // Not a singleton: each consumer gets its own AudioTrack-backed player and is
     // responsible for releasing it.
     @Provides
-    fun tonePlayer(): TonePlayer = TonePlayer()
+    fun tonePlayer(mediaEq: MediaEqController): TonePlayer = TonePlayer(bypassEffects = mediaEq::bypassForPlayback)
 
     // Same lifecycle contract as TonePlayer: per-consumer, released by its owner.
     @Provides
-    fun abPlayer(): AbPlayer = AbPlayer()
+    fun abPlayer(mediaEq: MediaEqController): AbPlayer = AbPlayer(bypassEffects = mediaEq::bypassForPlayback)
 
     @Provides
     @Singleton

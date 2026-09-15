@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.openhearing.assist.AssistSessionFactory
 import app.openhearing.common.Hertz
+import app.openhearing.common.SafetyConstants
 import app.openhearing.core.audio.ToneGenerator
 import app.openhearing.core.audio.TonePlayer
+import app.openhearing.core.audio.dsp.MediaEqConfiguration
 import app.openhearing.core.audio.dsp.MediaEqPlanner
 import app.openhearing.data.ProfileRepository
 import app.openhearing.data.SettingsRepository
@@ -30,6 +32,7 @@ data class RootUiState(
     val mediaEqEnabled: Boolean = false,
     val mediaEqSupported: Boolean = false,
     val mediaEqFailed: Boolean = false,
+    val mediaBoostDb: Float = SafetyConstants.DEFAULT_MEDIA_BOOST_DB,
     /** True when the digits-in-noise corpus ships in this build (docs/DIN.md). */
     val dinAvailable: Boolean = false,
 )
@@ -73,7 +76,8 @@ class RootViewModel
                     mediaEqFailed = failed,
                     dinAvailable = dinAvailable,
                 )
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), RootUiState())
+            }.combine(settings.observeMediaBoostDb()) { state, boost -> state.copy(mediaBoostDb = boost) }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), RootUiState())
 
         init {
             // Media EQ follows the persisted toggle and the active profile: applied
@@ -84,10 +88,11 @@ class RootViewModel
                 combine(
                     settings.observeMediaEqEnabled(),
                     profileRepository.observeActiveProfile(),
-                ) { enabled, profile -> enabled to profile }
-                    .collect { (enabled, _) ->
+                    settings.observeMediaBoostDb(),
+                ) { enabled, profile, boost -> Triple(enabled, profile, boost) }
+                    .collect { (enabled, _, boost) ->
                         if (enabled) {
-                            val ok = applyMediaEq()
+                            val ok = applyMediaEq(boost)
                             mediaEqFailed.value = !ok
                             if (!ok) settings.setMediaEqEnabled(false)
                         } else {
@@ -116,9 +121,13 @@ class RootViewModel
             }
         }
 
-        private suspend fun applyMediaEq(): Boolean {
+        fun setMediaBoost(db: Float) {
+            viewModelScope.launch { settings.setMediaBoostDb(db) }
+        }
+
+        private suspend fun applyMediaEq(boostDb: Float): Boolean {
             val curves = sessionFactory.activeEarCurves() ?: return false
-            return mediaEq.apply(MediaEqPlanner.plan(curves.first, curves.second))
+            return mediaEq.apply(MediaEqConfiguration(MediaEqPlanner.plan(curves.first, curves.second), boostDb))
         }
 
         /**

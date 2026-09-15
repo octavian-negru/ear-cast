@@ -23,6 +23,7 @@ data class AudioSessionStatus(
 /** Cancellable capture -> float DSP -> playback, with explicit, verified device routing. */
 class AndroidAudioEngine(
     private val context: Context,
+    private val bypassEffects: () -> AutoCloseable = { AutoCloseable {} },
     private val onStatus: (AudioSessionStatus) -> Unit = {},
 ) : AudioEngine {
     @Volatile private var requested = false
@@ -90,7 +91,9 @@ class AndroidAudioEngine(
         val onLost = { if (generation == sessionId && requested) loseRoute() }
         val route = AssistAudioRoute(context, onLost)
         var failure: String? = null
+        var bypass: AutoCloseable? = null
         try {
+            bypass = bypassEffects()
             Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
             route.open(requestedFormat.microphoneSource, requestedFormat.requireHeadphones) { requested && !routeLost }
             checkActive()
@@ -103,7 +106,11 @@ class AndroidAudioEngine(
         } catch (e: RuntimeException) {
             failure = e.message ?: "Audio could not start on this device. Try reconnecting your headset."
         } finally {
-            finishSession(route, failure)
+            try {
+                finishSession(route, failure)
+            } finally {
+                bypass?.close()
+            }
         }
     }
 

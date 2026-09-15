@@ -171,7 +171,9 @@
 
     <!-- Media EQ (experimental) -->
     <string name="media_eq_title">Media sound (experimental)</string>
-    <string name="media_eq_desc">Shapes music and videos from other apps with your sound profile. Works while OpenHearing is running; device support varies, and some phones ignore it.</string>
+    <string name="media_eq_desc">Balances music and videos using your sound profile. Media boost adds volume independently of Hearing Assist; peaks remain limited. Pauses during assist, demos and hearing checks. Some phones ignore this effect.</string>
+    <string name="media_boost">Media boost: +%1$d dB</string>
+    <string name="media_boost_slider">Media boost in decibels</string>
     <string name="media_eq_unsupported">Not supported on this device or Android version.</string>
     <string name="media_eq_no_profile">Run the hearing check or enter results first.</string>
     <string name="media_eq_failed">Couldn\'t enable on this device.</string>

@@ -1,5 +1,8 @@
 # Gentler gain and speech contrast
 
+The subsequent [media buzz fix](MEDIA_BUZZ_FIX.md) addresses the independent
+media-EQ path, double processing, and measured limiter distortion.
+
 This update addresses the report that amplification remains aggressive across
 settings and that speech clarity is still limited.
 

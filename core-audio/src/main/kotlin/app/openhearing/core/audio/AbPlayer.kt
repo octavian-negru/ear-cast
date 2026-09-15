@@ -20,6 +20,7 @@ import kotlin.coroutines.coroutineContext
 class AbPlayer(
     private val sampleRateHz: Int = ToneGenerator.DEFAULT_SAMPLE_RATE_HZ,
     private val limiter: OutputLimiter = HardCeilingLimiter(TonePlayer.DEFAULT_OUTPUT_CEILING),
+    private val bypassEffects: () -> AutoCloseable = { AutoCloseable {} },
 ) {
     @Volatile private var track: AudioTrack? = null
 
@@ -40,7 +41,9 @@ class AbPlayer(
                 )
             val t = build(maxOf(minBytes, block.size * Float.SIZE_BYTES * 2))
             track = t
+            var bypass: AutoCloseable? = null
             try {
+                bypass = bypassEffects()
                 t.play()
                 while (!stopped) {
                     coroutineContext.ensureActive()
@@ -56,6 +59,7 @@ class AbPlayer(
                 }
             } finally {
                 releaseTrack(t)
+                bypass?.close()
             }
         }
 

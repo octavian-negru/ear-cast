@@ -79,11 +79,11 @@ class LookaheadLimiterSafetyTest {
     @Test
     fun `NaN and infinity inputs cannot produce an over-ceiling sample`() {
         val limiter = limiter()
-        val buf = floatArrayOf(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, 100f, -100f, 0f)
+        val buf = FloatArray(sampleRate / 10)
+        floatArrayOf(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, 100f, -100f, 0f).copyInto(buf)
         limiter.processInPlace(buf)
-        // The brick-wall backstop clamps real magnitudes; NaN cannot be > ceiling.
         for (v in buf) {
-            assertTrue(v.isNaN() || abs(v) <= ceiling + 1e-6f, "value $v escaped the ceiling")
+            assertTrue(v.isFinite() && abs(v) <= ceiling + 1e-6f, "value $v escaped the ceiling")
         }
     }
 

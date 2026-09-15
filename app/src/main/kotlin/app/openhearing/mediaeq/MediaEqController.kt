@@ -3,7 +3,9 @@ package app.openhearing.mediaeq
 import android.annotation.TargetApi
 import android.media.audiofx.DynamicsProcessing
 import android.os.Build
-import app.openhearing.core.audio.dsp.MediaEqBand
+import app.openhearing.core.audio.dsp.MediaEqConfiguration
+import app.openhearing.core.audio.dsp.MediaEqEffect
+import app.openhearing.core.audio.dsp.MediaEqSession
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,38 +20,55 @@ import javax.inject.Singleton
  * - The effect lives only as long as the app's process.
  * - Requires API 28+ ([DynamicsProcessing]'s introduction).
  *
- * Band gains arrive pre-capped by the pure planner (see MediaEqPlanner and
- * SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB).
+ * The planner supplies relative cuts; a separate bounded boost raises media
+ * before the limiter. Playback leases prevent applying this global effect on
+ * top of the app's own processing.
  */
 @Singleton
 class MediaEqController
     @Inject
     constructor() {
-        private var effect: DynamicsProcessing? = null
+        private val session =
+            MediaEqSession { configuration ->
+                val effect = buildEffect(configuration)
+                object : MediaEqEffect {
+                    @TargetApi(Build.VERSION_CODES.P)
+                    override fun setBoostDb(db: Float) = effect.setInputGainAllChannelsTo(db)
+
+                    override fun close() {
+                        try {
+                            effect.setEnabled(false)
+                        } finally {
+                            effect.release()
+                        }
+                    }
+                }
+            }
 
         val isSupported: Boolean
             get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 
         /** True while the effect object exists (created and not yet released). */
         val isActive: Boolean
-            get() = effect != null
+            get() = session.isActive
 
-        /** Attaches (or re-attaches) the effect with [bands]. Returns false on any failure. */
-        fun apply(bands: List<MediaEqBand>): Boolean {
-            if (!isSupported || bands.isEmpty()) return false
-            release()
-            return runCatching { effect = buildEffect(bands) }.isSuccess
+        /** Updates the effect; boost-only changes retain the existing native instance. */
+        fun apply(configuration: MediaEqConfiguration): Boolean {
+            if (!isSupported) return false
+            return runCatching { session.apply(configuration) }.getOrDefault(false)
         }
 
         fun release() {
-            runCatching { effect?.setEnabled(false) }
-            runCatching { effect?.release() }
-            effect = null
+            runCatching { session.release() }
         }
 
+        /** Acquire before playback; close only after the app's audio track stops. */
+        fun bypassForPlayback(): AutoCloseable = session.bypass()
+
         @TargetApi(Build.VERSION_CODES.P)
-        private fun buildEffect(bands: List<MediaEqBand>): DynamicsProcessing {
+        private fun buildEffect(configuration: MediaEqConfiguration): DynamicsProcessing {
             check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            val bands = configuration.bands
             val config =
                 DynamicsProcessing.Config
                     .Builder(
@@ -66,34 +85,40 @@ class MediaEqController
                     .build()
 
             val dp = DynamicsProcessing(0, GLOBAL_OUTPUT_MIX_SESSION, config)
-            bands.forEachIndexed { index, band ->
-                dp.setPreEqBandByChannelIndex(
-                    LEFT_CHANNEL,
-                    index,
-                    DynamicsProcessing.EqBand(true, band.cutoffHz.toFloat(), band.leftGainDb.toFloat()),
+            var configured = false
+            try {
+                dp.setInputGainAllChannelsTo(configuration.boostDb)
+                bands.forEachIndexed { index, band ->
+                    dp.setPreEqBandByChannelIndex(
+                        LEFT_CHANNEL,
+                        index,
+                        DynamicsProcessing.EqBand(true, band.cutoffHz.toFloat(), band.leftGainDb.toFloat()),
+                    )
+                    dp.setPreEqBandByChannelIndex(
+                        RIGHT_CHANNEL,
+                        index,
+                        DynamicsProcessing.EqBand(true, band.cutoffHz.toFloat(), band.rightGainDb.toFloat()),
+                    )
+                }
+                // Both media boost and tonal shaping stay before the peak guard.
+                dp.setLimiterAllChannelsTo(
+                    DynamicsProcessing.Limiter(
+                        true,
+                        true,
+                        LIMITER_LINK_GROUP,
+                        LIMITER_ATTACK_MS,
+                        LIMITER_RELEASE_MS,
+                        LIMITER_RATIO,
+                        LIMITER_THRESHOLD_DB,
+                        LIMITER_POST_GAIN_DB,
+                    ),
                 )
-                dp.setPreEqBandByChannelIndex(
-                    RIGHT_CHANNEL,
-                    index,
-                    DynamicsProcessing.EqBand(true, band.cutoffHz.toFloat(), band.rightGainDb.toFloat()),
-                )
+                check(dp.setEnabled(true) == 0) { "Android could not enable media EQ" }
+                configured = true
+                return dp
+            } finally {
+                if (!configured) dp.release()
             }
-            // The effect's limiter is the only downstream protection on this path —
-            // always on, so boosted media can't clip harshly.
-            dp.setLimiterAllChannelsTo(
-                DynamicsProcessing.Limiter(
-                    true,
-                    true,
-                    LIMITER_LINK_GROUP,
-                    LIMITER_ATTACK_MS,
-                    LIMITER_RELEASE_MS,
-                    LIMITER_RATIO,
-                    LIMITER_THRESHOLD_DB,
-                    LIMITER_POST_GAIN_DB,
-                ),
-            )
-            dp.setEnabled(true)
-            return dp
         }
 
         private companion object {

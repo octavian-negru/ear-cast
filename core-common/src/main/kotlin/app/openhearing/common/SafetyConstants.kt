@@ -47,12 +47,14 @@ object SafetyConstants {
     const val MAX_MASTER_GAIN_CAP_DB: Double = 40.0
 
     /**
-     * Largest per-band boost the experimental media EQ may apply to other apps'
-     * audio, in decibels. Deliberately lower than the assist caps: the media
-     * path also has the user's media volume on top, and the platform effect's
-     * own limiter is the only downstream protection there.
+     * Largest relative band adjustment for media EQ, in decibels. Applied as
+     * cuts below a common reference; overall amplification has its own media control.
      */
     const val MEDIA_EQ_MAX_BAND_GAIN_DB: Double = 12.0
+
+    /** Independent media gain, applied before the platform limiter. */
+    const val DEFAULT_MEDIA_BOOST_DB: Float = 6.0f
+    const val MAX_MEDIA_BOOST_DB: Float = 9.0f
 
     /**
      * True when [outputSpl] is within the absolute safety ceiling. The Phase 2

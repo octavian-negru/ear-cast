@@ -26,23 +26,38 @@ class MediaEqPlannerTest {
         val left = curve(250.0 to 2.0, 8000.0 to 10.0)
         val right = curve(250.0 to 8.0, 8000.0 to 4.0)
         val plan = MediaEqPlanner.plan(left, right)
-        assertEquals(2.0, plan.first().leftGainDb)
-        assertEquals(8.0, plan.first().rightGainDb)
-        assertEquals(10.0, plan.last().leftGainDb)
-        assertEquals(4.0, plan.last().rightGainDb)
+        assertEquals(-8.0, plan.first().leftGainDb)
+        assertEquals(-2.0, plan.first().rightGainDb)
+        assertEquals(0.0, plan.last().leftGainDb)
+        assertEquals(-6.0, plan.last().rightGainDb)
     }
 
     @Test
-    fun `boosts are capped and cuts are floored at zero`() {
+    fun `relative cuts are bounded and never boost mastered media`() {
         val extreme = curve(250.0 to 45.0, 8000.0 to -20.0)
         val plan = MediaEqPlanner.plan(extreme, extreme)
-        assertEquals(SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB, plan.first().leftGainDb)
-        assertEquals(0.0, plan.last().leftGainDb)
+        assertEquals(0.0, plan.first().leftGainDb)
+        assertEquals(-SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB, plan.last().leftGainDb)
         assertTrue(
             plan.all {
-                it.leftGainDb in 0.0..SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB &&
-                    it.rightGainDb in 0.0..SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB
+                it.leftGainDb in -SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB..0.0 &&
+                    it.rightGainDb in -SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB..0.0
             },
         )
+    }
+
+    @Test
+    fun `a flat high-gain prescription adds no media amplification`() {
+        val flat = curve(250.0 to 30.0, 8000.0 to 30.0)
+        assertTrue(MediaEqPlanner.plan(flat, flat).all { it.leftGainDb == 0.0 && it.rightGainDb == 0.0 })
+    }
+
+    @Test
+    fun `high-loss speech contrast survives normalization before clamping`() {
+        val sloping = curve(250.0 to 20.0, 8000.0 to 30.0)
+        val plan = MediaEqPlanner.plan(sloping, sloping)
+        assertEquals(-10.0, plan.first().leftGainDb)
+        assertEquals(0.0, plan.last().leftGainDb)
+        assertTrue(plan.zipWithNext().all { (a, b) -> a.leftGainDb < b.leftGainDb })
     }
 }

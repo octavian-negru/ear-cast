@@ -10,9 +10,9 @@ import kotlin.math.max
  * the hearing-assist chain.
  *
  * It combines two mechanisms:
- * 1. a **look-ahead smooth gain reduction** — gain starts easing down a few
- *    milliseconds *before* a loud sample is output, so limiting is transparent
- *    (no clicks, minimal distortion); and
+ * 1. a **look-ahead peak hold** — gain covers every sample still waiting for
+ *    output, with slow recovery. Holding peaks avoids modulating gain on every
+ *    waveform cycle; and
  * 2. a **hard brick-wall clamp** applied last, which mathematically guarantees no
  *    output sample ever exceeds the ceiling — even if the smooth stage hasn't fully
  *    caught up. The guarantee does not depend on the smoothing being perfect.
@@ -35,8 +35,14 @@ class LookaheadLimiter(
     private var writeIndex = 0
     private var gain = 1.0
 
-    // Attack eases gain down over ~the look-ahead window; release recovers slowly.
-    private val attackCoef = exp(-1.0 / max(1.0, lookaheadMs * 0.001 * sampleRateHz))
+    // A monotonic peak queue covers the delayed sample plus future samples.
+    // The minimum hold spans a half-cycle at 50 Hz without adding output delay.
+    private val peakWindow = max(delay.size + 1, sampleRateHz / 100)
+    private val peaks = DoubleArray(peakWindow)
+    private val peakPositions = LongArray(peakWindow)
+    private var peakHead = 0
+    private var peakCount = 0
+    private var position = 0L
     private val releaseCoef = exp(-1.0 / max(1.0, releaseMs * 0.001 * sampleRateHz))
 
     override fun processInPlace(buffer: FloatArray) {
@@ -46,17 +52,14 @@ class LookaheadLimiter(
     }
 
     private fun processSample(x: Float): Float {
-        val mag = abs(x.toDouble())
-        val desired = if (mag > ceiling) ceiling / mag else 1.0
-        gain =
-            if (desired < gain) {
-                attackCoef * gain + (1 - attackCoef) * desired
-            } else {
-                releaseCoef * gain + (1 - releaseCoef) * desired
-            }
+        val input = if (x.isFinite()) x else 0f
+        val peak = heldPeak(abs(input.toDouble()))
+        val desired = if (peak > ceiling) ceiling / peak else 1.0
+        // Never release above the gain required by a sample still in the delay.
+        gain = minOf(desired, releaseCoef * gain + (1 - releaseCoef) * desired)
 
         val delayed = delay[writeIndex]
-        delay[writeIndex] = x
+        delay[writeIndex] = input
         writeIndex = (writeIndex + 1) % delay.size
 
         var y = delayed * gain
@@ -66,9 +69,28 @@ class LookaheadLimiter(
         return y.toFloat()
     }
 
+    /** Amortized O(1), with fixed storage and no allocations on the audio thread. */
+    private fun heldPeak(magnitude: Double): Double {
+        while (peakCount > 0 && peakPositions[peakHead] <= position - peakWindow) {
+            peakHead = (peakHead + 1) % peakWindow
+            peakCount--
+        }
+        while (peakCount > 0 && peaks[(peakHead + peakCount - 1) % peakWindow] <= magnitude) {
+            peakCount--
+        }
+        val tail = (peakHead + peakCount) % peakWindow
+        peaks[tail] = magnitude
+        peakPositions[tail] = position++
+        peakCount++
+        return peaks[peakHead]
+    }
+
     fun reset() {
         delay.fill(0f)
         writeIndex = 0
         gain = 1.0
+        peakHead = 0
+        peakCount = 0
+        position = 0L
     }
 }

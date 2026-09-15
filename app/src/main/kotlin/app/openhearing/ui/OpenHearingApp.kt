@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.openhearing.BuildConfig
 import app.openhearing.R
+import app.openhearing.common.SafetyConstants
 import app.openhearing.ui.assist.AssistScreen
 import app.openhearing.ui.dintest.DinTestScreen
 import app.openhearing.ui.hearingtest.HearingTestScreen
@@ -190,7 +191,7 @@ private fun SettingsScreen(
             onPreview = { rootViewModel.previewComfort(root.comfortCeiling) },
         )
 
-        MediaEqCard(state = root, onToggle = rootViewModel::setMediaEq)
+        MediaEqCard(state = root, onToggle = rootViewModel::setMediaEq, onBoostChange = rootViewModel::setMediaBoost)
 
         AboutCard()
 
@@ -234,6 +235,7 @@ private fun ComfortCalibration(
 private fun MediaEqCard(
     state: RootUiState,
     onToggle: (Boolean) -> Unit,
+    onBoostChange: (Float) -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
         Column(Modifier.padding(16.dp)) {
@@ -254,6 +256,7 @@ private fun MediaEqCard(
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp),
             )
+            MediaBoostControl(state = state, onChange = onBoostChange)
             val status =
                 when {
                     !state.mediaEqSupported -> stringResource(R.string.media_eq_unsupported)
@@ -271,6 +274,29 @@ private fun MediaEqCard(
             }
         }
     }
+}
+
+@Composable
+private fun MediaBoostControl(
+    state: RootUiState,
+    onChange: (Float) -> Unit,
+) {
+    var boost by rememberSaveable(state.mediaBoostDb) { mutableStateOf(state.mediaBoostDb) }
+    val description = stringResource(R.string.media_boost_slider)
+    Text(
+        stringResource(R.string.media_boost, boost.toInt()),
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier.padding(top = 12.dp),
+    )
+    Slider(
+        value = boost,
+        onValueChange = { boost = it },
+        onValueChangeFinished = { onChange(boost) },
+        valueRange = 0f..SafetyConstants.MAX_MEDIA_BOOST_DB,
+        steps = SafetyConstants.MAX_MEDIA_BOOST_DB.toInt() - 1,
+        enabled = state.mediaEqEnabled && state.mediaEqSupported && state.hasProfile,
+        modifier = Modifier.semantics { contentDescription = description },
+    )
 }
 
 @Composable

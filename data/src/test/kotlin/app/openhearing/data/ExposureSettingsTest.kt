@@ -3,6 +3,8 @@ package app.openhearing.data
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.mutablePreferencesOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -21,6 +23,37 @@ private class FakePreferencesStore : DataStore<Preferences> {
 }
 
 class ExposureSettingsTest {
+    @Test
+    fun `media boost defaults to six decibels and persists independently of assist settings`() =
+        runTest {
+            val store = FakePreferencesStore()
+            val repo = DataStoreSettingsRepository(store)
+            val listening = ListeningSettings(noiseReduction = "STRONG")
+            repo.setListeningSettings(listening)
+            repo.setMediaEqEnabled(true)
+            assertEquals(6f, repo.observeMediaBoostDb().first())
+            repo.setMediaBoostDb(8f)
+            val restored = DataStoreSettingsRepository(store)
+            assertEquals(8f, restored.observeMediaBoostDb().first())
+            assertEquals(listening, restored.observeListeningSettings().first())
+            assertEquals(true, restored.observeMediaEqEnabled().first())
+            repo.setMediaEqEnabled(false)
+            assertEquals(8f, repo.observeMediaBoostDb().first())
+        }
+
+    @Test
+    fun `media boost bounds stored values and recovers from invalid saved gain`() =
+        runTest {
+            val store = FakePreferencesStore()
+            val repo = DataStoreSettingsRepository(store)
+            repo.setMediaBoostDb(100f)
+            assertEquals(9f, repo.observeMediaBoostDb().first())
+            repo.setMediaBoostDb(-10f)
+            assertEquals(0f, repo.observeMediaBoostDb().first())
+            store.updateData { mutablePreferencesOf(floatPreferencesKey("media_boost_db") to Float.NaN) }
+            assertEquals(6f, repo.observeMediaBoostDb().first())
+        }
+
     @Test
     fun `clarity settings default conservatively and survive repository recreation together`() =
         runTest {

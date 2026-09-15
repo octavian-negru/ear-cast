@@ -22,6 +22,7 @@ import app.openhearing.core.audio.speech.NativeRnnoiseDenoiser
 import app.openhearing.core.audio.speech.NoiseReduction
 import app.openhearing.core.audio.speech.SpeechEngine
 import app.openhearing.core.audio.speech.SpeechFrontEnd
+import app.openhearing.mediaeq.MediaEqController
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -86,6 +87,7 @@ class AssistController
     @Inject
     constructor(
         @ApplicationContext context: Context,
+        mediaEq: MediaEqController,
     ) {
         private val applicationContext = context.applicationContext
         private val diagnosticRoot = File(context.noBackupFilesDir, "audio-diagnostics")
@@ -97,7 +99,7 @@ class AssistController
         val sessionStatus: StateFlow<AudioSessionStatus> = _sessionStatus.asStateFlow()
 
         private val engine =
-            AndroidAudioEngine(context) { status ->
+            AndroidAudioEngine(context, bypassEffects = mediaEq::bypassForPlayback) { status ->
                 _sessionStatus.value = status
                 when (status.state) {
                     AudioSessionState.RUNNING -> _running.value = true
@@ -317,6 +319,8 @@ class AssistController
                         "settings" to c.listeningOptions.toString(),
                         "initial_master_gain_db" to c.masterGainDb.toString(),
                         "gain_shaping" to "overlap_corrected_peaks_v2",
+                        "output_limiter" to "held_peak_v3",
+                        "global_media_eq" to "bypassed_during_session",
                         "speech_presence_trim_db" to (-c.listeningOptions.speechClarity.gainDb).toString(),
                         "quiet_speech_max_gain_db" to
                             c.listeningOptions.quietSpeech.maximumGainDb

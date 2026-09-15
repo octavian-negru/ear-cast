@@ -46,6 +46,11 @@ interface SettingsRepository {
 
     suspend fun setMediaEqEnabled(enabled: Boolean)
 
+    /** Independent media boost in dB; does not change any assist profile. */
+    fun observeMediaBoostDb(): Flow<Float>
+
+    suspend fun setMediaBoostDb(db: Float)
+
     /**
      * Accumulated relative listening-exposure units for one epoch day (see the
      * ExposureTracker in :core-audio for the unit definition — deliberately
