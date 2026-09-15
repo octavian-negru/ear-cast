@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui
 
 import androidx.activity.compose.BackHandler
@@ -100,10 +102,10 @@ private fun HomeScreen(
 ) {
     Column(
         modifier =
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
     ) {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
         Text(
@@ -121,7 +123,10 @@ private fun HomeScreen(
 }
 
 @Composable
-private fun HomeButton(label: String, onClick: () -> Unit) {
+private fun HomeButton(
+    label: String,
+    onClick: () -> Unit,
+) {
     Button(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp).padding(top = 12.dp),
@@ -132,10 +137,10 @@ private fun HomeButton(label: String, onClick: () -> Unit) {
 private fun OnboardingScreen(onAccept: () -> Unit) {
     Column(
         modifier =
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
     ) {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
         Text(
@@ -157,14 +162,17 @@ private fun OnboardingScreen(onAccept: () -> Unit) {
 }
 
 @Composable
-private fun SettingsScreen(onBack: () -> Unit, rootViewModel: RootViewModel = hiltViewModel()) {
+private fun SettingsScreen(
+    onBack: () -> Unit,
+    rootViewModel: RootViewModel = hiltViewModel(),
+) {
     val root by rootViewModel.uiState.collectAsStateWithLifecycle()
     Column(
         modifier =
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
     ) {
         Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineSmall)
         Row(
@@ -195,7 +203,11 @@ private fun SettingsScreen(onBack: () -> Unit, rootViewModel: RootViewModel = hi
 }
 
 @Composable
-private fun ComfortCalibration(ceiling: Float, onChange: (Float) -> Unit, onPreview: () -> Unit) {
+private fun ComfortCalibration(
+    ceiling: Float,
+    onChange: (Float) -> Unit,
+    onPreview: () -> Unit,
+) {
     val sliderDescription = stringResource(R.string.settings_comfort_slider)
     Card(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
         Column(Modifier.padding(16.dp)) {
@@ -219,7 +231,10 @@ private fun ComfortCalibration(ceiling: Float, onChange: (Float) -> Unit, onPrev
 }
 
 @Composable
-private fun MediaEqCard(state: RootUiState, onToggle: (Boolean) -> Unit) {
+private fun MediaEqCard(
+    state: RootUiState,
+    onToggle: (Boolean) -> Unit,
+) {
     Card(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
         Column(Modifier.padding(16.dp)) {
             Row(

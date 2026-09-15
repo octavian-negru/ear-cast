@@ -35,16 +35,22 @@ data class StaircaseConfig(
 /** What the caller should do next, returned after each response is submitted. */
 sealed interface StaircaseStep {
     /** Present another tone at [level], then call [HughsonWestlakeStaircase.submit] again. */
-    data class Present(val level: DecibelsHl) : StaircaseStep
+    data class Present(
+        val level: DecibelsHl,
+    ) : StaircaseStep
 
     /** Search converged; [outcome] is the result for this frequency. */
-    data class Done(val outcome: StaircaseOutcome) : StaircaseStep
+    data class Done(
+        val outcome: StaircaseOutcome,
+    ) : StaircaseStep
 }
 
 /** The result of a single-frequency search. */
 sealed interface StaircaseOutcome {
     /** Estimated hearing threshold for this frequency/ear. */
-    data class Threshold(val level: DecibelsHl) : StaircaseOutcome
+    data class Threshold(
+        val level: DecibelsHl,
+    ) : StaircaseOutcome
 
     /**
      * No reliable response within the test's level range — e.g. the threshold is
@@ -69,7 +75,9 @@ sealed interface StaircaseOutcome {
  * }
  * ```
  */
-class HughsonWestlakeStaircase(private val config: StaircaseConfig = StaircaseConfig()) {
+class HughsonWestlakeStaircase(
+    private val config: StaircaseConfig = StaircaseConfig(),
+) {
     private var level: Double = config.startLevelDbHl.coerceIn(config.minLevelDbHl, config.maxLevelDbHl)
 
     /** True when the current level was reached by stepping UP (an ascending trial). */
@@ -82,11 +90,12 @@ class HughsonWestlakeStaircase(private val config: StaircaseConfig = StaircaseCo
 
     private fun key(db: Double): Int = db.roundToInt()
 
+    // Multiple early returns are the clearest expression of this state machine's
+    // distinct terminal conditions (converged / out-of-range / floor / continue).
+
     /**
      * Record whether the tone at [currentLevel] was heard, and advance the search.
      */
-    // Multiple early returns are the clearest expression of this state machine's
-    // distinct terminal conditions (converged / out-of-range / floor / continue).
     @Suppress("ReturnCount")
     fun submit(heard: Boolean): StaircaseStep {
         presentations++

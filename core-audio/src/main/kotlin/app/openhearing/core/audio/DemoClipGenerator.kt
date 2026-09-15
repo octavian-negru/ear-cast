@@ -30,7 +30,10 @@ class DemoClipGenerator(
     }
 
     /** Generate the mono demo clip (deterministic for a given [seed]). */
-    fun generate(durationMs: Long = DEFAULT_DURATION_MS, seed: Int = DEFAULT_SEED): FloatArray {
+    fun generate(
+        durationMs: Long = DEFAULT_DURATION_MS,
+        seed: Int = DEFAULT_SEED,
+    ): FloatArray {
         require(durationMs > 0) { "durationMs must be positive" }
         val total = (durationMs * sampleRateHz / 1000L).toInt().coerceAtLeast(1)
         val out = FloatArray(total)
@@ -57,7 +60,12 @@ class DemoClipGenerator(
     }
 
     /** Harmonic stack on a low fundamental with a formant-ish mid emphasis. */
-    private fun addVowel(out: FloatArray, start: Int, end: Int, syllable: Int) {
+    private fun addVowel(
+        out: FloatArray,
+        start: Int,
+        end: Int,
+        syllable: Int,
+    ) {
         val length = end - start
         if (length <= 0) return
         // Small per-syllable pitch movement keeps it from sounding like a buzzer.
@@ -75,7 +83,12 @@ class DemoClipGenerator(
     }
 
     /** High-frequency noise burst: white noise high-passed by differencing. */
-    private fun addConsonant(out: FloatArray, start: Int, end: Int, random: Random) {
+    private fun addConsonant(
+        out: FloatArray,
+        start: Int,
+        end: Int,
+        random: Random,
+    ) {
         val length = end - start
         if (length <= 0) return
         var previous = 0.0
@@ -89,7 +102,10 @@ class DemoClipGenerator(
     }
 
     /** Raised-cosine on/off inside each syllable so bursts never click. */
-    private fun syllableEnvelope(i: Int, length: Int): Double {
+    private fun syllableEnvelope(
+        i: Int,
+        length: Int,
+    ): Double {
         val ramp = min(msToSamples(SYLLABLE_RAMP_MS), length / 2)
         if (ramp <= 0) return 1.0
         return when {

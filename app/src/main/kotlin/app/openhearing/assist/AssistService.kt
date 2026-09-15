@@ -61,7 +61,10 @@ class AssistService : Service() {
     // fall back to the phone speaker, where mic->speaker feedback (howl) is likely.
     private val becomingNoisyReceiver =
         object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
+            override fun onReceive(
+                context: Context?,
+                intent: Intent?,
+            ) {
                 if (intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) stopSelf()
             }
         }
@@ -78,7 +81,11 @@ class AssistService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         if (intent?.action == ACTION_STOP) {
             stopSelf()
             return START_NOT_STICKY
@@ -89,13 +96,14 @@ class AssistService : Service() {
         acquireWakeLock()
         controller.startEngine()
         if (statusJob?.isActive != true) {
-            statusJob = serviceScope.launch {
-                controller.sessionStatus.collect { status ->
-                    if (status.state == AudioSessionState.FAILED || status.state == AudioSessionState.STOPPED) {
-                        stopSelf()
+            statusJob =
+                serviceScope.launch {
+                    controller.sessionStatus.collect { status ->
+                        if (status.state == AudioSessionState.FAILED || status.state == AudioSessionState.STOPPED) {
+                            stopSelf()
+                        }
                     }
                 }
-            }
         }
         startExposureSampling()
         return START_STICKY
@@ -180,7 +188,8 @@ class AssistService : Service() {
                 PendingIntent.FLAG_IMMUTABLE,
             )
         val notification =
-            NotificationCompat.Builder(this, CHANNEL_ID)
+            NotificationCompat
+                .Builder(this, CHANNEL_ID)
                 .setContentTitle(getString(R.string.assist_active_title))
                 .setContentText(getString(R.string.assist_active_text))
                 .setSmallIcon(R.drawable.ic_stat_assist)
@@ -189,11 +198,12 @@ class AssistService : Service() {
                 .addAction(0, getString(R.string.assist_stop), stopIntent)
                 .build()
 
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-        } else {
-            0
-        }
+        val type =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            } else {
+                0
+            }
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
     }
 

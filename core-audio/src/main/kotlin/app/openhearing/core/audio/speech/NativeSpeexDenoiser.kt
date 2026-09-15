@@ -3,14 +3,19 @@ package app.openhearing.core.audio.speech
 /** A mono, fixed-frame denoiser. Owned and closed by the audio worker, never shared between sessions. */
 interface FrameDenoiser : AutoCloseable {
     val frameSize: Int
+
     /** Algorithm delay excluding SpeechFrontEnd's frame adapter; null if not established. */
     val algorithmDelaySamples: Int? get() = null
     val diagnosticMetadata: Map<String, String> get() = emptyMap()
+
     fun process(frame: FloatArray)
 }
 
 /** SpeexDSP 1.2.1 preprocessor at the actual stream rate; AGC and echo cancellation stay disabled. */
-class NativeSpeexDenoiser(sampleRateHz: Int, suppressionDb: Int) : FrameDenoiser {
+class NativeSpeexDenoiser(
+    sampleRateHz: Int,
+    suppressionDb: Int,
+) : FrameDenoiser {
     override val frameSize = sampleRateHz / 100
     private var handle: Long
 
@@ -33,8 +38,17 @@ class NativeSpeexDenoiser(sampleRateHz: Int, suppressionDb: Int) : FrameDenoiser
         handle = 0L
     }
 
-    private external fun create(rate: Int, frames: Int, suppressionDb: Int): Long
-    private external fun processFrame(handle: Long, frame: FloatArray)
+    private external fun create(
+        rate: Int,
+        frames: Int,
+        suppressionDb: Int,
+    ): Long
+
+    private external fun processFrame(
+        handle: Long,
+        frame: FloatArray,
+    )
+
     private external fun destroy(handle: Long)
 
     private companion object {

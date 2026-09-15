@@ -10,7 +10,11 @@ class FeedbackGuardTest {
     private val sampleRate = 48_000
     private val blockSize = 1024
 
-    private fun process(guard: FeedbackGuard, signal: (Int) -> Float, blocks: Int): Float {
+    private fun process(
+        guard: FeedbackGuard,
+        signal: (Int) -> Float,
+        blocks: Int,
+    ): Float {
         var sample = 0
         repeat(blocks) {
             val block = FloatArray(blockSize) { signal(sample++) }

@@ -12,14 +12,16 @@ import app.openhearing.common.Hertz
  * around it is the only untested part).
  */
 object AudiogramCodec {
-    fun encode(audiogram: Audiogram): String = audiogram.thresholds.joinToString("\n") { t ->
-        "${t.ear.name},${t.frequency.value},${t.level.value}"
-    }
+    fun encode(audiogram: Audiogram): String =
+        audiogram.thresholds.joinToString("\n") { t ->
+            "${t.ear.name},${t.frequency.value},${t.level.value}"
+        }
 
     fun decode(text: String): Audiogram {
         if (text.isBlank()) return Audiogram.EMPTY
         val thresholds =
-            text.lineSequence()
+            text
+                .lineSequence()
                 .mapNotNull { line ->
                     val parts = line.split(",")
                     if (parts.size != 3) return@mapNotNull null
@@ -27,8 +29,7 @@ object AudiogramCodec {
                     val freq = parts[1].trim().toDoubleOrNull() ?: return@mapNotNull null
                     val level = parts[2].trim().toDoubleOrNull() ?: return@mapNotNull null
                     Threshold(ear, Hertz(freq), DecibelsHl(level))
-                }
-                .toList()
+                }.toList()
         return Audiogram(thresholds)
     }
 }

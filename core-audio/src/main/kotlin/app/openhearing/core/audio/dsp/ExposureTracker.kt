@@ -27,7 +27,10 @@ object ExposureTracker {
         REF_HOURS * 3_600.0 * dbToPower(REF_LEVEL_DBFS)
 
     /** Listening units contributed by a drained window spanning [seconds]. */
-    fun unitsFor(window: LevelWindow, seconds: Double): Double = seconds * window.meanSquare
+    fun unitsFor(
+        window: LevelWindow,
+        seconds: Double,
+    ): Double = seconds * window.meanSquare
 
     /** Units as a percentage of the daily meter (may exceed 100). */
     fun percentOf(units: Double): Double = units / DAILY_ALLOWANCE_UNITS * 100.0
@@ -36,8 +39,11 @@ object ExposureTracker {
      * Day rollover: stored units carry over only within the same epoch day.
      * Pure so the midnight edge is unit-tested instead of waited for.
      */
-    fun carriedUnits(storedEpochDay: Long, storedUnits: Double, todayEpochDay: Long): Double =
-        if (storedEpochDay == todayEpochDay) storedUnits else 0.0
+    fun carriedUnits(
+        storedEpochDay: Long,
+        storedUnits: Double,
+        todayEpochDay: Long,
+    ): Double = if (storedEpochDay == todayEpochDay) storedUnits else 0.0
 
     private fun dbToPower(db: Double): Double = 10.0.pow(db / 10.0)
 }

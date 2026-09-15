@@ -33,10 +33,14 @@ data class DinConfig(
 /** What the caller should do next, returned after each triplet is submitted. */
 sealed interface DinStep {
     /** Present another triplet at [snrDb], then submit the answer again. */
-    data class Present(val snrDb: Double) : DinStep
+    data class Present(
+        val snrDb: Double,
+    ) : DinStep
 
     /** The screening is complete. */
-    data class Done(val result: DinResult) : DinStep
+    data class Done(
+        val result: DinResult,
+    ) : DinStep
 }
 
 /**
@@ -44,13 +48,19 @@ sealed interface DinStep {
  * scored triplets. [pinnedAtEdge] flags sessions that sat on the SNR range
  * limit — report those as "beyond the range" rather than as a clean number.
  */
-data class DinResult(val srtSnrDb: Double, val tripletsPresented: Int, val pinnedAtEdge: Boolean)
+data class DinResult(
+    val srtSnrDb: Double,
+    val tripletsPresented: Int,
+    val pinnedAtEdge: Boolean,
+)
 
 /**
  * Adaptive SNR staircase for the DIN screening — the speech-in-noise analogue
  * of [HughsonWestlakeStaircase]. Deterministic and Android-free.
  */
-class DinStaircase(private val config: DinConfig = DinConfig()) {
+class DinStaircase(
+    private val config: DinConfig = DinConfig(),
+) {
     private var snr = config.startSnrDb.coerceIn(config.minSnrDb, config.maxSnrDb)
     private val scoredSnrs = mutableListOf<Double>()
     private var presented = 0

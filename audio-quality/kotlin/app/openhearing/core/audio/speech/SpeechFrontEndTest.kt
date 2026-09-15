@@ -70,18 +70,20 @@ class SpeechFrontEndTest {
         val curve = GainCurve(listOf(GainPoint(Hertz(500.0), 30.0), GainPoint(Hertz(2500.0), 30.0)))
         for (rate in listOf(8_000, 16_000, 24_000, 32_000, 44_100, 48_000)) {
             val frames = rate / 250
+
             fun ear() = HearingAssistChain(curve, rate, 30.0, ceilingLinear = 0.3f, speechPresenceDb = 6.0)
             val options = ListeningOptions(voiceComfort = VoiceComfort.STRONG, speechClarity = SpeechClarity.STRONG)
             val downstream = StereoAssistChain(ear(), ear(), frames)
             SpeechFrontEnd(rate, options, downstream, FakeDenoiser(rate / 100)).use { chain ->
                 repeat(300) { block ->
-                    val audio = FloatArray(frames * 2) { i ->
-                        when {
-                            block % 13 == 0 -> 1f
-                            block % 17 == 0 -> Float.NaN
-                            else -> sin(2 * PI * 2400 * (block * frames + i / 2) / rate).toFloat()
+                    val audio =
+                        FloatArray(frames * 2) { i ->
+                            when {
+                                block % 13 == 0 -> 1f
+                                block % 17 == 0 -> Float.NaN
+                                else -> sin(2 * PI * 2400 * (block * frames + i / 2) / rate).toFloat()
+                            }
                         }
-                    }
                     chain.process(audio)
                     assertTrue(audio.all { it.isFinite() && abs(it) <= 0.300001f })
                 }
@@ -89,16 +91,26 @@ class SpeechFrontEndTest {
         }
     }
 
-    private fun responseDb(rate: Int, frequency: Double, options: ListeningOptions): Double {
+    private fun responseDb(
+        rate: Int,
+        frequency: Double,
+        options: ListeningOptions,
+    ): Double {
         val input = FloatArray(rate) { (0.01 * sin(2 * PI * frequency * it / rate)).toFloat() }
-        val output = SpeechFrontEnd(rate, options, AudioProcessor {}).use {
-            render(it, input, intArrayOf(rate / 250))
-        }
+        val output =
+            SpeechFrontEnd(rate, options, AudioProcessor {}).use {
+                render(it, input, intArrayOf(rate / 250))
+            }
+
         fun rms(samples: FloatArray): Double = sqrt(samples.drop(rate / 2).sumOf { it.toDouble() * it } / (rate / 2))
         return 20 * log10(rms(output) / rms(input))
     }
 
-    private fun render(processor: AudioProcessor, input: FloatArray, sizes: IntArray): FloatArray {
+    private fun render(
+        processor: AudioProcessor,
+        input: FloatArray,
+        sizes: IntArray,
+    ): FloatArray {
         val output = FloatArray(input.size)
         var offset = 0
         var block = 0
@@ -115,14 +127,18 @@ class SpeechFrontEndTest {
         return output
     }
 
-    private class FakeDenoiser(override val frameSize: Int) : FrameDenoiser {
+    private class FakeDenoiser(
+        override val frameSize: Int,
+    ) : FrameDenoiser {
         var calls = 0
         var closes = 0
+
         override fun process(frame: FloatArray) {
             assertEquals(frameSize, frame.size)
             calls++
             for (i in frame.indices) frame[i] *= 0.5f
         }
+
         override fun close() {
             closes++
         }

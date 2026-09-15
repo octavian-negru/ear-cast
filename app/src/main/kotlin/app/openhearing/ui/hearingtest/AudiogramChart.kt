@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.hearingtest
 
 import androidx.compose.foundation.Canvas
@@ -46,7 +48,11 @@ private const val DB_MIN = -10.0
 private const val DB_MAX = 90.0
 private const val DB_GRID_STEP = 20
 
-private data class EarSeries(val ear: Ear, val color: Color, val points: List<Pair<Double, Double>>)
+private data class EarSeries(
+    val ear: Ear,
+    val color: Color,
+    val points: List<Pair<Double, Double>>,
+)
 
 /**
  * Audiogram-style plot of the hearing-check result: pitch (log-spaced) on the
@@ -55,7 +61,11 @@ private data class EarSeries(val ear: Ear, val color: Color, val points: List<Pa
  * (the canvas carries a short content description pointing there).
  */
 @Composable
-fun AudiogramChart(audiogram: Audiogram, modifier: Modifier = Modifier, darkTheme: Boolean = isSystemInDarkTheme()) {
+fun AudiogramChart(
+    audiogram: Audiogram,
+    modifier: Modifier = Modifier,
+    darkTheme: Boolean = isSystemInDarkTheme(),
+) {
     val dark = darkTheme
     val rightColor = if (dark) RightDark else RightLight
     val leftColor = if (dark) LeftDark else LeftLight
@@ -81,10 +91,10 @@ fun AudiogramChart(audiogram: Audiogram, modifier: Modifier = Modifier, darkThem
     Column(modifier = modifier) {
         Canvas(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(240.dp)
-                .semantics { contentDescription = chartDescription },
+                Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+                    .semantics { contentDescription = chartDescription },
         ) {
             drawChart(series, frequencies, gridColor, textMeasurer, labelStyle)
         }
@@ -138,7 +148,10 @@ private fun DrawScope.drawChart(
 }
 
 @Composable
-private fun Legend(rightColor: Color, leftColor: Color) {
+private fun Legend(
+    rightColor: Color,
+    leftColor: Color,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 8.dp),
@@ -153,21 +166,29 @@ private fun Legend(rightColor: Color, leftColor: Color) {
     }
 }
 
-private fun DrawScope.circleMarker(center: Offset, color: Color) {
+private fun DrawScope.circleMarker(
+    center: Offset,
+    color: Color,
+) {
     drawCircle(color, radius = 5.dp.toPx(), center = center, style = Stroke(width = 2.dp.toPx()))
 }
 
-private fun DrawScope.crossMarker(center: Offset, color: Color) {
+private fun DrawScope.crossMarker(
+    center: Offset,
+    color: Color,
+) {
     val r = 5.dp.toPx()
     val w = 2.dp.toPx()
     drawLine(color, Offset(center.x - r, center.y - r), Offset(center.x + r, center.y + r), w)
     drawLine(color, Offset(center.x - r, center.y + r), Offset(center.x + r, center.y - r), w)
 }
 
-private fun earPoints(audiogram: Audiogram, ear: Ear): List<Pair<Double, Double>> =
+private fun earPoints(
+    audiogram: Audiogram,
+    ear: Ear,
+): List<Pair<Double, Double>> =
     audiogram.frequenciesFor(ear).mapNotNull { freq ->
         audiogram.thresholdAt(ear, freq)?.let { freq.value to it.value }
     }
 
 private fun freqLabel(freq: Double): String = if (freq >= 1000) "${(freq / 1000).toInt()}k" else "${freq.toInt()}"
-

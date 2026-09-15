@@ -16,6 +16,7 @@ import app.openhearing.data.HearingProfile
 import app.openhearing.data.ProfileRepository
 import app.openhearing.data.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -64,129 +64,134 @@ data class AssistUiState(
  */
 @HiltViewModel
 class AssistViewModel
-@Inject
-constructor(
-    private val controller: AssistController,
-    private val profileRepository: ProfileRepository,
-    private val settingsRepository: SettingsRepository,
-    private val sessionFactory: AssistSessionFactory,
-) : ViewModel() {
-    val diagnostics = controller.diagnostics
-    init {
-        viewModelScope.launch(Dispatchers.IO) { controller.refreshDiagnostics() }
-    }
-    fun armDiagnostics(armed: Boolean) = controller.armDiagnostics(armed)
-    fun setDiagnosticNotes(notes: String) = controller.setDiagnosticNotes(notes)
-    fun deleteDiagnostics() {
-        viewModelScope.launch(Dispatchers.IO) { controller.deleteDiagnostics() }
-    }
-    private val masterGain = MutableStateFlow(AssistUiState.DEFAULT_MASTER_GAIN_DB)
+    @Inject
+    constructor(
+        private val controller: AssistController,
+        private val profileRepository: ProfileRepository,
+        private val settingsRepository: SettingsRepository,
+        private val sessionFactory: AssistSessionFactory,
+    ) : ViewModel() {
+        val diagnostics = controller.diagnostics
 
-    private val session =
-        controller.running
-
-    private val exposureUi =
-        combine(controller.exposure, settingsRepository.observeExposureToday()) { snapshot, stored ->
-            val carried =
-                ExposureTracker.carriedUnits(stored.epochDay, stored.units, LocalDate.now().toEpochDay())
-            val todayPercent = ExposureTracker.percentOf(carried + snapshot.unflushedUnits)
-            ExposureUi(
-                sessionSeconds = snapshot.sessionSeconds,
-                todayPercent = todayPercent.toInt().coerceAtLeast(0),
-                levelFraction = levelFraction(snapshot.lastRmsDbfs),
-                showHighNote = todayPercent >= ExposureTracker.HIGH_PERCENT,
-            )
+        init {
+            viewModelScope.launch(Dispatchers.IO) { controller.refreshDiagnostics() }
         }
 
-    private val runtime = combine(session, exposureUi) { s, e -> s to e }
+        fun armDiagnostics(armed: Boolean) = controller.armDiagnostics(armed)
 
-    private val baseUiState =
-        combine(
-            profileRepository.observeActiveProfile(),
-            profileRepository.observeProfiles(),
-            runtime,
-            masterGain,
-            settingsRepository.observeAssistPreset(),
-        ) { active, profiles, exposureRuntime, gain, presetName ->
-            val (running, exposure) = exposureRuntime
-            AssistUiState(
-                hasProfile = active?.audiogram?.thresholds?.isNotEmpty() == true,
-                running = running,
-                masterGainDb = active?.masterGainCapDb ?: gain,
-                profiles = profiles,
-                activeProfileId = active?.id,
-                preset = AssistPreset.fromName(presetName),
-                exposure = exposure,
-            )
+        fun setDiagnosticNotes(notes: String) = controller.setDiagnosticNotes(notes)
+
+        fun deleteDiagnostics() {
+            viewModelScope.launch(Dispatchers.IO) { controller.deleteDiagnostics() }
         }
 
-    val uiState: StateFlow<AssistUiState> =
-        baseUiState
-            .combine(settingsRepository.observeMicrophoneSource()) { state, microphoneName ->
-                state.copy(microphoneSource = MicrophoneSource.fromName(microphoneName))
+        private val masterGain = MutableStateFlow(AssistUiState.DEFAULT_MASTER_GAIN_DB)
+
+        private val session =
+            controller.running
+
+        private val exposureUi =
+            combine(controller.exposure, settingsRepository.observeExposureToday()) { snapshot, stored ->
+                val carried =
+                    ExposureTracker.carriedUnits(stored.epochDay, stored.units, LocalDate.now().toEpochDay())
+                val todayPercent = ExposureTracker.percentOf(carried + snapshot.unflushedUnits)
+                ExposureUi(
+                    sessionSeconds = snapshot.sessionSeconds,
+                    todayPercent = todayPercent.toInt().coerceAtLeast(0),
+                    levelFraction = levelFraction(snapshot.lastRmsDbfs),
+                    showHighNote = todayPercent >= ExposureTracker.HIGH_PERCENT,
+                )
             }
-            .combine(settingsRepository.observeListeningSettings()) { state, settings ->
-                state.copy(listeningOptions = settings.toOptions())
+
+        private val runtime = combine(session, exposureUi) { s, e -> s to e }
+
+        private val baseUiState =
+            combine(
+                profileRepository.observeActiveProfile(),
+                profileRepository.observeProfiles(),
+                runtime,
+                masterGain,
+                settingsRepository.observeAssistPreset(),
+            ) { active, profiles, exposureRuntime, gain, presetName ->
+                val (running, exposure) = exposureRuntime
+                AssistUiState(
+                    hasProfile = active?.audiogram?.thresholds?.isNotEmpty() == true,
+                    running = running,
+                    masterGainDb = active?.masterGainCapDb ?: gain,
+                    profiles = profiles,
+                    activeProfileId = active?.id,
+                    preset = AssistPreset.fromName(presetName),
+                    exposure = exposure,
+                )
             }
-            .combine(controller.sessionStatus) { state, status -> state.copy(sessionStatus = status) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), AssistUiState())
 
-    /** Applies immediately (also to a running session) and persists on the active profile. */
-    fun setMasterGain(db: Double) {
-        masterGain.value = db
-        controller.setMasterGainDb(db)
-        viewModelScope.launch {
-            val profile = profileRepository.observeActiveProfile().first()
-            if (profile != null) {
-                profileRepository.save(profile.copy(masterGainCapDb = db))
+        val uiState: StateFlow<AssistUiState> =
+            baseUiState
+                .combine(settingsRepository.observeMicrophoneSource()) { state, microphoneName ->
+                    state.copy(microphoneSource = MicrophoneSource.fromName(microphoneName))
+                }.combine(settingsRepository.observeListeningSettings()) { state, settings ->
+                    state.copy(listeningOptions = settings.toOptions())
+                }.combine(controller.sessionStatus) { state, status -> state.copy(sessionStatus = status) }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), AssistUiState())
+
+        /** Applies immediately (also to a running session) and persists on the active profile. */
+        fun setMasterGain(db: Double) {
+            masterGain.value = db
+            controller.setMasterGainDb(db)
+            viewModelScope.launch {
+                val profile = profileRepository.observeActiveProfile().first()
+                if (profile != null) {
+                    profileRepository.save(profile.copy(masterGainCapDb = db))
+                }
             }
         }
-    }
 
-    fun selectProfile(profileId: String) {
-        viewModelScope.launch {
-            profileRepository.setActive(profileId)
-            // A running session keeps its old curve; restarting applies the new
-            // profile. Stop here so the user never hears an unexpected switch.
-            if (controller.running.value) return@launch
-            sessionFactory.prepare()
+        fun selectProfile(profileId: String) {
+            viewModelScope.launch {
+                profileRepository.setActive(profileId)
+                // A running session keeps its old curve; restarting applies the new
+                // profile. Stop here so the user never hears an unexpected switch.
+                if (controller.running.value) return@launch
+                sessionFactory.prepare()
+            }
+        }
+
+        fun deleteProfile(profileId: String) {
+            viewModelScope.launch { profileRepository.delete(profileId) }
+        }
+
+        /** Persisted; a running session keeps its preset until restarted (like profiles). */
+        fun setPreset(preset: AssistPreset) {
+            viewModelScope.launch {
+                settingsRepository.setAssistPreset(preset.name)
+                if (!controller.running.value) sessionFactory.prepare()
+            }
+        }
+
+        /** Persist the input choice; it applies the next time Hearing Assist starts. */
+        fun setMicrophoneSource(source: MicrophoneSource) {
+            viewModelScope.launch {
+                settingsRepository.setMicrophoneSource(source.name)
+                if (!controller.running.value) sessionFactory.prepare()
+            }
+        }
+
+        fun setListeningOptions(options: ListeningOptions) {
+            viewModelScope.launch { settingsRepository.setListeningSettings(options.toSettings()) }
+        }
+
+        /** Prepare the controller config from the active profile. Returns true if ready. */
+        suspend fun prepare(): Boolean = sessionFactory.prepare()
+
+        private companion object {
+            const val STOP_TIMEOUT_MS = 5_000L
+
+            // Map the last-second RMS (dBFS) onto a 0..1 bar; −60 dBFS ≈ silence.
+            const val LEVEL_FLOOR_DBFS = -60.0
+
+            fun levelFraction(rmsDbfs: Double): Float =
+                ((rmsDbfs - LEVEL_FLOOR_DBFS) / -LEVEL_FLOOR_DBFS)
+                    .coerceIn(0.0, 1.0)
+                    .toFloat()
         }
     }
-
-    fun deleteProfile(profileId: String) {
-        viewModelScope.launch { profileRepository.delete(profileId) }
-    }
-
-    /** Persisted; a running session keeps its preset until restarted (like profiles). */
-    fun setPreset(preset: AssistPreset) {
-        viewModelScope.launch {
-            settingsRepository.setAssistPreset(preset.name)
-            if (!controller.running.value) sessionFactory.prepare()
-        }
-    }
-
-    /** Persist the input choice; it applies the next time Hearing Assist starts. */
-    fun setMicrophoneSource(source: MicrophoneSource) {
-        viewModelScope.launch {
-            settingsRepository.setMicrophoneSource(source.name)
-            if (!controller.running.value) sessionFactory.prepare()
-        }
-    }
-
-    fun setListeningOptions(options: ListeningOptions) {
-        viewModelScope.launch { settingsRepository.setListeningSettings(options.toSettings()) }
-    }
-
-    /** Prepare the controller config from the active profile. Returns true if ready. */
-    suspend fun prepare(): Boolean = sessionFactory.prepare()
-
-    private companion object {
-        const val STOP_TIMEOUT_MS = 5_000L
-
-        // Map the last-second RMS (dBFS) onto a 0..1 bar; −60 dBFS ≈ silence.
-        const val LEVEL_FLOOR_DBFS = -60.0
-
-        fun levelFraction(rmsDbfs: Double): Float =
-            ((rmsDbfs - LEVEL_FLOOR_DBFS) / -LEVEL_FLOOR_DBFS).coerceIn(0.0, 1.0).toFloat()
-    }
-}

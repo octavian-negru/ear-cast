@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.demo
 
 import androidx.compose.foundation.layout.Column
@@ -26,7 +28,10 @@ import app.openhearing.R
  * assist is running (mic loop and demo playback must not fight over audio).
  */
 @Composable
-fun HearDifferenceCard(modifier: Modifier = Modifier, viewModel: HearDifferenceViewModel = hiltViewModel()) {
+fun HearDifferenceCard(
+    modifier: Modifier = Modifier,
+    viewModel: HearDifferenceViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     if (!state.available) return
 
@@ -82,4 +87,3 @@ fun HearDifferenceCard(modifier: Modifier = Modifier, viewModel: HearDifferenceV
         }
     }
 }
-

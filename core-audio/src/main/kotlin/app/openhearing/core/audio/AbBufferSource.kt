@@ -10,7 +10,10 @@ package app.openhearing.core.audio
  * Pure Kotlin so the seek/toggle/loop/crossfade logic is JVM-unit-tested; the
  * AudioTrack shell around it ([AbPlayer]) stays deliberately thin.
  */
-class AbBufferSource(private val raw: FloatArray, private val processed: FloatArray) {
+class AbBufferSource(
+    private val raw: FloatArray,
+    private val processed: FloatArray,
+) {
     init {
         require(raw.size == processed.size) { "raw and processed must be equal length" }
         require(raw.isNotEmpty()) { "buffers must not be empty" }
@@ -43,7 +46,11 @@ class AbBufferSource(private val raw: FloatArray, private val processed: FloatAr
         current = if (processedActive) processed else raw
     }
 
-    private fun copyLooping(source: FloatArray, out: FloatArray, mix: FloatArray?) {
+    private fun copyLooping(
+        source: FloatArray,
+        out: FloatArray,
+        mix: FloatArray?,
+    ) {
         val n = out.size
         for (i in 0 until n) {
             val p = (position + i) % length

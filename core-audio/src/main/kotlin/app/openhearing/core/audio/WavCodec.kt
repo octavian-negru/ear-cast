@@ -53,13 +53,21 @@ object WavCodec {
         return samples
     }
 
-    private fun ascii(bytes: ByteArray, offset: Int, length: Int): String =
-        String(bytes, offset, length, Charsets.US_ASCII)
+    private fun ascii(
+        bytes: ByteArray,
+        offset: Int,
+        length: Int,
+    ): String = String(bytes, offset, length, Charsets.US_ASCII)
 
-    private fun le16(bytes: ByteArray, offset: Int): Int =
-        (bytes[offset].toInt() and 0xFF) or ((bytes[offset + 1].toInt() and 0xFF) shl 8)
+    private fun le16(
+        bytes: ByteArray,
+        offset: Int,
+    ): Int = (bytes[offset].toInt() and 0xFF) or ((bytes[offset + 1].toInt() and 0xFF) shl 8)
 
-    private fun le32(bytes: ByteArray, offset: Int): Int = le16(bytes, offset) or (le16(bytes, offset + 2) shl 16)
+    private fun le32(
+        bytes: ByteArray,
+        offset: Int,
+    ): Int = le16(bytes, offset) or (le16(bytes, offset + 2) shl 16)
 
     private const val HEADER_MIN_BYTES = 44
     private const val PCM_FORMAT = 1

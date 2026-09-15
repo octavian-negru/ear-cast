@@ -20,13 +20,16 @@ class SpeechFrontEnd(
     private val downstream: AudioProcessor,
     private val denoiser: FrameDenoiser? = null,
     private val diagnostics: SessionDiagnostics? = null,
-) : AudioProcessor, AutoCloseable, AudioStreamObserver {
+) : AudioProcessor,
+    AutoCloseable,
+    AudioStreamObserver {
     override val wantsStreamDiagnostics: Boolean get() = diagnostics != null
-    private val bass = if (options.voiceComfort == VoiceComfort.OFF) {
-        null
-    } else {
-        Biquad.lowShelf(450.0, -options.voiceComfort.reductionDb, sampleRateHz)
-    }
+    private val bass =
+        if (options.voiceComfort == VoiceComfort.OFF) {
+            null
+        } else {
+            Biquad.lowShelf(450.0, -options.voiceComfort.reductionDb, sampleRateHz)
+        }
     private val inputFrame = FloatArray(denoiser?.frameSize ?: 0)
     private val outputFrame = FloatArray(inputFrame.size)
     private var position = 0
@@ -57,15 +60,27 @@ class SpeechFrontEnd(
 
     override fun onStreamStarted(metadata: Map<String, String>) {
         val delay = denoiser?.algorithmDelaySamples
-        diagnostics?.streamStarted(metadata + denoiser?.diagnosticMetadata.orEmpty() + mapOf(
-            "enhancement_delay_samples" to if (denoiser == null) "0" else
-                delay?.let { (it + denoiser.frameSize).toString() }.orEmpty(),
-            "enhanced_tap" to "mono_enhancement_and_bass_before_fitting",
-            "speech_presence_position" to "after_per_ear_wdrc_before_feedback_guard_and_limiter",
-        ))
+        diagnostics?.streamStarted(
+            metadata + denoiser?.diagnosticMetadata.orEmpty() +
+                mapOf(
+                    "enhancement_delay_samples" to
+                        if (denoiser == null) {
+                            "0"
+                        } else {
+                            delay?.let { (it + denoiser.frameSize).toString() }.orEmpty()
+                        },
+                    "enhanced_tap" to "mono_enhancement_and_bass_before_fitting",
+                    "speech_presence_position" to "after_per_ear_wdrc_before_feedback_guard_and_limiter",
+                ),
+        )
     }
 
-    override fun onCaptureTiming(readFrames: Long, hardwareFrames: Long, timestampNanos: Long, outputUnderruns: Int) {
+    override fun onCaptureTiming(
+        readFrames: Long,
+        hardwareFrames: Long,
+        timestampNanos: Long,
+        outputUnderruns: Int,
+    ) {
         diagnostics?.captureTiming(readFrames, hardwareFrames, timestampNanos, outputUnderruns)
     }
 

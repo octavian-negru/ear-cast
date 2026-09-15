@@ -22,17 +22,18 @@ import javax.inject.Singleton
 object DataModule {
     @Provides
     @Singleton
-    fun dataStore(@ApplicationContext context: Context): DataStore<Preferences> = PreferenceDataStoreFactory.create {
-        context.preferencesDataStoreFile("openhearing")
-    }
+    fun dataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create {
+            context.preferencesDataStoreFile("openhearing")
+        }
 
     @Provides
     @Singleton
-    fun settingsRepository(dataStore: DataStore<Preferences>): SettingsRepository =
-        DataStoreSettingsRepository(dataStore)
+    fun settingsRepository(store: DataStore<Preferences>): SettingsRepository = DataStoreSettingsRepository(store)
 
     @Provides
     @Singleton
     fun profileRepository(dataStore: DataStore<Preferences>): ProfileRepository = DataStoreProfileRepository(dataStore)
 }
-

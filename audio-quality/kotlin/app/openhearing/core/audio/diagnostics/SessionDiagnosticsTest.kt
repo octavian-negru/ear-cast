@@ -1,15 +1,15 @@
 package app.openhearing.core.audio.diagnostics
 
-import java.io.File
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class SessionDiagnosticsTest {
     @TempDir lateinit var temporary: File
@@ -19,12 +19,16 @@ class SessionDiagnosticsTest {
         val done = CountDownLatch(1)
         var failure: String? = null
         val directory = File(temporary, "recording")
-        val recorder = SessionDiagnostics(
-            directory, 16_000, 64, mapOf("notes" to "quotes \" and newline\n"),
-        ) { _, error ->
-            failure = error
-            done.countDown()
-        }
+        val recorder =
+            SessionDiagnostics(
+                directory,
+                16_000,
+                64,
+                mapOf("notes" to "quotes \" and newline\n"),
+            ) { _, error ->
+                failure = error
+                done.countDown()
+            }
         repeat(64) { block ->
             recorder.input(FloatArray(128) { block / 100f })
             recorder.enhanced(FloatArray(128) { block / 200f })

@@ -27,7 +27,9 @@ interface OutputLimiter {
  * Not transparent (hard clipping distorts), but it is the safe floor the smarter
  * Phase 2 limiter must never undershoot. Used now to anchor the safety tests.
  */
-class HardCeilingLimiter(override val ceilingLinear: Float) : OutputLimiter {
+class HardCeilingLimiter(
+    override val ceilingLinear: Float,
+) : OutputLimiter {
     init {
         require(ceilingLinear in 0f..1f) { "ceiling must be in (0, 1], was $ceilingLinear" }
         require(ceilingLinear > 0f) { "ceiling must be > 0" }

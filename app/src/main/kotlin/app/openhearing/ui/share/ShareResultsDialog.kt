@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.share
 
 import androidx.compose.foundation.horizontalScroll
@@ -41,7 +43,10 @@ import java.time.format.FormatStyle
  * recorded into a graphics layer and exported as a PNG on demand.
  */
 @Composable
-fun ShareResultsDialog(audiogram: Audiogram, onDismiss: () -> Unit) {
+fun ShareResultsDialog(
+    audiogram: Audiogram,
+    onDismiss: () -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val layer = rememberGraphicsLayer()
@@ -67,12 +72,12 @@ fun ShareResultsDialog(audiogram: Audiogram, onDismiss: () -> Unit) {
                         audiogram = audiogram,
                         dateText = dateText,
                         modifier =
-                        Modifier
-                            .padding(top = 12.dp)
-                            .drawWithContent {
-                                layer.record { this@drawWithContent.drawContent() }
-                                drawLayer(layer)
-                            },
+                            Modifier
+                                .padding(top = 12.dp)
+                                .drawWithContent {
+                                    layer.record { this@drawWithContent.drawContent() }
+                                    drawLayer(layer)
+                                },
                     )
                 }
                 Text(
@@ -109,4 +114,3 @@ fun ShareResultsDialog(audiogram: Audiogram, onDismiss: () -> Unit) {
         }
     }
 }
-

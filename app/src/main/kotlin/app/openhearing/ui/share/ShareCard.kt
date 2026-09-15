@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.share
 
 import androidx.compose.foundation.layout.Column
@@ -29,7 +31,11 @@ private val Brand = Color(0xFF0B5D66)
  * the audiogram chart, the non-diagnostic disclaimer, and the project footer.
  */
 @Composable
-fun ShareCard(audiogram: Audiogram, dateText: String, modifier: Modifier = Modifier) {
+fun ShareCard(
+    audiogram: Audiogram,
+    dateText: String,
+    modifier: Modifier = Modifier,
+) {
     OpenHearingTheme(darkTheme = false, highContrast = false) {
         // Surface (not a background modifier) so LocalContentColor flips to the
         // light scheme's onSurface for everything that doesn't set its own color,
@@ -68,4 +74,3 @@ fun ShareCard(audiogram: Audiogram, dateText: String, modifier: Modifier = Modif
         }
     }
 }
-

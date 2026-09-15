@@ -43,11 +43,12 @@ class Wdrc(
     /** Stateful sample API keeps multiband processing free of temporary buffers. */
     fun processSample(x: Double): Double {
         val rectified = abs(x)
-        envelope = if (rectified > envelope) {
-            attackCoef * envelope + (1 - attackCoef) * rectified
-        } else {
-            releaseCoef * envelope + (1 - releaseCoef) * rectified
-        }
+        envelope =
+            if (rectified > envelope) {
+                attackCoef * envelope + (1 - attackCoef) * rectified
+            } else {
+                releaseCoef * envelope + (1 - releaseCoef) * rectified
+            }
         val gainDb = makeupGainDb + computeGainReductionDb(levelDb(envelope))
         return x * 10.0.pow(gainDb / 20.0)
     }
@@ -57,7 +58,11 @@ class Wdrc(
     }
 
     private fun levelDb(linear: Double): Double =
-        if (linear <= MIN_LEVEL_LINEAR) MIN_LEVEL_DB else 20.0 * ln(linear) / LN10
+        if (linear <= MIN_LEVEL_LINEAR) {
+            MIN_LEVEL_DB
+        } else {
+            20.0 * ln(linear) / LN10
+        }
 
     /** Downward-compression gain (<= 0 dB) for an input [inputDb], with soft knee. */
     private fun computeGainReductionDb(inputDb: Double): Double {

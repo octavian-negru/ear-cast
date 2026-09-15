@@ -15,7 +15,10 @@ import kotlin.math.sin
 class ExposureMeteringTest {
     private val sampleRate = 48_000
 
-    private fun sine(amp: Double, n: Int) = FloatArray(n) { (amp * sin(2.0 * PI * 1000.0 * it / sampleRate)).toFloat() }
+    private fun sine(
+        amp: Double,
+        n: Int,
+    ) = FloatArray(n) { (amp * sin(2.0 * PI * 1000.0 * it / sampleRate)).toFloat() }
 
     @Test
     fun `meter reports the RMS of a known sine`() {

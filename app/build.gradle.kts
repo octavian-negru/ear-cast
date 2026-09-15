@@ -17,17 +17,36 @@ plugins {
 val keystorePropsFile = rootProject.file("keystore.properties")
 val keystoreProps =
     Properties().apply {
-        if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
+        if (keystorePropsFile.exists()) {
+            keystorePropsFile
+                .inputStream()
+                .use { load(it) }
+        }
     }
 
 android {
     namespace = "app.openhearing"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk =
+        libs
+            .versions
+            .compileSdk
+            .get()
+            .toInt()
 
     defaultConfig {
         applicationId = "app.openhearing"
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
+        minSdk =
+            libs
+                .versions
+                .minSdk
+                .get()
+                .toInt()
+        targetSdk =
+            libs
+                .versions
+                .targetSdk
+                .get()
+                .toInt()
         versionCode = 2
         versionName = "0.2.0-alpha01"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -105,4 +124,3 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
 }
-

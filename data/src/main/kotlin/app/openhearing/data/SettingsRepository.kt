@@ -54,11 +54,17 @@ interface SettingsRepository {
     fun observeExposureToday(): Flow<DailyExposure>
 
     /** Add [units] to [epochDay]; a different stored day is replaced, not summed. */
-    suspend fun addExposureUnits(units: Double, epochDay: Long)
+    suspend fun addExposureUnits(
+        units: Double,
+        epochDay: Long,
+    )
 }
 
 /** Exposure units accumulated on [epochDay] (may be a past day until next write). */
-data class DailyExposure(val epochDay: Long, val units: Double)
+data class DailyExposure(
+    val epochDay: Long,
+    val units: Double,
+)
 
 /** Names are mapped to DSP enums by the app, keeping persistence independent of audio. */
 data class ListeningSettings(

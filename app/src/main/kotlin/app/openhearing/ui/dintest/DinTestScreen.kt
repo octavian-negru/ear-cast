@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.dintest
 
 import androidx.compose.foundation.layout.Arrangement
@@ -35,15 +37,18 @@ import app.openhearing.audiogram.DigitsInNoiseScreening
  * fine. Mirrors the pure-tone check's phase structure and safety controls.
  */
 @Composable
-fun DinTestScreen(onBack: () -> Unit, viewModel: DinTestViewModel = hiltViewModel()) {
+fun DinTestScreen(
+    onBack: () -> Unit,
+    viewModel: DinTestViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier =
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
     ) {
         Text(stringResource(R.string.din_title), style = MaterialTheme.typography.headlineSmall)
         NoticeCard()
@@ -71,7 +76,10 @@ private fun NoticeCard() {
 }
 
 @Composable
-private fun NotStarted(onStart: () -> Unit, onBack: () -> Unit) {
+private fun NotStarted(
+    onStart: () -> Unit,
+    onBack: () -> Unit,
+) {
     Column {
         Text(
             stringResource(R.string.din_intro),
@@ -90,7 +98,10 @@ private fun NotStarted(onStart: () -> Unit, onBack: () -> Unit) {
 }
 
 @Composable
-private fun InProgress(state: DinUiState, viewModel: DinTestViewModel) {
+private fun InProgress(
+    state: DinUiState,
+    viewModel: DinTestViewModel,
+) {
     Column {
         LinearProgressIndicator(
             progress = { state.tripletNumber.toFloat() / state.totalTriplets },
@@ -148,7 +159,10 @@ private fun EnteredDigits(entered: List<Int>) {
 }
 
 @Composable
-private fun Keypad(enabled: Boolean, onDigit: (Int) -> Unit) {
+private fun Keypad(
+    enabled: Boolean,
+    onDigit: (Int) -> Unit,
+) {
     val rows = listOf(listOf(1, 2, 3), listOf(4, 5, 6), listOf(7, 8, 9), listOf(0))
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         rows.forEach { row ->
@@ -166,7 +180,10 @@ private fun Keypad(enabled: Boolean, onDigit: (Int) -> Unit) {
 }
 
 @Composable
-private fun Results(state: DinUiState, onBack: () -> Unit) {
+private fun Results(
+    state: DinUiState,
+    onBack: () -> Unit,
+) {
     Column {
         Text(
             stringResource(R.string.din_complete),
@@ -207,4 +224,3 @@ private fun Results(state: DinUiState, onBack: () -> Unit) {
         }
     }
 }
-

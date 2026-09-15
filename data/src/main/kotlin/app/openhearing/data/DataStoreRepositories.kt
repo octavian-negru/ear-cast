@@ -47,7 +47,9 @@ private object Keys {
 private const val LEGACY_PROFILE_ID = "active"
 
 /** [SettingsRepository] backed by Preferences DataStore. */
-class DataStoreSettingsRepository(private val dataStore: DataStore<Preferences>) : SettingsRepository {
+class DataStoreSettingsRepository(
+    private val dataStore: DataStore<Preferences>,
+) : SettingsRepository {
     override fun observeConsentAccepted(): Flow<Boolean> = dataStore.data.map { it[Keys.CONSENT] ?: false }
 
     override suspend fun setConsentAccepted(accepted: Boolean) {
@@ -79,17 +81,18 @@ class DataStoreSettingsRepository(private val dataStore: DataStore<Preferences>)
         dataStore.edit { it[Keys.MICROPHONE_SOURCE] = name }
     }
 
-    override fun observeListeningSettings(): Flow<ListeningSettings> = dataStore.data.map {
-        val defaults = ListeningSettings()
-        ListeningSettings(
-            noiseReduction = it[Keys.NOISE_REDUCTION] ?: defaults.noiseReduction,
-            voiceComfort = it[Keys.VOICE_COMFORT] ?: defaults.voiceComfort,
-            captureMode = it[Keys.CAPTURE_MODE] ?: defaults.captureMode,
-            speechClarity = it[Keys.SPEECH_CLARITY] ?: defaults.speechClarity,
-            quietSpeech = it[Keys.QUIET_SPEECH] ?: defaults.quietSpeech,
-            speechEngine = it[Keys.SPEECH_ENGINE] ?: defaults.speechEngine,
-        )
-    }
+    override fun observeListeningSettings(): Flow<ListeningSettings> =
+        dataStore.data.map {
+            val defaults = ListeningSettings()
+            ListeningSettings(
+                noiseReduction = it[Keys.NOISE_REDUCTION] ?: defaults.noiseReduction,
+                voiceComfort = it[Keys.VOICE_COMFORT] ?: defaults.voiceComfort,
+                captureMode = it[Keys.CAPTURE_MODE] ?: defaults.captureMode,
+                speechClarity = it[Keys.SPEECH_CLARITY] ?: defaults.speechClarity,
+                quietSpeech = it[Keys.QUIET_SPEECH] ?: defaults.quietSpeech,
+                speechEngine = it[Keys.SPEECH_ENGINE] ?: defaults.speechEngine,
+            )
+        }
 
     override suspend fun setListeningSettings(settings: ListeningSettings) {
         dataStore.edit {
@@ -108,14 +111,18 @@ class DataStoreSettingsRepository(private val dataStore: DataStore<Preferences>)
         dataStore.edit { it[Keys.MEDIA_EQ_ENABLED] = enabled }
     }
 
-    override fun observeExposureToday(): Flow<DailyExposure> = dataStore.data.map {
-        DailyExposure(
-            epochDay = it[Keys.EXPOSURE_EPOCH_DAY] ?: 0L,
-            units = it[Keys.EXPOSURE_UNITS] ?: 0.0,
-        )
-    }
+    override fun observeExposureToday(): Flow<DailyExposure> =
+        dataStore.data.map {
+            DailyExposure(
+                epochDay = it[Keys.EXPOSURE_EPOCH_DAY] ?: 0L,
+                units = it[Keys.EXPOSURE_UNITS] ?: 0.0,
+            )
+        }
 
-    override suspend fun addExposureUnits(units: Double, epochDay: Long) {
+    override suspend fun addExposureUnits(
+        units: Double,
+        epochDay: Long,
+    ) {
         dataStore.edit {
             val sameDay = it[Keys.EXPOSURE_EPOCH_DAY] == epochDay
             val carried = if (sameDay) it[Keys.EXPOSURE_UNITS] ?: 0.0 else 0.0
@@ -142,27 +149,29 @@ internal object ProfileListCodec {
     private const val FIELD = '\u001F'
     private const val RECORD = '\u001E'
 
-    fun encode(profiles: List<HearingProfile>): String = profiles.joinToString(RECORD.toString()) { p ->
-        listOf(
-            sanitize(p.id),
-            sanitize(p.name),
-            p.masterGainCapDb.toString(),
-            AudiogramCodec.encode(p.audiogram),
-        ).joinToString(FIELD.toString())
-    }
+    fun encode(profiles: List<HearingProfile>): String =
+        profiles.joinToString(RECORD.toString()) { p ->
+            listOf(
+                sanitize(p.id),
+                sanitize(p.name),
+                p.masterGainCapDb.toString(),
+                AudiogramCodec.encode(p.audiogram),
+            ).joinToString(FIELD.toString())
+        }
 
-    fun decode(text: String): List<HearingProfile> = text.split(RECORD).mapNotNull { record ->
-        val fields = record.split(FIELD)
-        if (fields.size < FIELD_COUNT) return@mapNotNull null
-        runCatching {
-            HearingProfile(
-                id = fields[0],
-                name = fields[1],
-                audiogram = AudiogramCodec.decode(fields[3]),
-                masterGainCapDb = fields[2].toDouble(),
-            )
-        }.getOrNull()
-    }
+    fun decode(text: String): List<HearingProfile> =
+        text.split(RECORD).mapNotNull { record ->
+            val fields = record.split(FIELD)
+            if (fields.size < FIELD_COUNT) return@mapNotNull null
+            runCatching {
+                HearingProfile(
+                    id = fields[0],
+                    name = fields[1],
+                    audiogram = AudiogramCodec.decode(fields[3]),
+                    masterGainCapDb = fields[2].toDouble(),
+                )
+            }.getOrNull()
+        }
 
     private fun sanitize(value: String): String = value.replace(FIELD, ' ').replace(RECORD, ' ')
 
@@ -174,7 +183,9 @@ internal object ProfileListCodec {
  * profiles plus the active profile id; each hearing check or manual entry saves
  * a new profile, so the list doubles as result history (newest first).
  */
-class DataStoreProfileRepository(private val dataStore: DataStore<Preferences>) : ProfileRepository {
+class DataStoreProfileRepository(
+    private val dataStore: DataStore<Preferences>,
+) : ProfileRepository {
     private fun Preferences.profileList(): List<HearingProfile> {
         val encoded = this[Keys.PROFILES]
         if (encoded != null) return ProfileListCodec.decode(encoded)
@@ -242,7 +253,11 @@ class DataStoreProfileRepository(private val dataStore: DataStore<Preferences>) 
 }
 
 /** Builds a new uniquely-identified profile from a hearing-check or manual-entry result. */
-fun newProfileFrom(audiogram: Audiogram, name: String, masterGainCapDb: Double = 20.0) = HearingProfile(
+fun newProfileFrom(
+    audiogram: Audiogram,
+    name: String,
+    masterGainCapDb: Double = 20.0,
+) = HearingProfile(
     id = UUID.randomUUID().toString(),
     name = name,
     audiogram = audiogram,

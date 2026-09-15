@@ -34,12 +34,13 @@ object DemoRenderer {
         ceilingLinear: Float,
         sampleRateHz: Int,
     ): FloatArray {
-        fun earChain(curve: GainCurve) = HearingAssistChain(
-            gainCurve = curve,
-            sampleRateHz = sampleRateHz,
-            masterGainDb = masterGainDb,
-            ceilingLinear = ceilingLinear,
-        )
+        fun earChain(curve: GainCurve) =
+            HearingAssistChain(
+                gainCurve = curve,
+                sampleRateHz = sampleRateHz,
+                masterGainDb = masterGainDb,
+                ceilingLinear = ceilingLinear,
+            )
         val chain =
             StereoAssistChain(
                 left = earChain(leftCurve),

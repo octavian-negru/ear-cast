@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -47,4 +49,3 @@ fun OpenHearingTheme(
         }
     MaterialTheme(colorScheme = colors, content = content)
 }
-

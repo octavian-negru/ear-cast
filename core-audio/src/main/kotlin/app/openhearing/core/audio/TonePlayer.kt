@@ -31,39 +31,40 @@ class TonePlayer(
      * Limit, then play [buffer] to completion (mono). Suspends until the tone has
      * finished, [stop] is called, or the coroutine is cancelled.
      */
-    suspend fun play(buffer: FloatArray) = withContext(Dispatchers.IO) {
-        // SAFETY-CRITICAL: clamp every sample to the ceiling before output.
-        limiter.processInPlace(buffer)
-        stopped = false
+    suspend fun play(buffer: FloatArray) =
+        withContext(Dispatchers.IO) {
+            // SAFETY-CRITICAL: clamp every sample to the ceiling before output.
+            limiter.processInPlace(buffer)
+            stopped = false
 
-        val minBytes =
-            AudioTrack.getMinBufferSize(
-                sampleRateHz,
-                android.media.AudioFormat.CHANNEL_OUT_MONO,
-                android.media.AudioFormat.ENCODING_PCM_FLOAT,
-            )
-        val bytes = maxOf(minBytes, buffer.size * Float.SIZE_BYTES)
+            val minBytes =
+                AudioTrack.getMinBufferSize(
+                    sampleRateHz,
+                    android.media.AudioFormat.CHANNEL_OUT_MONO,
+                    android.media.AudioFormat.ENCODING_PCM_FLOAT,
+                )
+            val bytes = maxOf(minBytes, buffer.size * Float.SIZE_BYTES)
 
-        val t = build(bytes)
-        track = t
-        try {
-            t.play()
-            var offset = 0
-            while (offset < buffer.size && !stopped) {
-                coroutineContext.ensureActive()
-                val written = t.write(buffer, offset, buffer.size - offset, AudioTrack.WRITE_BLOCKING)
-                if (written <= 0) break
-                offset += written
+            val t = build(bytes)
+            track = t
+            try {
+                t.play()
+                var offset = 0
+                while (offset < buffer.size && !stopped) {
+                    coroutineContext.ensureActive()
+                    val written = t.write(buffer, offset, buffer.size - offset, AudioTrack.WRITE_BLOCKING)
+                    if (written <= 0) break
+                    offset += written
+                }
+                // Wait for the device to actually drain (respecting stop/cancel).
+                while (!stopped && t.playbackHeadPosition < buffer.size) {
+                    coroutineContext.ensureActive()
+                    Thread.sleep(DRAIN_POLL_MS)
+                }
+            } finally {
+                releaseTrack(t)
             }
-            // Wait for the device to actually drain (respecting stop/cancel).
-            while (!stopped && t.playbackHeadPosition < buffer.size) {
-                coroutineContext.ensureActive()
-                Thread.sleep(DRAIN_POLL_MS)
-            }
-        } finally {
-            releaseTrack(t)
         }
-    }
 
     /** Instant mute: pause + flush now; a running [play] returns promptly. */
     fun stop() {
@@ -83,25 +84,27 @@ class TonePlayer(
         track = null
     }
 
-    private fun build(bufferBytes: Int): AudioTrack = AudioTrack.Builder()
-        .setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build(),
-        )
-        .setAudioFormat(
-            android.media.AudioFormat.Builder()
-                .setSampleRate(sampleRateHz)
-                .setEncoding(android.media.AudioFormat.ENCODING_PCM_FLOAT)
-                .setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO)
-                .build(),
-        )
-        .setBufferSizeInBytes(bufferBytes)
-        .setTransferMode(AudioTrack.MODE_STREAM)
-        .setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
-        .build()
-        .also { it.setVolume(AudioTrack.getMaxVolume()) }
+    private fun build(bufferBytes: Int): AudioTrack =
+        AudioTrack
+            .Builder()
+            .setAudioAttributes(
+                AudioAttributes
+                    .Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build(),
+            ).setAudioFormat(
+                android.media.AudioFormat
+                    .Builder()
+                    .setSampleRate(sampleRateHz)
+                    .setEncoding(android.media.AudioFormat.ENCODING_PCM_FLOAT)
+                    .setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO)
+                    .build(),
+            ).setBufferSizeInBytes(bufferBytes)
+            .setTransferMode(AudioTrack.MODE_STREAM)
+            .setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
+            .build()
+            .also { it.setVolume(AudioTrack.getMaxVolume()) }
 
     private fun releaseTrack(t: AudioTrack) {
         runCatching {

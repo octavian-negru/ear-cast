@@ -3,8 +3,8 @@ package app.openhearing.core.audio
 import android.content.Context
 import android.media.AudioRecord
 import android.media.AudioRouting
-import android.media.AudioTrack
 import android.media.AudioTimestamp
+import android.media.AudioTrack
 import android.os.Handler
 import android.os.Looper
 import android.os.Process
@@ -21,8 +21,10 @@ data class AudioSessionStatus(
 )
 
 /** Cancellable capture -> float DSP -> playback, with explicit, verified device routing. */
-class AndroidAudioEngine(private val context: Context, private val onStatus: (AudioSessionStatus) -> Unit = {}) :
-    AudioEngine {
+class AndroidAudioEngine(
+    private val context: Context,
+    private val onStatus: (AudioSessionStatus) -> Unit = {},
+) : AudioEngine {
     @Volatile private var requested = false
 
     @Volatile private var running = false
@@ -38,14 +40,20 @@ class AndroidAudioEngine(private val context: Context, private val onStatus: (Au
 
     override val isRunning: Boolean get() = running
 
-    override fun start(format: AudioFormat, processor: AudioProcessor) = startSession(format) { actual ->
+    override fun start(
+        format: AudioFormat,
+        processor: AudioProcessor,
+    ) = startSession(format) { actual ->
         require(actual == format) { "Use startSession to build a processor for the negotiated headset format." }
         processor
     }
 
     /** Construct DSP after selecting the transport rate, so filters and time constants agree with I/O. */
     @Synchronized
-    fun startSession(format: AudioFormat, processorFactory: (AudioFormat) -> AudioProcessor) {
+    fun startSession(
+        format: AudioFormat,
+        processorFactory: (AudioFormat) -> AudioProcessor,
+    ) {
         if (thread?.isAlive == true) return
         requested = true
         routeLost = false
@@ -99,7 +107,10 @@ class AndroidAudioEngine(private val context: Context, private val onStatus: (Au
         }
     }
 
-    private fun finishSession(route: AssistAudioRoute, failure: String?) {
+    private fun finishSession(
+        route: AssistAudioRoute,
+        failure: String?,
+    ) {
         running = false
         releaseStreams()
         route.close()
@@ -134,18 +145,29 @@ class AndroidAudioEngine(private val context: Context, private val onStatus: (Au
         processorFactory: (AudioFormat) -> AudioProcessor,
         onLost: () -> Unit,
     ) {
-        val candidates = AudioRoutePolicy.candidateFormats(
-            requestedFormat, route.sco, route.input.sampleRates, route.output?.sampleRates ?: intArrayOf(),
-        )
+        val candidates =
+            AudioRoutePolicy.candidateFormats(
+                requestedFormat,
+                route.sco,
+                route.input.sampleRates,
+                route.output?.sampleRates ?: intArrayOf(),
+            )
         var lastFailure: RuntimeException? = null
         for (format in candidates) {
             checkActive()
-            try {
-                prepareStreams(format, route)
-            } catch (e: SecurityException) {
-                throw e
-            } catch (e: RuntimeException) {
-                lastFailure = e
+            val preparationFailure: RuntimeException? =
+                try {
+                    prepareStreams(format, route)
+                    null
+                } catch (e: SecurityException) {
+                    throw e
+                } catch (e: IllegalArgumentException) {
+                    e
+                } catch (e: IllegalStateException) {
+                    e
+                }
+            if (preparationFailure != null) {
+                lastFailure = preparationFailure
                 releaseStreams()
                 continue
             }
@@ -161,10 +183,16 @@ class AndroidAudioEngine(private val context: Context, private val onStatus: (Au
         error("No compatible microphone/playback format could start. ${lastFailure?.message.orEmpty()}")
     }
 
-    private fun prepareStreams(format: AudioFormat, route: AssistAudioRoute) {
-        val channels = AudioRoutePolicy.outputChannels(
-            format.channelCount, route.sco, route.output?.channelCounts ?: intArrayOf(),
-        )
+    private fun prepareStreams(
+        format: AudioFormat,
+        route: AssistAudioRoute,
+    ) {
+        val channels =
+            AudioRoutePolicy.outputChannels(
+                format.channelCount,
+                route.sco,
+                route.output?.channelCounts ?: intArrayOf(),
+            )
         val streams = AssistAudioStreams(format, channels, route.attributes)
         record = streams.createRecord(context)
         track = streams.createTrack()
@@ -190,14 +218,18 @@ class AndroidAudioEngine(private val context: Context, private val onStatus: (Au
         processor: AudioProcessor,
         onLost: () -> Unit,
     ) {
-        val outputChannels = AudioRoutePolicy.outputChannels(
-            format.channelCount, route.sco, route.output?.channelCounts ?: intArrayOf(),
-        )
+        val outputChannels =
+            AudioRoutePolicy.outputChannels(
+                format.channelCount,
+                route.sco,
+                route.output?.channelCounts ?: intArrayOf(),
+            )
         val capture = checkNotNull(record)
         val playback = checkNotNull(track)
-        val listener = AudioRouting.OnRoutingChangedListener {
-            if (running && !route.matches(capture.routedDevice, playback.routedDevice)) onLost()
-        }
+        val listener =
+            AudioRouting.OnRoutingChangedListener {
+                if (running && !route.matches(capture.routedDevice, playback.routedDevice)) onLost()
+            }
         val handler = Handler(Looper.getMainLooper())
         capture.addOnRoutingChangedListener(listener, handler)
         playback.addOnRoutingChangedListener(listener, handler)
@@ -258,11 +290,14 @@ class AndroidAudioEngine(private val context: Context, private val onStatus: (Au
                 }
                 buffers.process(processor)
                 if (observer != null && readFrames >= nextTelemetryFrame) {
-                    val valid = capture.getTimestamp(timestamp, AudioTimestamp.TIMEBASE_MONOTONIC) ==
-                        AudioRecord.SUCCESS
+                    val valid =
+                        capture.getTimestamp(timestamp, AudioTimestamp.TIMEBASE_MONOTONIC) ==
+                            AudioRecord.SUCCESS
                     observer.onCaptureTiming(
-                        readFrames, if (valid) timestamp.framePosition else -1L,
-                        if (valid) timestamp.nanoTime else -1L, playback.underrunCount,
+                        readFrames,
+                        if (valid) timestamp.framePosition else -1L,
+                        if (valid) timestamp.nanoTime else -1L,
+                        playback.underrunCount,
                     )
                     nextTelemetryFrame = readFrames + format.sampleRateHz / 5
                 }
@@ -276,20 +311,24 @@ class AndroidAudioEngine(private val context: Context, private val onStatus: (Au
         outputChannels: Int,
         capture: AudioRecord,
         playback: AudioTrack,
-    ): Map<String, String> = mapOf(
-        "routed_input" to capture.routedDevice?.productName.toString(),
-        "routed_output" to playback.routedDevice?.productName.toString(),
-        "input_type" to capture.routedDevice?.type.toString(),
-        "output_type" to playback.routedDevice?.type.toString(),
-        "android_capture_rate" to capture.sampleRate.toString(),
-        "android_playback_rate" to playback.sampleRate.toString(),
-        "capture_source" to capture.audioSource.toString(),
-        "input_tuning" to format.inputTuning.name,
-        "device_output_channels" to outputChannels.toString(),
-        "capture_buffer_frames" to capture.bufferSizeInFrames.toString(),
-    )
+    ): Map<String, String> =
+        mapOf(
+            "routed_input" to capture.routedDevice?.productName.toString(),
+            "routed_output" to playback.routedDevice?.productName.toString(),
+            "input_type" to capture.routedDevice?.type.toString(),
+            "output_type" to playback.routedDevice?.type.toString(),
+            "android_capture_rate" to capture.sampleRate.toString(),
+            "android_playback_rate" to playback.sampleRate.toString(),
+            "capture_source" to capture.audioSource.toString(),
+            "input_tuning" to format.inputTuning.name,
+            "device_output_channels" to outputChannels.toString(),
+            "capture_buffer_frames" to capture.bufferSizeInFrames.toString(),
+        )
 
-    private fun writeAll(playback: AudioTrack, output: ShortArray) {
+    private fun writeAll(
+        playback: AudioTrack,
+        output: ShortArray,
+    ) {
         var offset = 0
         while (offset < output.size && requested && !routeLost) {
             val written = playback.write(output, offset, output.size - offset, AudioTrack.WRITE_BLOCKING)

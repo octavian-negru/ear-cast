@@ -11,7 +11,11 @@ import app.openhearing.audiogram.GainCurve
  * for a v1 linear fit; a more exact filterbank can replace it behind this class.
  * Mono in/out (v1 processes a single channel — see HearingAssistChain).
  */
-class GainEqualizer(gainCurve: GainCurve, private val sampleRateHz: Int, q: Double = Biquad.DEFAULT_Q) {
+class GainEqualizer(
+    gainCurve: GainCurve,
+    private val sampleRateHz: Int,
+    q: Double = Biquad.DEFAULT_Q,
+) {
     private val bands: List<Biquad> =
         gainCurve.points
             .filter { it.frequency.value > 0 && it.frequency.value < sampleRateHz / 2.0 }

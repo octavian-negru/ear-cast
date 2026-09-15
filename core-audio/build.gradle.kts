@@ -10,11 +10,21 @@ plugins {
 
 android {
     namespace = "app.openhearing.core.audio"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk =
+        libs
+            .versions
+            .compileSdk
+            .get()
+            .toInt()
     ndkVersion = "27.2.12479018"
 
     defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
+        minSdk =
+            libs
+                .versions
+                .minSdk
+                .get()
+                .toInt()
         consumerProguardFiles("consumer-rules.pro")
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86") }
     }

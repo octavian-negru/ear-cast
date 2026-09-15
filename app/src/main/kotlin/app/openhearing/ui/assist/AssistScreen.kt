@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.assist
 
 import android.Manifest
@@ -64,7 +66,10 @@ import kotlinx.coroutines.launch
  * phone speaker, where mic->speaker feedback (howl) is likely.
  */
 @Composable
-fun AssistScreen(onBack: () -> Unit, viewModel: AssistViewModel = hiltViewModel()) {
+fun AssistScreen(
+    onBack: () -> Unit,
+    viewModel: AssistViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -104,10 +109,10 @@ fun AssistScreen(onBack: () -> Unit, viewModel: AssistViewModel = hiltViewModel(
 
     Column(
         modifier =
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
     ) {
         Text(stringResource(R.string.assist_title), style = MaterialTheme.typography.headlineSmall)
         SafetyNote()
@@ -235,15 +240,16 @@ private fun MicrophoneSelector(
             )
             MicrophoneSource.entries.forEach { option ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                        .selectable(
-                            selected = option == source,
-                            enabled = enabled,
-                            role = Role.RadioButton,
-                            onClick = { onChange(option) },
-                        ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .selectable(
+                                selected = option == source,
+                                enabled = enabled,
+                                role = Role.RadioButton,
+                                onClick = { onChange(option) },
+                            ),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RadioButton(selected = option == source, onClick = null, enabled = enabled)
@@ -269,7 +275,11 @@ private fun MicrophoneSelector(
 }
 
 @Composable
-private fun PresetSelector(preset: AssistPreset, running: Boolean, onChange: (AssistPreset) -> Unit) {
+private fun PresetSelector(
+    preset: AssistPreset,
+    running: Boolean,
+    onChange: (AssistPreset) -> Unit,
+) {
     Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.preset_title), style = MaterialTheme.typography.labelLarge)
@@ -279,10 +289,10 @@ private fun PresetSelector(preset: AssistPreset, running: Boolean, onChange: (As
                         selected = entry == preset,
                         onClick = { onChange(entry) },
                         shape =
-                        SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = AssistPreset.entries.size,
-                        ),
+                            SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = AssistPreset.entries.size,
+                            ),
                     ) { Text(presetLabel(entry)) }
                 }
             }
@@ -298,13 +308,17 @@ private fun PresetSelector(preset: AssistPreset, running: Boolean, onChange: (As
 }
 
 @Composable
-private fun presetLabel(preset: AssistPreset): String = when (preset) {
-    AssistPreset.STANDARD -> stringResource(R.string.preset_standard)
-    AssistPreset.CONVERSATION -> stringResource(R.string.preset_conversation)
-}
+private fun presetLabel(preset: AssistPreset): String =
+    when (preset) {
+        AssistPreset.STANDARD -> stringResource(R.string.preset_standard)
+        AssistPreset.CONVERSATION -> stringResource(R.string.preset_conversation)
+    }
 
 @Composable
-private fun GainControl(masterGainDb: Double, onChange: (Double) -> Unit) {
+private fun GainControl(
+    masterGainDb: Double,
+    onChange: (Double) -> Unit,
+) {
     val sliderDescription = stringResource(R.string.assist_amplification_slider)
     Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
         Column(Modifier.padding(16.dp)) {
@@ -337,14 +351,14 @@ private fun ProfilesCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                        .selectable(
-                            selected = profile.id == activeProfileId,
-                            role = Role.RadioButton,
-                            onClick = { onSelect(profile.id) },
-                        ),
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .selectable(
+                                selected = profile.id == activeProfileId,
+                                role = Role.RadioButton,
+                                onClick = { onSelect(profile.id) },
+                            ),
                 ) {
                     RadioButton(selected = profile.id == activeProfileId, onClick = null)
                     Text(

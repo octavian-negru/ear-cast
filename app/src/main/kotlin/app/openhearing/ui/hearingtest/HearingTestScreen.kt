@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.hearingtest
 
 import androidx.compose.foundation.layout.Arrangement
@@ -52,10 +54,10 @@ fun HearingTestScreen(
 
     Column(
         modifier =
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
     ) {
         Text(stringResource(R.string.check_title), style = MaterialTheme.typography.headlineSmall)
         CalibrationNotice()
@@ -86,7 +88,11 @@ private fun CalibrationNotice() {
 }
 
 @Composable
-private fun NotStarted(onStart: () -> Unit, onManualEntry: () -> Unit, onBack: () -> Unit) {
+private fun NotStarted(
+    onStart: () -> Unit,
+    onManualEntry: () -> Unit,
+    onBack: () -> Unit,
+) {
     Column {
         Text(
             stringResource(R.string.check_intro),
@@ -107,7 +113,10 @@ private fun NotStarted(onStart: () -> Unit, onManualEntry: () -> Unit, onBack: (
 }
 
 @Composable
-private fun InProgress(state: HearingTestUiState, viewModel: HearingTestViewModel) {
+private fun InProgress(
+    state: HearingTestUiState,
+    viewModel: HearingTestViewModel,
+) {
     Column {
         LinearProgressIndicator(
             progress = { state.progress },
@@ -151,7 +160,10 @@ private fun InProgress(state: HearingTestUiState, viewModel: HearingTestViewMode
 }
 
 @Composable
-private fun SafetyControls(state: HearingTestUiState, viewModel: HearingTestViewModel) {
+private fun SafetyControls(
+    state: HearingTestUiState,
+    viewModel: HearingTestViewModel,
+) {
     val sliderDescription = stringResource(R.string.check_volume_cap_slider)
     Card(
         modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
@@ -173,7 +185,11 @@ private fun SafetyControls(state: HearingTestUiState, viewModel: HearingTestView
 }
 
 @Composable
-private fun Results(state: HearingTestUiState, onRestart: () -> Unit, onBack: () -> Unit) {
+private fun Results(
+    state: HearingTestUiState,
+    onRestart: () -> Unit,
+    onBack: () -> Unit,
+) {
     var showShare by rememberSaveable { mutableStateOf(false) }
     Column {
         Text(
@@ -265,22 +281,25 @@ private fun GainTable(summary: GainSummary) {
 }
 
 @Composable
-private fun BigButton(label: String, onClick: () -> Unit) {
+private fun BigButton(
+    label: String,
+    onClick: () -> Unit,
+) {
     Button(
         onClick = onClick,
         modifier =
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 64.dp),
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 64.dp),
     ) {
         Text(label, style = MaterialTheme.typography.titleMedium)
     }
 }
 
 @Composable
-private fun earLabel(ear: Ear?): String = when (ear) {
-    Ear.LEFT -> stringResource(R.string.ear_left)
-    Ear.RIGHT -> stringResource(R.string.ear_right)
-    null -> "—"
-}
-
+private fun earLabel(ear: Ear?): String =
+    when (ear) {
+        Ear.LEFT -> stringResource(R.string.ear_left)
+        Ear.RIGHT -> stringResource(R.string.ear_right)
+        null -> "—"
+    }

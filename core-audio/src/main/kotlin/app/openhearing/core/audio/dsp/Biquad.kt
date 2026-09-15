@@ -42,7 +42,13 @@ class Biquad(
     }
 
     /** Replace coefficients in place (keeps state) — used when gain is retuned. */
-    fun setCoefficients(b0: Double, b1: Double, b2: Double, a1: Double, a2: Double) {
+    fun setCoefficients(
+        b0: Double,
+        b1: Double,
+        b2: Double,
+        a1: Double,
+        a2: Double,
+    ) {
         this.b0 = b0
         this.b1 = b1
         this.b2 = b2
@@ -52,7 +58,11 @@ class Biquad(
 
     companion object {
         /** RBJ Butterworth low-pass; cascading two sections makes an LR4 crossover. */
-        fun lowPass(cutoffHz: Double, q: Double, sampleRateHz: Int): Biquad {
+        fun lowPass(
+            cutoffHz: Double,
+            q: Double,
+            sampleRateHz: Int,
+        ): Biquad {
             require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0)
             require(q > 0)
             val w0 = 2.0 * PI * cutoffHz / sampleRateHz
@@ -63,7 +73,11 @@ class Biquad(
         }
 
         /** Unity magnitude phase compensation, matching the sum of an LR4 low/high split. */
-        fun allPass(cutoffHz: Double, q: Double, sampleRateHz: Int): Biquad {
+        fun allPass(
+            cutoffHz: Double,
+            q: Double,
+            sampleRateHz: Int,
+        ): Biquad {
             require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0)
             require(q > 0)
             val w0 = 2.0 * PI * cutoffHz / sampleRateHz
@@ -74,7 +88,11 @@ class Biquad(
         }
 
         /** RBJ low shelf with slope S=1, used to reduce bass without removing speech fundamentals. */
-        fun lowShelf(cutoffHz: Double, gainDb: Double, sampleRateHz: Int): Biquad {
+        fun lowShelf(
+            cutoffHz: Double,
+            gainDb: Double,
+            sampleRateHz: Int,
+        ): Biquad {
             require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0)
             require(gainDb.isFinite())
             val a = 10.0.pow(gainDb / 40.0)
@@ -92,7 +110,11 @@ class Biquad(
         }
 
         /** RBJ high shelf with slope S=1; lifts consonant detail across the available upper band. */
-        fun highShelf(cutoffHz: Double, gainDb: Double, sampleRateHz: Int): Biquad {
+        fun highShelf(
+            cutoffHz: Double,
+            gainDb: Double,
+            sampleRateHz: Int,
+        ): Biquad {
             require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0)
             require(gainDb.isFinite())
             val a = 10.0.pow(gainDb / 40.0)
@@ -114,7 +136,12 @@ class Biquad(
          * controlled by [q]. This is how the audiogram's per-frequency insertion
          * gain is realized in the time domain.
          */
-        fun peaking(centerHz: Double, gainDb: Double, q: Double, sampleRateHz: Int): Biquad {
+        fun peaking(
+            centerHz: Double,
+            gainDb: Double,
+            q: Double,
+            sampleRateHz: Int,
+        ): Biquad {
             require(centerHz > 0 && centerHz < sampleRateHz / 2.0) { "centerHz out of range" }
             require(q > 0) { "q must be positive" }
             val a = 10.0.pow(gainDb / 40.0)
@@ -132,7 +159,12 @@ class Biquad(
         }
 
         /** Coefficients only, for retuning an existing [Biquad] in place. */
-        fun peakingCoefficients(centerHz: Double, gainDb: Double, q: Double, sampleRateHz: Int): DoubleArray {
+        fun peakingCoefficients(
+            centerHz: Double,
+            gainDb: Double,
+            q: Double,
+            sampleRateHz: Int,
+        ): DoubleArray {
             val f = peaking(centerHz, gainDb, q, sampleRateHz)
             return doubleArrayOf(f.b0, f.b1, f.b2, f.a1, f.a2)
         }
@@ -141,7 +173,11 @@ class Biquad(
          * Second-order high-pass: attenuates content below [cutoffHz] (e.g. wind
          * and handling rumble in the outdoors preset). RBJ cookbook design.
          */
-        fun highPass(cutoffHz: Double, q: Double, sampleRateHz: Int): Biquad {
+        fun highPass(
+            cutoffHz: Double,
+            q: Double,
+            sampleRateHz: Int,
+        ): Biquad {
             require(cutoffHz > 0 && cutoffHz < sampleRateHz / 2.0) { "cutoffHz out of range" }
             require(q > 0) { "q must be positive" }
             val w0 = 2.0 * PI * cutoffHz / sampleRateHz

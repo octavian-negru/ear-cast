@@ -18,7 +18,10 @@ import java.io.File
  * the user picks a target.
  */
 object ResultImageSharer {
-    suspend fun share(context: Context, bitmap: Bitmap) {
+    suspend fun share(
+        context: Context,
+        bitmap: Bitmap,
+    ) {
         val uri =
             withContext(Dispatchers.IO) {
                 val dir = File(context.cacheDir, "shared").apply { mkdirs() }
@@ -37,4 +40,3 @@ object ResultImageSharer {
         )
     }
 }
-

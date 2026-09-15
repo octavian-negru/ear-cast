@@ -58,7 +58,11 @@ class DigitsInNoiseTest {
     @Test
     fun `simulated listener converges near its true SRT`() {
         // Logistic psychometric function around a "true" SRT with a typical slope.
-        fun listener(random: Random, trueSrtDb: Double, snrDb: Double): Boolean {
+        fun listener(
+            random: Random,
+            trueSrtDb: Double,
+            snrDb: Double,
+        ): Boolean {
             val pCorrect = 1.0 / (1.0 + exp(-(snrDb - trueSrtDb) / 1.0))
             return random.nextDouble() < pCorrect
         }

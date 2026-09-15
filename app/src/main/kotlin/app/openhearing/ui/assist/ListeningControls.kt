@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.assist
 
 import androidx.compose.foundation.layout.Column
@@ -25,14 +27,20 @@ import app.openhearing.core.audio.speech.SpeechEngine
 import app.openhearing.core.audio.speech.VoiceComfort
 
 @Composable
-internal fun ListeningControls(options: ListeningOptions, enabled: Boolean, onChange: (ListeningOptions) -> Unit) {
+internal fun ListeningControls(
+    options: ListeningOptions,
+    enabled: Boolean,
+    onChange: (ListeningOptions) -> Unit,
+) {
     Card(Modifier.fillMaxWidth().padding(top = 16.dp)) {
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
             QualityChoice(
                 stringResource(R.string.assist_speech_engine),
-                listOf("RNNoise", "DPDFNet8"), options.speechEngine.ordinal, enabled,
+                listOf("RNNoise", "DPDFNet8"),
+                options.speechEngine.ordinal,
+                enabled,
             ) { onChange(options.copy(speechEngine = SpeechEngine.entries[it])) }
             Text(stringResource(R.string.assist_engine_description), style = MaterialTheme.typography.bodySmall)
             QualityChoice(
@@ -41,36 +49,53 @@ internal fun ListeningControls(options: ListeningOptions, enabled: Boolean, onCh
                 options.captureMode.ordinal,
                 enabled,
             ) { onChange(options.copy(captureMode = CaptureMode.entries[it])) }
-            val strengths = listOf(
-                stringResource(R.string.assist_quality_off),
-                stringResource(R.string.assist_quality_gentle),
-                stringResource(R.string.assist_quality_strong),
-            )
+            val strengths =
+                listOf(
+                    stringResource(R.string.assist_quality_off),
+                    stringResource(R.string.assist_quality_gentle),
+                    stringResource(R.string.assist_quality_strong),
+                )
             QualityChoice(
-                stringResource(R.string.assist_speech_clarity), strengths, options.speechClarity.ordinal, enabled,
+                stringResource(R.string.assist_speech_clarity),
+                strengths,
+                options.speechClarity.ordinal,
+                enabled,
             ) {
                 onChange(options.copy(speechClarity = SpeechClarity.entries[it]))
             }
             QualityChoice(
-                stringResource(R.string.assist_voice_comfort), strengths, options.voiceComfort.ordinal, enabled,
+                stringResource(R.string.assist_voice_comfort),
+                strengths,
+                options.voiceComfort.ordinal,
+                enabled,
             ) {
                 onChange(options.copy(voiceComfort = VoiceComfort.entries[it]))
             }
             QualityChoice(
-                stringResource(R.string.assist_noise_reduction), strengths, options.noiseReduction.ordinal, enabled,
+                stringResource(R.string.assist_noise_reduction),
+                strengths,
+                options.noiseReduction.ordinal,
+                enabled,
             ) {
                 onChange(options.copy(noiseReduction = NoiseReduction.entries[it]))
             }
             Text(stringResource(R.string.assist_noise_description), style = MaterialTheme.typography.bodySmall)
             QualityChoice(
-                stringResource(R.string.assist_quiet_speech), strengths, options.quietSpeech.ordinal,
+                stringResource(R.string.assist_quiet_speech),
+                strengths,
+                options.quietSpeech.ordinal,
                 enabled && options.noiseReduction != NoiseReduction.OFF && options.speechEngine == SpeechEngine.RNNOISE,
             ) {
                 onChange(options.copy(quietSpeech = QuietSpeech.entries[it]))
             }
             Text(
-                stringResource(if (options.speechEngine == SpeechEngine.RNNOISE)
-                    R.string.assist_quiet_speech_description else R.string.assist_dpdfnet_level_description),
+                stringResource(
+                    if (options.speechEngine == SpeechEngine.RNNOISE) {
+                        R.string.assist_quiet_speech_description
+                    } else {
+                        R.string.assist_dpdfnet_level_description
+                    },
+                ),
                 style = MaterialTheme.typography.bodySmall,
             )
             if (!enabled) {
@@ -82,7 +107,11 @@ internal fun ListeningControls(options: ListeningOptions, enabled: Boolean, onCh
 
 @Composable
 private fun QualityChoice(
-    title: String, labels: List<String>, selected: Int, enabled: Boolean, onChange: (Int) -> Unit,
+    title: String,
+    labels: List<String>,
+    selected: Int,
+    enabled: Boolean,
+    onChange: (Int) -> Unit,
 ) {
     Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 12.dp))
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
@@ -100,11 +129,12 @@ private fun QualityChoice(
 @Composable
 internal fun SessionAudioStatus(status: AudioSessionStatus) {
     when (status.state) {
-        AudioSessionState.FAILED -> Text(
-            status.message ?: stringResource(R.string.assist_connection_failed),
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(top = 8.dp),
-        )
+        AudioSessionState.FAILED ->
+            Text(
+                status.message ?: stringResource(R.string.assist_connection_failed),
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         AudioSessionState.RUNNING -> {
             Text(status.message.orEmpty(), style = MaterialTheme.typography.bodySmall)
             if (status.bluetoothCallAudio) {

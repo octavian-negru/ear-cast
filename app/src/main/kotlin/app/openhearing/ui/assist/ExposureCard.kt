@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.assist
 
 import androidx.compose.foundation.layout.Column
@@ -20,7 +22,11 @@ import java.util.Locale
  * a health claim. See ExposureTracker for the unit definition.
  */
 @Composable
-fun ExposureCard(exposure: ExposureUi, running: Boolean, modifier: Modifier = Modifier) {
+fun ExposureCard(
+    exposure: ExposureUi,
+    running: Boolean,
+    modifier: Modifier = Modifier,
+) {
     if (!running && exposure.todayPercent == 0) return
     Card(modifier = modifier.fillMaxWidth().padding(top = 16.dp)) {
         Column(Modifier.padding(16.dp)) {
@@ -72,4 +78,3 @@ private fun formatDuration(totalSeconds: Long): String {
     val seconds = totalSeconds % 60
     return String.format(Locale.ROOT, "%d:%02d", minutes, seconds)
 }
-

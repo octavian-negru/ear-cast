@@ -47,8 +47,10 @@ class AudioRoutePolicyTest {
     @Test
     fun `SCO rates preserve four millisecond blocks and two ear processing`() {
         for (rate in listOf(16_000, 8_000)) {
-            val format = AudioRoutePolicy.candidateFormats(requested, true, intArrayOf(), intArrayOf())
-                .first { it.sampleRateHz == rate }
+            val format =
+                AudioRoutePolicy
+                    .candidateFormats(requested, true, intArrayOf(), intArrayOf())
+                    .first { it.sampleRateHz == rate }
             assertEquals(rate, format.sampleRateHz)
             assertEquals(4.0, format.framesPerBlock * 1000.0 / rate)
             assertEquals(2, format.channelCount)

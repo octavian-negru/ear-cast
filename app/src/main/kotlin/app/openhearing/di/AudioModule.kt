@@ -32,4 +32,3 @@ object AudioModule {
     @Singleton
     fun fittingStrategy(): FittingStrategy = halfGainFitting()
 }
-

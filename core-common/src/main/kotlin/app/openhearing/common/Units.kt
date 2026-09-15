@@ -1,6 +1,6 @@
 package app.openhearing.common
 
-/**
+/*
  * Strongly-typed audio units. Using value classes prevents mixing up the many
  * "just a Double" quantities that flow through a hearing-assist pipeline
  * (frequencies, the several distinct decibel references, gains).
@@ -10,7 +10,9 @@ package app.openhearing.common
 
 /** A frequency in Hertz. */
 @JvmInline
-value class Hertz(val value: Double) {
+value class Hertz(
+    val value: Double,
+) {
     init {
         require(value >= 0.0) { "Frequency must be non-negative, was $value" }
     }
@@ -28,7 +30,9 @@ value class Hertz(val value: Double) {
  * mean worse hearing. This is what a hearing test produces per ear, per frequency.
  */
 @JvmInline
-value class DecibelsHl(val value: Double)
+value class DecibelsHl(
+    val value: Double,
+)
 
 /**
  * Sound pressure level in decibels (dB SPL) — the physical, calibrated loudness
@@ -37,14 +41,18 @@ value class DecibelsHl(val value: Double)
  * per-device/per-earbud calibration (tracked in docs/SAFETY.md).
  */
 @JvmInline
-value class DecibelsSpl(val value: Double)
+value class DecibelsSpl(
+    val value: Double,
+)
 
 /**
  * Full-scale decibels (dBFS) — the digital signal reference, <= 0. 0 dBFS is the
  * loudest a digital sample can be; everything else is negative.
  */
 @JvmInline
-value class DecibelsFs(val value: Double) {
+value class DecibelsFs(
+    val value: Double,
+) {
     init {
         require(value <= 0.0) { "dBFS must be <= 0, was $value" }
     }

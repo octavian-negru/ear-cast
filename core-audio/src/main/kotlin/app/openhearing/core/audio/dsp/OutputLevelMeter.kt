@@ -6,7 +6,10 @@ import kotlin.math.log10
 import kotlin.math.sqrt
 
 /** One drained measurement window: energy and length, RMS derivable. */
-data class LevelWindow(val sumSquares: Double, val sampleCount: Long) {
+data class LevelWindow(
+    val sumSquares: Double,
+    val sampleCount: Long,
+) {
     val rmsLinear: Double
         get() = if (sampleCount == 0L) 0.0 else sqrt(sumSquares / sampleCount)
 

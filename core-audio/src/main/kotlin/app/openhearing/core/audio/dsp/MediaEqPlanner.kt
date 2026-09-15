@@ -9,7 +9,12 @@ import kotlin.math.sqrt
  * One media-EQ band: [cutoffHz] is the band's upper edge (as the platform
  * DynamicsProcessing effect expects), gains are per ear and already capped.
  */
-data class MediaEqBand(val centerHz: Double, val cutoffHz: Double, val leftGainDb: Double, val rightGainDb: Double)
+data class MediaEqBand(
+    val centerHz: Double,
+    val cutoffHz: Double,
+    val leftGainDb: Double,
+    val rightGainDb: Double,
+)
 
 /**
  * Pure planning for the experimental media EQ: samples the fitted per-ear curves
@@ -28,18 +33,19 @@ object MediaEqPlanner {
         leftCurve: GainCurve,
         rightCurve: GainCurve,
         maxBandGainDb: Double = SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB,
-    ): List<MediaEqBand> = BAND_CENTERS_HZ.mapIndexed { index, center ->
-        val cutoff =
-            if (index == BAND_CENTERS_HZ.lastIndex) {
-                TOP_CUTOFF_HZ
-            } else {
-                sqrt(center * BAND_CENTERS_HZ[index + 1])
-            }
-        MediaEqBand(
-            centerHz = center,
-            cutoffHz = cutoff,
-            leftGainDb = leftCurve.gainAt(Hertz(center)).coerceIn(0.0, maxBandGainDb),
-            rightGainDb = rightCurve.gainAt(Hertz(center)).coerceIn(0.0, maxBandGainDb),
-        )
-    }
+    ): List<MediaEqBand> =
+        BAND_CENTERS_HZ.mapIndexed { index, center ->
+            val cutoff =
+                if (index == BAND_CENTERS_HZ.lastIndex) {
+                    TOP_CUTOFF_HZ
+                } else {
+                    sqrt(center * BAND_CENTERS_HZ[index + 1])
+                }
+            MediaEqBand(
+                centerHz = center,
+                cutoffHz = cutoff,
+                leftGainDb = leftCurve.gainAt(Hertz(center)).coerceIn(0.0, maxBandGainDb),
+                rightGainDb = rightCurve.gainAt(Hertz(center)).coerceIn(0.0, maxBandGainDb),
+            )
+        }
 }

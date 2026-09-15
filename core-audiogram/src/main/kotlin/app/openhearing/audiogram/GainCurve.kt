@@ -12,7 +12,9 @@ import kotlin.math.log10
  * fitting strategy. A master cap and the output limiter (see SafetyConstants /
  * :core-audio) still apply on top — this curve is a target, not a bypass.
  */
-class GainCurve(points: List<GainPoint>) {
+class GainCurve(
+    points: List<GainPoint>,
+) {
     /** Per-frequency prescribed gain, sorted ascending by frequency. */
     val points: List<GainPoint> = points.sortedBy { it.frequency.value }
 
@@ -43,7 +45,10 @@ class GainCurve(points: List<GainPoint>) {
 }
 
 /** A single point on a [GainCurve]: [gainDb] of insertion gain at [frequency]. */
-data class GainPoint(val frequency: Hertz, val gainDb: Double)
+data class GainPoint(
+    val frequency: Hertz,
+    val gainDb: Double,
+)
 
 /**
  * Maps an audiogram (per ear) to a prescribed [GainCurve]. Different prescriptive
@@ -51,7 +56,10 @@ data class GainPoint(val frequency: Hertz, val gainDb: Double)
  * see docs/FITTING.md for the rationale).
  */
 fun interface FittingStrategy {
-    fun fit(audiogram: Audiogram, ear: app.openhearing.common.Ear): GainCurve
+    fun fit(
+        audiogram: Audiogram,
+        ear: app.openhearing.common.Ear,
+    ): GainCurve
 }
 
 /**
@@ -64,14 +72,19 @@ fun interface FittingStrategy {
  * Gains are floored at 0 (we never attenuate normal-hearing regions) and capped at
  * [maxBandGainDb] for safety.
  */
-class FractionalGainRule(private val fraction: Double = 0.5, private val maxBandGainDb: Double = 40.0) :
-    FittingStrategy {
+class FractionalGainRule(
+    private val fraction: Double = 0.5,
+    private val maxBandGainDb: Double = 40.0,
+) : FittingStrategy {
     init {
         require(fraction in 0.0..1.0) { "fraction must be in 0..1" }
         require(maxBandGainDb >= 0.0) { "max band gain must be non-negative" }
     }
 
-    override fun fit(audiogram: Audiogram, ear: app.openhearing.common.Ear): GainCurve {
+    override fun fit(
+        audiogram: Audiogram,
+        ear: app.openhearing.common.Ear,
+    ): GainCurve {
         val freqs = audiogram.frequenciesFor(ear)
         require(freqs.isNotEmpty()) { "audiogram has no thresholds for $ear" }
         val points =
@@ -85,5 +98,4 @@ class FractionalGainRule(private val fraction: Double = 0.5, private val maxBand
 }
 
 /** The half-gain rule — the default v1 fitting (see [FractionalGainRule]). */
-fun halfGainFitting(maxBandGainDb: Double = 40.0): FittingStrategy =
-    FractionalGainRule(fraction = 0.5, maxBandGainDb = maxBandGainDb)
+fun halfGainFitting(maxBandGainDb: Double = 40.0): FittingStrategy = FractionalGainRule(0.5, maxBandGainDb)

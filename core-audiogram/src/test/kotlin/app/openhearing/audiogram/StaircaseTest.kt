@@ -12,7 +12,10 @@ class StaircaseTest {
      * Drive a staircase with a deterministic listener that hears iff the
      * presented level is at or above [trueThreshold]. Returns the outcome.
      */
-    private fun runWithListener(trueThreshold: Double, config: StaircaseConfig = StaircaseConfig()): StaircaseOutcome {
+    private fun runWithListener(
+        trueThreshold: Double,
+        config: StaircaseConfig = StaircaseConfig(),
+    ): StaircaseOutcome {
         val staircase = HughsonWestlakeStaircase(config)
         var level = staircase.currentLevel().value
         repeat(config.maxPresentations + 5) {

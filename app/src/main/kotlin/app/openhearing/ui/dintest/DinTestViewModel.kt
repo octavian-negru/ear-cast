@@ -42,122 +42,128 @@ data class DinUiState(
  */
 @HiltViewModel
 class DinTestViewModel
-@Inject
-constructor(private val corpus: DigitCorpus, private val tonePlayer: TonePlayer) :
-    ViewModel() {
-    private val _uiState = MutableStateFlow(DinUiState())
-    val uiState: StateFlow<DinUiState> = _uiState.asStateFlow()
+    @Inject
+    constructor(
+        private val corpus: DigitCorpus,
+        private val tonePlayer: TonePlayer,
+    ) : ViewModel() {
+        private val _uiState = MutableStateFlow(DinUiState())
+        val uiState: StateFlow<DinUiState> = _uiState.asStateFlow()
 
-    private var screening: DigitsInNoiseScreening? = null
-    private var playJob: Job? = null
-    private val noiseOffsetRandom = Random.Default
+        private var screening: DigitsInNoiseScreening? = null
+        private var playJob: Job? = null
+        private val noiseOffsetRandom = Random.Default
 
-    fun start() {
-        if (!corpus.isAvailable()) return
-        screening = DigitsInNoiseScreening()
-        _uiState.value = DinUiState(phase = DinPhase.IN_PROGRESS)
-        playCurrentTriplet()
-    }
-
-    fun tapDigit(digit: Int) {
-        _uiState.update {
-            if (it.entered.size >= DigitsInNoiseScreening.TRIPLET_SIZE) it else it.copy(entered = it.entered + digit)
+        fun start() {
+            if (!corpus.isAvailable()) return
+            screening = DigitsInNoiseScreening()
+            _uiState.value = DinUiState(phase = DinPhase.IN_PROGRESS)
+            playCurrentTriplet()
         }
-    }
 
-    fun backspace() {
-        _uiState.update { it.copy(entered = it.entered.dropLast(1)) }
-    }
-
-    fun submit() {
-        val s = screening ?: return
-        val answered = _uiState.value.entered
-        if (answered.size != DigitsInNoiseScreening.TRIPLET_SIZE) return
-        when (val step = s.submit(answered)) {
-            is DinStep.Present -> {
-                _uiState.update {
-                    it.copy(tripletNumber = it.tripletNumber + 1, entered = emptyList())
+        fun tapDigit(digit: Int) {
+            _uiState.update {
+                if (it.entered.size >= DigitsInNoiseScreening.TRIPLET_SIZE) {
+                    it
+                } else {
+                    it.copy(entered = it.entered + digit)
                 }
-                playCurrentTriplet()
             }
-            is DinStep.Done -> finish(step.result)
         }
-    }
 
-    /** Instant mute — the always-available safety control. */
-    fun mute() {
-        playJob?.cancel()
-        tonePlayer.stop()
-        _uiState.update { it.copy(isPlaying = false) }
-    }
-
-    private fun finish(result: DinResult) {
-        mute()
-        _uiState.update {
-            it.copy(
-                phase = DinPhase.DONE,
-                srtSnrDb = result.srtSnrDb.toInt(),
-                band = bandFor(result.srtSnrDb),
-                pinnedAtEdge = result.pinnedAtEdge,
-            )
+        fun backspace() {
+            _uiState.update { it.copy(entered = it.entered.dropLast(1)) }
         }
-    }
 
-    private fun playCurrentTriplet() {
-        val s = screening ?: return
-        playJob?.cancel()
-        tonePlayer.stop()
-        playJob =
-            viewModelScope.launch {
-                _uiState.update { it.copy(isPlaying = true) }
-                val speech = concatDigits(s.currentTriplet())
-                val noise = corpus.noise()
-                val presentation =
-                    SpeechNoiseMixer.mix(
-                        speech = speech,
-                        noise = noise,
-                        noiseOffset = noiseOffsetRandom.nextInt(noise.size),
-                        targetSnrDb = s.currentSnrDb(),
-                        sampleRateHz = SAMPLE_RATE_HZ,
-                    )
-                runCatching { tonePlayer.play(presentation) }
-                _uiState.update { it.copy(isPlaying = false) }
+        fun submit() {
+            val s = screening ?: return
+            val answered = _uiState.value.entered
+            if (answered.size != DigitsInNoiseScreening.TRIPLET_SIZE) return
+            when (val step = s.submit(answered)) {
+                is DinStep.Present -> {
+                    _uiState.update {
+                        it.copy(tripletNumber = it.tripletNumber + 1, entered = emptyList())
+                    }
+                    playCurrentTriplet()
+                }
+                is DinStep.Done -> finish(step.result)
             }
-    }
-
-    private fun concatDigits(triplet: List<Int>): FloatArray {
-        val gap = FloatArray(GAP_MS * SAMPLE_RATE_HZ / 1000)
-        val parts = triplet.map { corpus.digit(it) }
-        val total = parts.sumOf { it.size } + gap.size * (parts.size - 1)
-        val out = FloatArray(total)
-        var pos = 0
-        parts.forEachIndexed { index, part ->
-            part.copyInto(out, pos)
-            pos += part.size
-            if (index < parts.lastIndex) pos += gap.size
         }
-        return out
+
+        /** Instant mute — the always-available safety control. */
+        fun mute() {
+            playJob?.cancel()
+            tonePlayer.stop()
+            _uiState.update { it.copy(isPlaying = false) }
+        }
+
+        private fun finish(result: DinResult) {
+            mute()
+            _uiState.update {
+                it.copy(
+                    phase = DinPhase.DONE,
+                    srtSnrDb = result.srtSnrDb.toInt(),
+                    band = bandFor(result.srtSnrDb),
+                    pinnedAtEdge = result.pinnedAtEdge,
+                )
+            }
+        }
+
+        private fun playCurrentTriplet() {
+            val s = screening ?: return
+            playJob?.cancel()
+            tonePlayer.stop()
+            playJob =
+                viewModelScope.launch {
+                    _uiState.update { it.copy(isPlaying = true) }
+                    val speech = concatDigits(s.currentTriplet())
+                    val noise = corpus.noise()
+                    val presentation =
+                        SpeechNoiseMixer.mix(
+                            speech = speech,
+                            noise = noise,
+                            noiseOffset = noiseOffsetRandom.nextInt(noise.size),
+                            targetSnrDb = s.currentSnrDb(),
+                            sampleRateHz = SAMPLE_RATE_HZ,
+                        )
+                    runCatching { tonePlayer.play(presentation) }
+                    _uiState.update { it.copy(isPlaying = false) }
+                }
+        }
+
+        private fun concatDigits(triplet: List<Int>): FloatArray {
+            val gap = FloatArray(GAP_MS * SAMPLE_RATE_HZ / 1000)
+            val parts = triplet.map { corpus.digit(it) }
+            val total = parts.sumOf { it.size } + gap.size * (parts.size - 1)
+            val out = FloatArray(total)
+            var pos = 0
+            parts.forEachIndexed { index, part ->
+                part.copyInto(out, pos)
+                pos += part.size
+                if (index < parts.lastIndex) pos += gap.size
+            }
+            return out
+        }
+
+        private fun bandFor(srtSnrDb: Double): DinBand =
+            when {
+                srtSnrDb <= STRONG_MAX_SNR_DB -> DinBand.STRONG
+                srtSnrDb <= MID_MAX_SNR_DB -> DinBand.MID
+                else -> DinBand.WEAKER
+            }
+
+        override fun onCleared() {
+            tonePlayer.release()
+        }
+
+        private companion object {
+            // Corpus is authored at 48 kHz (docs/DIN.md); TonePlayer default matches.
+            const val SAMPLE_RATE_HZ = 48_000
+            const val GAP_MS = 250
+
+            // Band edges for the non-diagnostic result copy. Policy values for an
+            // unvalidated self-recorded corpus, deliberately coarse.
+            const val STRONG_MAX_SNR_DB = -8.0
+            const val MID_MAX_SNR_DB = -4.0
+        }
     }
-
-    private fun bandFor(srtSnrDb: Double): DinBand = when {
-        srtSnrDb <= STRONG_MAX_SNR_DB -> DinBand.STRONG
-        srtSnrDb <= MID_MAX_SNR_DB -> DinBand.MID
-        else -> DinBand.WEAKER
-    }
-
-    override fun onCleared() {
-        tonePlayer.release()
-    }
-
-    private companion object {
-        // Corpus is authored at 48 kHz (docs/DIN.md); TonePlayer default matches.
-        const val SAMPLE_RATE_HZ = 48_000
-        const val GAP_MS = 250
-
-        // Band edges for the non-diagnostic result copy. Policy values for an
-        // unvalidated self-recorded corpus, deliberately coarse.
-        const val STRONG_MAX_SNR_DB = -8.0
-        const val MID_MAX_SNR_DB = -4.0
-    }
-}
-

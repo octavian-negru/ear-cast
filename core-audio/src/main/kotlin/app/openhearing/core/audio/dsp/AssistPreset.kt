@@ -29,19 +29,20 @@ enum class AssistPreset(
 }
 
 /** Applies [preset] to this fitted curve (pure; the original curve is untouched). */
-fun GainCurve.withPreset(preset: AssistPreset): GainCurve = when (preset) {
-    AssistPreset.CONVERSATION ->
-        GainCurve(
-            points.map { p ->
-                val inSpeechBand =
-                    p.frequency.value in
-                        AssistPreset.SPEECH_BAND_LOW_HZ..AssistPreset.SPEECH_BAND_HIGH_HZ
-                if (inSpeechBand) {
-                    p.copy(gainDb = p.gainDb + AssistPreset.CONVERSATION_BOOST_DB)
-                } else {
-                    p
-                }
-            },
-        )
-    AssistPreset.STANDARD -> this
-}
+fun GainCurve.withPreset(preset: AssistPreset): GainCurve =
+    when (preset) {
+        AssistPreset.CONVERSATION ->
+            GainCurve(
+                points.map { p ->
+                    val inSpeechBand =
+                        p.frequency.value in
+                            AssistPreset.SPEECH_BAND_LOW_HZ..AssistPreset.SPEECH_BAND_HIGH_HZ
+                    if (inSpeechBand) {
+                        p.copy(gainDb = p.gainDb + AssistPreset.CONVERSATION_BOOST_DB)
+                    } else {
+                        p
+                    }
+                },
+            )
+        AssistPreset.STANDARD -> this
+    }

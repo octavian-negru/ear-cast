@@ -8,13 +8,19 @@ import java.io.ByteArrayOutputStream
 
 class WavCodecTest {
     /** Build a minimal PCM16 mono WAV byte stream around [samples]. */
-    private fun wavBytes(samples: ShortArray, sampleRate: Int = 48_000): ByteArray {
+    private fun wavBytes(
+        samples: ShortArray,
+        sampleRate: Int = 48_000,
+    ): ByteArray {
         val data = ByteArrayOutputStream()
+
         fun str(s: String) = data.write(s.toByteArray(Charsets.US_ASCII))
+
         fun le16(v: Int) {
             data.write(v and 0xFF)
             data.write((v shr 8) and 0xFF)
         }
+
         fun le32(v: Int) {
             le16(v and 0xFFFF)
             le16((v shr 16) and 0xFFFF)

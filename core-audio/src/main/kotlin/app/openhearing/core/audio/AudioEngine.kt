@@ -12,7 +12,10 @@ interface AudioEngine {
     val isRunning: Boolean
 
     /** Start the low-latency loop, routing each captured block through [processor]. */
-    fun start(format: AudioFormat, processor: AudioProcessor)
+    fun start(
+        format: AudioFormat,
+        processor: AudioProcessor,
+    )
 
     /** Stop the loop and release the audio device. Safe to call when not running. */
     fun stop()

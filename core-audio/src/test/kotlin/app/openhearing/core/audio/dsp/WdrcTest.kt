@@ -9,10 +9,16 @@ import kotlin.math.sqrt
 class WdrcTest {
     private val sampleRate = 48_000
 
-    private fun sine(amp: Double, freq: Double, n: Int): FloatArray =
-        FloatArray(n) { (amp * sin(2.0 * PI * freq * it / sampleRate)).toFloat() }
+    private fun sine(
+        amp: Double,
+        freq: Double,
+        n: Int,
+    ): FloatArray = FloatArray(n) { (amp * sin(2.0 * PI * freq * it / sampleRate)).toFloat() }
 
-    private fun rms(b: FloatArray, from: Int = 0): Double {
+    private fun rms(
+        b: FloatArray,
+        from: Int = 0,
+    ): Double {
         var s = 0.0
         for (i in from until b.size) s += b[i].toDouble() * b[i]
         return sqrt(s / (b.size - from))

@@ -4,7 +4,11 @@ import app.openhearing.common.Ear
 import app.openhearing.common.Hertz
 
 /** A tone to present: which [ear], which [frequency], at what [level]. */
-data class Stimulus(val ear: Ear, val frequency: Hertz, val level: app.openhearing.common.DecibelsHl)
+data class Stimulus(
+    val ear: Ear,
+    val frequency: Hertz,
+    val level: app.openhearing.common.DecibelsHl,
+)
 
 /**
  * Drives a full pure-tone screening: for each (ear, frequency) point it runs an

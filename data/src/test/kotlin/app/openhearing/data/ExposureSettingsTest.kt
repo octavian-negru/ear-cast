@@ -22,51 +22,56 @@ private class FakePreferencesStore : DataStore<Preferences> {
 
 class ExposureSettingsTest {
     @Test
-    fun `clarity settings default conservatively and survive repository recreation together`() = runTest {
-        val store = FakePreferencesStore()
-        val repo = DataStoreSettingsRepository(store)
-        assertEquals(ListeningSettings(), repo.observeListeningSettings().first())
-        val settings = ListeningSettings("GENTLE", "OFF", "CALL_COMPATIBLE", "STRONG")
-        repo.setListeningSettings(settings)
-        assertEquals(settings, DataStoreSettingsRepository(store).observeListeningSettings().first())
-    }
+    fun `clarity settings default conservatively and survive repository recreation together`() =
+        runTest {
+            val store = FakePreferencesStore()
+            val repo = DataStoreSettingsRepository(store)
+            assertEquals(ListeningSettings(), repo.observeListeningSettings().first())
+            val settings = ListeningSettings("GENTLE", "OFF", "CALL_COMPATIBLE", "STRONG")
+            repo.setListeningSettings(settings)
+            assertEquals(settings, DataStoreSettingsRepository(store).observeListeningSettings().first())
+        }
 
     @Test
-    fun `microphone choice defaults to phone and survives repository recreation`() = runTest {
-        val store = FakePreferencesStore()
-        val repo = DataStoreSettingsRepository(store)
-        assertEquals("PHONE", repo.observeMicrophoneSource().first())
-        repo.setMicrophoneSource("HEADSET")
-        assertEquals("HEADSET", DataStoreSettingsRepository(store).observeMicrophoneSource().first())
-        repo.setMicrophoneSource("PHONE")
-        assertEquals("PHONE", repo.observeMicrophoneSource().first())
-    }
+    fun `microphone choice defaults to phone and survives repository recreation`() =
+        runTest {
+            val store = FakePreferencesStore()
+            val repo = DataStoreSettingsRepository(store)
+            assertEquals("PHONE", repo.observeMicrophoneSource().first())
+            repo.setMicrophoneSource("HEADSET")
+            assertEquals("HEADSET", DataStoreSettingsRepository(store).observeMicrophoneSource().first())
+            repo.setMicrophoneSource("PHONE")
+            assertEquals("PHONE", repo.observeMicrophoneSource().first())
+        }
 
     @Test
-    fun `defaults to zero units on day zero`() = runTest {
-        val repo = DataStoreSettingsRepository(FakePreferencesStore())
-        val exposure = repo.observeExposureToday().first()
-        assertEquals(0L, exposure.epochDay)
-        assertEquals(0.0, exposure.units)
-    }
+    fun `defaults to zero units on day zero`() =
+        runTest {
+            val repo = DataStoreSettingsRepository(FakePreferencesStore())
+            val exposure = repo.observeExposureToday().first()
+            assertEquals(0L, exposure.epochDay)
+            assertEquals(0.0, exposure.units)
+        }
 
     @Test
-    fun `same-day writes accumulate`() = runTest {
-        val repo = DataStoreSettingsRepository(FakePreferencesStore())
-        repo.addExposureUnits(1.5, epochDay = 20_000)
-        repo.addExposureUnits(2.5, epochDay = 20_000)
-        val exposure = repo.observeExposureToday().first()
-        assertEquals(20_000L, exposure.epochDay)
-        assertEquals(4.0, exposure.units, 1e-9)
-    }
+    fun `same-day writes accumulate`() =
+        runTest {
+            val repo = DataStoreSettingsRepository(FakePreferencesStore())
+            repo.addExposureUnits(1.5, epochDay = 20_000)
+            repo.addExposureUnits(2.5, epochDay = 20_000)
+            val exposure = repo.observeExposureToday().first()
+            assertEquals(20_000L, exposure.epochDay)
+            assertEquals(4.0, exposure.units, 1e-9)
+        }
 
     @Test
-    fun `a new day replaces instead of summing`() = runTest {
-        val repo = DataStoreSettingsRepository(FakePreferencesStore())
-        repo.addExposureUnits(9.0, epochDay = 20_000)
-        repo.addExposureUnits(1.0, epochDay = 20_001)
-        val exposure = repo.observeExposureToday().first()
-        assertEquals(20_001L, exposure.epochDay)
-        assertEquals(1.0, exposure.units, 1e-9)
-    }
+    fun `a new day replaces instead of summing`() =
+        runTest {
+            val repo = DataStoreSettingsRepository(FakePreferencesStore())
+            repo.addExposureUnits(9.0, epochDay = 20_000)
+            repo.addExposureUnits(1.0, epochDay = 20_001)
+            val exposure = repo.observeExposureToday().first()
+            assertEquals(20_001L, exposure.epochDay)
+            assertEquals(1.0, exposure.units, 1e-9)
+        }
 }

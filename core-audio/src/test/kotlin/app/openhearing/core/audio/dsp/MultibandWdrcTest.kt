@@ -60,11 +60,18 @@ class MultibandWdrcTest {
         assertArrayEquals(whole, restarted)
     }
 
-    private fun tone(rate: Int, frequency: Double, level: Double): FloatArray =
-        FloatArray(rate) { (level * sin(2 * PI * frequency * it / rate)).toFloat() }
+    private fun tone(
+        rate: Int,
+        frequency: Double,
+        level: Double,
+    ): FloatArray = FloatArray(rate) { (level * sin(2 * PI * frequency * it / rate)).toFloat() }
 
     /** Synchronous tone measurement rejects the other band and ignores startup. */
-    private fun amplitude(samples: FloatArray, rate: Int, frequency: Double): Double {
+    private fun amplitude(
+        samples: FloatArray,
+        rate: Int,
+        frequency: Double,
+    ): Double {
         var real = 0.0
         var imaginary = 0.0
         val start = samples.size / 2

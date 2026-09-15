@@ -11,7 +11,10 @@ class BiquadTest {
     private val sampleRate = 48_000
 
     /** RMS gain (dB) the filter applies to a steady sine at [freq]. */
-    private fun gainDbAt(filter: Biquad, freq: Double): Double {
+    private fun gainDbAt(
+        filter: Biquad,
+        freq: Double,
+    ): Double {
         val n = sampleRate // 1 second
         var inSq = 0.0
         var outSq = 0.0

@@ -56,7 +56,11 @@ class ToneGenerator(
     }
 
     /** Raised-cosine ramp up over the first [rampSamples], down over the last. */
-    private fun envelopeAt(i: Int, total: Int, rampSamples: Int): Double {
+    private fun envelopeAt(
+        i: Int,
+        total: Int,
+        rampSamples: Int,
+    ): Double {
         if (rampSamples <= 0) return 1.0
         return when {
             i < rampSamples -> 0.5 * (1.0 - cos(PI * i / rampSamples))

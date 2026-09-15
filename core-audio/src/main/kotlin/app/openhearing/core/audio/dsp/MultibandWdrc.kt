@@ -14,7 +14,10 @@ import kotlin.math.sqrt
  * This is digital level control, not a calibrated hearing-aid fitting formula.
  * The recombined signal must still pass through the final output limiter.
  */
-class MultibandWdrc(sampleRateHz: Int, ratio: Double = 3.0) {
+class MultibandWdrc(
+    sampleRateHz: Int,
+    ratio: Double = 3.0,
+) {
     private val lower = Split(700.0, sampleRateHz)
     private val upper = Split(2400.0, sampleRateHz)
     private val lowPhase = Biquad.allPass(2400.0, BUTTERWORTH_Q, sampleRateHz)
@@ -29,9 +32,10 @@ class MultibandWdrc(sampleRateHz: Int, ratio: Double = 3.0) {
             val remaining = lower.high(input)
             val mid = upper.low(remaining)
             val high = upper.high(remaining)
-            buffer[i] = (
-                lowCompressor.processSample(low) + midCompressor.processSample(mid) +
-                    highCompressor.processSample(high)
+            buffer[i] =
+                (
+                    lowCompressor.processSample(low) + midCompressor.processSample(mid) +
+                        highCompressor.processSample(high)
                 ).toFloat()
         }
     }
@@ -45,13 +49,17 @@ class MultibandWdrc(sampleRateHz: Int, ratio: Double = 3.0) {
         highCompressor.reset()
     }
 
-    private class Split(frequency: Double, rate: Int) {
+    private class Split(
+        frequency: Double,
+        rate: Int,
+    ) {
         private val low1 = Biquad.lowPass(frequency, BUTTERWORTH_Q, rate)
         private val low2 = Biquad.lowPass(frequency, BUTTERWORTH_Q, rate)
         private val high1 = Biquad.highPass(frequency, BUTTERWORTH_Q, rate)
         private val high2 = Biquad.highPass(frequency, BUTTERWORTH_Q, rate)
 
         fun low(input: Double): Double = low2.processSample(low1.processSample(input))
+
         fun high(input: Double): Double = high2.processSample(high1.processSample(input))
 
         fun reset() {

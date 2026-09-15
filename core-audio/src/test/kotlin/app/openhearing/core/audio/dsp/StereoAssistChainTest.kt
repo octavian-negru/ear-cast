@@ -24,14 +24,22 @@ class StereoAssistChainTest {
     private val flatCurve =
         GainCurve(listOf(GainPoint(Hertz(1000.0), 0.0), GainPoint(Hertz(4000.0), 0.0)))
 
-    private fun chain(leftMasterDb: Double, rightMasterDb: Double, ceiling: Float = 0.9f) = StereoAssistChain(
+    private fun chain(
+        leftMasterDb: Double,
+        rightMasterDb: Double,
+        ceiling: Float = 0.9f,
+    ) = StereoAssistChain(
         left = HearingAssistChain(flatCurve, sampleRate, masterGainDb = leftMasterDb, ceilingLinear = ceiling),
         right = HearingAssistChain(flatCurve, sampleRate, masterGainDb = rightMasterDb, ceilingLinear = ceiling),
         framesPerBlock = framesPerBlock,
     )
 
     /** Interleaved [L, R, L, R…] stereo buffer with the same mono sine on both channels. */
-    private fun stereoSine(amp: Double, freq: Double, frames: Int): FloatArray {
+    private fun stereoSine(
+        amp: Double,
+        freq: Double,
+        frames: Int,
+    ): FloatArray {
         val buffer = FloatArray(frames * 2)
         for (i in 0 until frames) {
             val sample = (amp * sin(2.0 * PI * freq * i / sampleRate)).toFloat()
@@ -41,7 +49,11 @@ class StereoAssistChainTest {
         return buffer
     }
 
-    private fun channelRms(buffer: FloatArray, channel: Int, fromFrame: Int): Double {
+    private fun channelRms(
+        buffer: FloatArray,
+        channel: Int,
+        fromFrame: Int,
+    ): Double {
         var sum = 0.0
         var count = 0
         var i = fromFrame
@@ -54,7 +66,10 @@ class StereoAssistChainTest {
         return sqrt(sum / count)
     }
 
-    private fun processAll(chain: StereoAssistChain, buffer: FloatArray) {
+    private fun processAll(
+        chain: StereoAssistChain,
+        buffer: FloatArray,
+    ) {
         var offset = 0
         while (offset < buffer.size) {
             val chunk = minOf(framesPerBlock * 2, buffer.size - offset)

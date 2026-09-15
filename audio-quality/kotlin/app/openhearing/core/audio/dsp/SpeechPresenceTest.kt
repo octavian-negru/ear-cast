@@ -54,13 +54,20 @@ class SpeechPresenceTest {
         }
     }
 
-    private fun render(rate: Int, frequency: Double, presenceDb: Double): FloatArray {
+    private fun render(
+        rate: Int,
+        frequency: Double,
+        presenceDb: Double,
+    ): FloatArray {
         val input = FloatArray(rate) { (0.2 * sin(2 * PI * frequency * it / rate)).toFloat() }
         HearingAssistChain(flat, rate, 0.0, feedbackGuardEnabled = false, speechPresenceDb = presenceDb).process(input)
         return input
     }
 
-    private fun rms(samples: FloatArray, start: Int): Double {
+    private fun rms(
+        samples: FloatArray,
+        start: Int,
+    ): Double {
         var energy = 0.0
         for (i in start until samples.size) energy += samples[i].toDouble() * samples[i]
         return sqrt(energy / (samples.size - start))

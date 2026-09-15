@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.openhearing.ui.manualentry
 
 import androidx.compose.foundation.layout.Arrangement
@@ -34,15 +36,18 @@ import app.openhearing.common.Ear
  * hearing test and want assist mode without running the on-device check.
  */
 @Composable
-fun ManualEntryScreen(onBack: () -> Unit, viewModel: ManualEntryViewModel = hiltViewModel()) {
+fun ManualEntryScreen(
+    onBack: () -> Unit,
+    viewModel: ManualEntryViewModel = hiltViewModel(),
+) {
     val levels by viewModel.levels.collectAsStateWithLifecycle()
 
     Column(
         modifier =
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
     ) {
         Text(stringResource(R.string.manual_title), style = MaterialTheme.typography.headlineSmall)
         Text(
@@ -72,7 +77,12 @@ fun ManualEntryScreen(onBack: () -> Unit, viewModel: ManualEntryViewModel = hilt
 }
 
 @Composable
-private fun EarCard(ear: Ear, frequencies: List<Double>, levels: Map<Double, Int>, onChange: (Double, Int) -> Unit) {
+private fun EarCard(
+    ear: Ear,
+    frequencies: List<Double>,
+    levels: Map<Double, Int>,
+    onChange: (Double, Int) -> Unit,
+) {
     val earName =
         stringResource(if (ear == Ear.RIGHT) R.string.ear_right else R.string.ear_left)
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
@@ -101,11 +111,10 @@ private fun EarCard(ear: Ear, frequencies: List<Double>, levels: Map<Double, Int
                         onChange(freq, stepped)
                     },
                     valueRange =
-                    ManualEntryViewModel.MIN_LEVEL_DB_HL.toFloat()..ManualEntryViewModel.MAX_LEVEL_DB_HL.toFloat(),
+                        ManualEntryViewModel.MIN_LEVEL_DB_HL.toFloat()..ManualEntryViewModel.MAX_LEVEL_DB_HL.toFloat(),
                     modifier = Modifier.semantics { contentDescription = sliderDescription },
                 )
             }
         }
     }
 }
-

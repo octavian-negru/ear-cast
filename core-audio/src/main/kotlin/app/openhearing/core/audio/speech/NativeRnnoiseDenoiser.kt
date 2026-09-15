@@ -7,7 +7,11 @@ package app.openhearing.core.audio.speech
  * Gentle/Strong retain a time-aligned portion of the input to avoid hard suppression.
  * Owned, processed and closed exclusively by the audio worker.
  */
-class NativeRnnoiseDenoiser(sampleRateHz: Int, suppressionDb: Int, maximumGainDb: Float = 0f) : FrameDenoiser {
+class NativeRnnoiseDenoiser(
+    sampleRateHz: Int,
+    suppressionDb: Int,
+    maximumGainDb: Float = 0f,
+) : FrameDenoiser {
     override val frameSize = sampleRateHz / 100
     private var handle: Long
     override val algorithmDelaySamples: Int
@@ -34,9 +38,19 @@ class NativeRnnoiseDenoiser(sampleRateHz: Int, suppressionDb: Int, maximumGainDb
         handle = 0L
     }
 
-    private external fun create(rate: Int, suppressionDb: Int, maximumGainDb: Float): Long
+    private external fun create(
+        rate: Int,
+        suppressionDb: Int,
+        maximumGainDb: Float,
+    ): Long
+
     private external fun delaySamples(handle: Long): Int
-    private external fun processFrame(handle: Long, frame: FloatArray)
+
+    private external fun processFrame(
+        handle: Long,
+        frame: FloatArray,
+    )
+
     private external fun destroy(handle: Long)
 
     private companion object {

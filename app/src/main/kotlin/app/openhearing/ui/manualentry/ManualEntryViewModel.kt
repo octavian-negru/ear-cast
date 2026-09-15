@@ -26,48 +26,53 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ManualEntryViewModel
-@Inject
-constructor(private val profileRepository: ProfileRepository) : ViewModel() {
-    /** Pitches shown for entry, ascending — same set the on-device check measures. */
-    val frequencies: List<Double> =
-        PureToneScreening.DEFAULT_SCREENING_FREQUENCIES.map { it.value }.sorted()
+    @Inject
+    constructor(
+        private val profileRepository: ProfileRepository,
+    ) : ViewModel() {
+        /** Pitches shown for entry, ascending — same set the on-device check measures. */
+        val frequencies: List<Double> =
+            PureToneScreening.DEFAULT_SCREENING_FREQUENCIES.map { it.value }.sorted()
 
-    private val _levels =
-        MutableStateFlow(
-            mapOf(
-                Ear.RIGHT to frequencies.associateWith { DEFAULT_LEVEL_DB_HL },
-                Ear.LEFT to frequencies.associateWith { DEFAULT_LEVEL_DB_HL },
-            ),
-        )
-
-    /** Current entry per ear and frequency, in dB HL. */
-    val levels: StateFlow<Map<Ear, Map<Double, Int>>> = _levels.asStateFlow()
-
-    fun setLevel(ear: Ear, frequencyHz: Double, dbHl: Int) {
-        val clamped = dbHl.coerceIn(MIN_LEVEL_DB_HL, MAX_LEVEL_DB_HL)
-        _levels.update { current ->
-            current + (ear to current.getValue(ear) + (frequencyHz to clamped))
-        }
-    }
-
-    fun save(onSaved: () -> Unit) {
-        val thresholds =
-            _levels.value.flatMap { (ear, byFreq) ->
-                byFreq.map { (freq, db) -> Threshold(ear, Hertz(freq), DecibelsHl(db.toDouble())) }
-            }
-        viewModelScope.launch {
-            profileRepository.save(
-                newProfileFrom(Audiogram(thresholds), name = "Manual ${LocalDate.now()}"),
+        private val _levels =
+            MutableStateFlow(
+                mapOf(
+                    Ear.RIGHT to frequencies.associateWith { DEFAULT_LEVEL_DB_HL },
+                    Ear.LEFT to frequencies.associateWith { DEFAULT_LEVEL_DB_HL },
+                ),
             )
-            onSaved()
+
+        /** Current entry per ear and frequency, in dB HL. */
+        val levels: StateFlow<Map<Ear, Map<Double, Int>>> = _levels.asStateFlow()
+
+        fun setLevel(
+            ear: Ear,
+            frequencyHz: Double,
+            dbHl: Int,
+        ) {
+            val clamped = dbHl.coerceIn(MIN_LEVEL_DB_HL, MAX_LEVEL_DB_HL)
+            _levels.update { current ->
+                current + (ear to current.getValue(ear) + (frequencyHz to clamped))
+            }
+        }
+
+        fun save(onSaved: () -> Unit) {
+            val thresholds =
+                _levels.value.flatMap { (ear, byFreq) ->
+                    byFreq.map { (freq, db) -> Threshold(ear, Hertz(freq), DecibelsHl(db.toDouble())) }
+                }
+            viewModelScope.launch {
+                profileRepository.save(
+                    newProfileFrom(Audiogram(thresholds), name = "Manual ${LocalDate.now()}"),
+                )
+                onSaved()
+            }
+        }
+
+        companion object {
+            const val MIN_LEVEL_DB_HL = -10
+            const val MAX_LEVEL_DB_HL = 90
+            const val LEVEL_STEP_DB = 5
+            private const val DEFAULT_LEVEL_DB_HL = 0
         }
     }
-
-    companion object {
-        const val MIN_LEVEL_DB_HL = -10
-        const val MAX_LEVEL_DB_HL = 90
-        const val LEVEL_STEP_DB = 5
-        private const val DEFAULT_LEVEL_DB_HL = 0
-    }
-}
-

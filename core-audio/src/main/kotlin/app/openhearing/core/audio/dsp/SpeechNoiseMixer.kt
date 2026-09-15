@@ -82,7 +82,10 @@ object SpeechNoiseMixer {
         return sqrt(s / buffer.size)
     }
 
-    private fun applyEdgeRamps(out: FloatArray, sampleRateHz: Int) {
+    private fun applyEdgeRamps(
+        out: FloatArray,
+        sampleRateHz: Int,
+    ) {
         val ramp = min((SafetyConstants.MIN_TONE_RAMP_MS * sampleRateHz / 1000L).toInt(), out.size / 2)
         for (i in 0 until ramp) {
             val g = 0.5 * (1.0 - cos(PI * i / ramp))
@@ -91,7 +94,10 @@ object SpeechNoiseMixer {
         }
     }
 
-    private fun clamp(out: FloatArray, ceiling: Float) {
+    private fun clamp(
+        out: FloatArray,
+        ceiling: Float,
+    ) {
         for (i in out.indices) {
             val v = out[i]
             if (abs(v) > ceiling) out[i] = if (v > 0) ceiling else -ceiling

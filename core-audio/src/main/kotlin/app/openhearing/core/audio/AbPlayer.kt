@@ -26,37 +26,38 @@ class AbPlayer(
     @Volatile private var stopped = false
 
     /** Stream [source] until [stop] is called or the coroutine is cancelled. */
-    suspend fun play(source: AbBufferSource) = withContext(Dispatchers.IO) {
-        stopped = false
-        source.reset()
-        val block = FloatArray(BLOCK_FRAMES * CHANNELS)
+    suspend fun play(source: AbBufferSource) =
+        withContext(Dispatchers.IO) {
+            stopped = false
+            source.reset()
+            val block = FloatArray(BLOCK_FRAMES * CHANNELS)
 
-        val minBytes =
-            AudioTrack.getMinBufferSize(
-                sampleRateHz,
-                android.media.AudioFormat.CHANNEL_OUT_STEREO,
-                android.media.AudioFormat.ENCODING_PCM_FLOAT,
-            )
-        val t = build(maxOf(minBytes, block.size * Float.SIZE_BYTES * 2))
-        track = t
-        try {
-            t.play()
-            while (!stopped) {
-                coroutineContext.ensureActive()
-                source.fill(block)
-                // SAFETY-CRITICAL: independent ceiling on the playback path.
-                limiter.processInPlace(block)
-                var offset = 0
-                while (offset < block.size && !stopped) {
-                    val written = t.write(block, offset, block.size - offset, AudioTrack.WRITE_BLOCKING)
-                    if (written <= 0) return@withContext
-                    offset += written
+            val minBytes =
+                AudioTrack.getMinBufferSize(
+                    sampleRateHz,
+                    android.media.AudioFormat.CHANNEL_OUT_STEREO,
+                    android.media.AudioFormat.ENCODING_PCM_FLOAT,
+                )
+            val t = build(maxOf(minBytes, block.size * Float.SIZE_BYTES * 2))
+            track = t
+            try {
+                t.play()
+                while (!stopped) {
+                    coroutineContext.ensureActive()
+                    source.fill(block)
+                    // SAFETY-CRITICAL: independent ceiling on the playback path.
+                    limiter.processInPlace(block)
+                    var offset = 0
+                    while (offset < block.size && !stopped) {
+                        val written = t.write(block, offset, block.size - offset, AudioTrack.WRITE_BLOCKING)
+                        if (written <= 0) return@withContext
+                        offset += written
+                    }
                 }
+            } finally {
+                releaseTrack(t)
             }
-        } finally {
-            releaseTrack(t)
         }
-    }
 
     /** Instant mute: pause + flush now; a running [play] returns promptly. */
     fun stop() {
@@ -76,24 +77,26 @@ class AbPlayer(
         track = null
     }
 
-    private fun build(bufferBytes: Int): AudioTrack = AudioTrack.Builder()
-        .setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build(),
-        )
-        .setAudioFormat(
-            android.media.AudioFormat.Builder()
-                .setSampleRate(sampleRateHz)
-                .setEncoding(android.media.AudioFormat.ENCODING_PCM_FLOAT)
-                .setChannelMask(android.media.AudioFormat.CHANNEL_OUT_STEREO)
-                .build(),
-        )
-        .setBufferSizeInBytes(bufferBytes)
-        .setTransferMode(AudioTrack.MODE_STREAM)
-        .build()
-        .also { it.setVolume(AudioTrack.getMaxVolume()) }
+    private fun build(bufferBytes: Int): AudioTrack =
+        AudioTrack
+            .Builder()
+            .setAudioAttributes(
+                AudioAttributes
+                    .Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build(),
+            ).setAudioFormat(
+                android.media.AudioFormat
+                    .Builder()
+                    .setSampleRate(sampleRateHz)
+                    .setEncoding(android.media.AudioFormat.ENCODING_PCM_FLOAT)
+                    .setChannelMask(android.media.AudioFormat.CHANNEL_OUT_STEREO)
+                    .build(),
+            ).setBufferSizeInBytes(bufferBytes)
+            .setTransferMode(AudioTrack.MODE_STREAM)
+            .build()
+            .also { it.setVolume(AudioTrack.getMaxVolume()) }
 
     private fun releaseTrack(t: AudioTrack) {
         runCatching {

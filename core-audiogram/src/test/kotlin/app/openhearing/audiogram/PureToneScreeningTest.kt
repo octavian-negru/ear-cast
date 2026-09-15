@@ -11,7 +11,10 @@ import kotlin.math.abs
 
 class PureToneScreeningTest {
     /** Run a full screening against per-(ear,frequency) true thresholds. */
-    private fun runScreening(screening: PureToneScreening, trueThreshold: (Ear, Hertz) -> Double) {
+    private fun runScreening(
+        screening: PureToneScreening,
+        trueThreshold: (Ear, Hertz) -> Double,
+    ) {
         var guard = 0
         while (!screening.isComplete()) {
             val stimulus = screening.currentStimulus()

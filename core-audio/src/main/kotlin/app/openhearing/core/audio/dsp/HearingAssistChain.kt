@@ -36,12 +36,17 @@ class HearingAssistChain(
     init {
         require(speechPresenceDb.isFinite() && speechPresenceDb in 0.0..6.0)
     }
+
     private val highPass: Biquad? =
         highPassHz?.let { Biquad.highPass(it, HIGH_PASS_Q, sampleRateHz) }
     private val eq = GainEqualizer(gainCurve, sampleRateHz)
     private val wdrc = MultibandWdrc(sampleRateHz)
-    private val presence = if (speechPresenceDb == 0.0) null else
-        Biquad.highShelf(minOf(1_800.0, sampleRateHz * 0.2), speechPresenceDb, sampleRateHz)
+    private val presence =
+        if (speechPresenceDb == 0.0) {
+            null
+        } else {
+            Biquad.highShelf(minOf(1_800.0, sampleRateHz * 0.2), speechPresenceDb, sampleRateHz)
+        }
     private val guard: FeedbackGuard? =
         if (feedbackGuardEnabled) {
             FeedbackGuard(sampleRateHz, activationRms = CHAIN_GUARD_ACTIVATION_RMS)
@@ -109,6 +114,9 @@ class HearingAssistChain(
         private const val CHAIN_GUARD_ACTIVATION_RMS = 0.03
 
         private fun linearGain(db: Double): Float =
-            10.0.pow(db.coerceIn(0.0, SafetyConstants.MAX_MASTER_GAIN_CAP_DB) / 20.0).toFloat()
+            10.0
+                .pow(
+                    db.coerceIn(0.0, SafetyConstants.MAX_MASTER_GAIN_CAP_DB) / 20.0,
+                ).toFloat()
     }
 }
