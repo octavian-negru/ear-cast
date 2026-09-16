@@ -48,6 +48,11 @@ if(NOT MSVC)
     target_link_libraries(neural_speech PUBLIC m)
 endif()
 
+add_library(wiener_speech STATIC wiener_denoiser.cpp)
+target_include_directories(wiener_speech PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} PRIVATE ${SPEEX}/libspeexdsp)
+target_compile_definitions(wiener_speech PRIVATE FLOATING_POINT)
+target_link_libraries(wiener_speech PUBLIC speex_preprocess)
+
 option(OPENHEARING_BUILD_JNI "Build the Android/JVM bridge" ON)
 # The upstream runtime is already compiled. Unpack only when CMake is configured
 # on a build host; no network, Rust toolchain or model export is involved.
@@ -84,9 +89,9 @@ if(OPENHEARING_BUILD_JNI)
     if(NOT ANDROID)
         find_package(JNI REQUIRED)
     endif()
-    add_library(openhearing_speech SHARED speech_jni.cpp neural_jni.cpp)
+    add_library(openhearing_speech SHARED speech_jni.cpp neural_jni.cpp wiener_jni.cpp)
     target_include_directories(openhearing_speech PRIVATE ${JNI_INCLUDE_DIRS})
-    target_link_libraries(openhearing_speech PRIVATE speex_preprocess neural_speech)
+    target_link_libraries(openhearing_speech PRIVATE speex_preprocess neural_speech wiener_speech)
     if(ANDROID)
         target_link_options(openhearing_speech PRIVATE "-Wl,-z,max-page-size=16384")
     endif()

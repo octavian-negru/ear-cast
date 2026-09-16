@@ -3,8 +3,8 @@
 ## Follow-up: independent media boost
 
 The cut-only update below made media too quiet for the user, while assist now
-sounds acceptable. Media therefore has a separate **Media boost** slider in
-Settings: **0–9 dB, default +6 dB**, persisted independently of assist settings.
+sounds acceptable. Media therefore has a separate **Media boost** slider on
+the Home screen: **0–15 dB, default +6 dB**, persisted independently of assist settings.
 This replaces the fixed −3 dB input attenuation. The relative EQ curve remains
 unchanged; boost runs before the platform limiter, with no post-limiter makeup.
 Already-loud peaks may be limited rather than receiving the full requested gain.

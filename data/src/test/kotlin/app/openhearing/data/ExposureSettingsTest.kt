@@ -32,13 +32,13 @@ class ExposureSettingsTest {
             repo.setListeningSettings(listening)
             repo.setMediaEqEnabled(true)
             assertEquals(6f, repo.observeMediaBoostDb().first())
-            repo.setMediaBoostDb(8f)
+            repo.setMediaBoostDb(15f)
             val restored = DataStoreSettingsRepository(store)
-            assertEquals(8f, restored.observeMediaBoostDb().first())
+            assertEquals(15f, restored.observeMediaBoostDb().first())
             assertEquals(listening, restored.observeListeningSettings().first())
             assertEquals(true, restored.observeMediaEqEnabled().first())
             repo.setMediaEqEnabled(false)
-            assertEquals(8f, repo.observeMediaBoostDb().first())
+            assertEquals(15f, repo.observeMediaBoostDb().first())
         }
 
     @Test
@@ -47,7 +47,7 @@ class ExposureSettingsTest {
             val store = FakePreferencesStore()
             val repo = DataStoreSettingsRepository(store)
             repo.setMediaBoostDb(100f)
-            assertEquals(9f, repo.observeMediaBoostDb().first())
+            assertEquals(15f, repo.observeMediaBoostDb().first())
             repo.setMediaBoostDb(-10f)
             assertEquals(0f, repo.observeMediaBoostDb().first())
             store.updateData { mutablePreferencesOf(floatPreferencesKey("media_boost_db") to Float.NaN) }
@@ -63,6 +63,18 @@ class ExposureSettingsTest {
             val settings = ListeningSettings("GENTLE", "OFF", "CALL_COMPATIBLE", "STRONG")
             repo.setListeningSettings(settings)
             assertEquals(settings, DataStoreSettingsRepository(store).observeListeningSettings().first())
+        }
+
+    @Test
+    fun `additional speech engines survive repository recreation`() =
+        runTest {
+            val store = FakePreferencesStore()
+            val repo = DataStoreSettingsRepository(store)
+            for (engine in listOf("SPEEX", "WIENER")) {
+                val settings = ListeningSettings(speechEngine = engine, noiseReduction = "GENTLE")
+                repo.setListeningSettings(settings)
+                assertEquals(settings, DataStoreSettingsRepository(store).observeListeningSettings().first())
+            }
         }
 
     @Test

@@ -100,7 +100,9 @@ private fun HomeScreen(
     onDinTest: () -> Unit,
     onSettings: () -> Unit,
     showDinTest: Boolean,
+    rootViewModel: RootViewModel = hiltViewModel(),
 ) {
+    val root by rootViewModel.uiState.collectAsStateWithLifecycle()
     Column(
         modifier =
             Modifier
@@ -119,6 +121,7 @@ private fun HomeScreen(
         HomeButton(stringResource(R.string.home_hearing_check), onRunHearingTest)
         if (showDinTest) HomeButton(stringResource(R.string.home_din_test), onDinTest)
         HomeButton(stringResource(R.string.home_assist), onAssist)
+        MediaEqCard(state = root, onToggle = rootViewModel::setMediaEq, onBoostChange = rootViewModel::setMediaBoost)
         HomeButton(stringResource(R.string.home_settings), onSettings)
     }
 }
@@ -190,8 +193,6 @@ private fun SettingsScreen(
             onChange = rootViewModel::setComfortCeiling,
             onPreview = { rootViewModel.previewComfort(root.comfortCeiling) },
         )
-
-        MediaEqCard(state = root, onToggle = rootViewModel::setMediaEq, onBoostChange = rootViewModel::setMediaBoost)
 
         AboutCard()
 

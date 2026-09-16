@@ -19,6 +19,8 @@ import app.openhearing.core.audio.speech.FrameDenoiser
 import app.openhearing.core.audio.speech.ListeningOptions
 import app.openhearing.core.audio.speech.NativeDpdfnetDenoiser
 import app.openhearing.core.audio.speech.NativeRnnoiseDenoiser
+import app.openhearing.core.audio.speech.NativeSpeexDenoiser
+import app.openhearing.core.audio.speech.NativeWienerDenoiser
 import app.openhearing.core.audio.speech.NoiseReduction
 import app.openhearing.core.audio.speech.SpeechEngine
 import app.openhearing.core.audio.speech.SpeechFrontEnd
@@ -273,18 +275,16 @@ class AssistController
         private fun createDenoiser(
             rate: Int,
             options: ListeningOptions,
-        ): FrameDenoiser? =
-            when {
-                options.noiseReduction == NoiseReduction.OFF -> null
-                options.speechEngine == SpeechEngine.DPDFNET ->
-                    NativeDpdfnetDenoiser(applicationContext, rate, options.noiseReduction.suppressionDb)
-                else ->
-                    NativeRnnoiseDenoiser(
-                        rate,
-                        options.noiseReduction.suppressionDb,
-                        options.quietSpeech.maximumGainDb,
-                    )
+        ): FrameDenoiser? {
+            if (options.noiseReduction == NoiseReduction.OFF) return null
+            val suppression = options.noiseReduction.suppressionDb
+            return when (options.speechEngine) {
+                SpeechEngine.RNNOISE -> NativeRnnoiseDenoiser(rate, suppression, options.quietSpeech.maximumGainDb)
+                SpeechEngine.DPDFNET -> NativeDpdfnetDenoiser(applicationContext, rate, suppression)
+                SpeechEngine.SPEEX -> NativeSpeexDenoiser(rate, suppression)
+                SpeechEngine.WIENER -> NativeWienerDenoiser(rate, suppression)
             }
+        }
 
         @Synchronized
         private fun createDiagnostics(

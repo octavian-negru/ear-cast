@@ -2,16 +2,24 @@
 
 package app.openhearing.ui.assist
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,13 +44,18 @@ internal fun ListeningControls(
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
-            QualityChoice(
-                stringResource(R.string.assist_speech_engine),
-                listOf("RNNoise", "DPDFNet8"),
-                options.speechEngine.ordinal,
-                enabled,
-            ) { onChange(options.copy(speechEngine = SpeechEngine.entries[it])) }
-            Text(stringResource(R.string.assist_engine_description), style = MaterialTheme.typography.bodySmall)
+            EngineChoice(options.speechEngine, enabled) { onChange(options.copy(speechEngine = it)) }
+            Text(
+                stringResource(
+                    when (options.speechEngine) {
+                        SpeechEngine.RNNOISE -> R.string.assist_rnnoise_description
+                        SpeechEngine.DPDFNET -> R.string.assist_engine_description
+                        SpeechEngine.SPEEX -> R.string.assist_speex_description
+                        SpeechEngine.WIENER -> R.string.assist_wiener_description
+                    },
+                ),
+                style = MaterialTheme.typography.bodySmall,
+            )
             QualityChoice(
                 stringResource(R.string.assist_capture_mode),
                 listOf(stringResource(R.string.assist_capture_natural), stringResource(R.string.assist_capture_call)),
@@ -93,13 +106,47 @@ internal fun ListeningControls(
                     if (options.speechEngine == SpeechEngine.RNNOISE) {
                         R.string.assist_quiet_speech_description
                     } else {
-                        R.string.assist_dpdfnet_level_description
+                        R.string.assist_other_engine_level_description
                     },
                 ),
                 style = MaterialTheme.typography.bodySmall,
             )
             if (!enabled) {
                 Text(stringResource(R.string.assist_quality_restart), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EngineChoice(
+    selected: SpeechEngine,
+    enabled: Boolean,
+    onChange: (SpeechEngine) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val labels =
+        mapOf(
+            SpeechEngine.RNNOISE to "RNNoise",
+            SpeechEngine.DPDFNET to "DPDFNet8",
+            SpeechEngine.SPEEX to "SpeexDSP",
+            SpeechEngine.WIENER to stringResource(R.string.assist_wiener_name),
+        )
+    Text(
+        stringResource(R.string.assist_speech_engine),
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier.padding(top = 12.dp),
+    )
+    Box {
+        OutlinedButton(onClick = { expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+            Text(labels.getValue(selected))
+        }
+        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
+            labels.forEach { (engine, label) ->
+                DropdownMenuItem(text = { Text(label) }, onClick = {
+                    expanded = false
+                    onChange(engine)
+                })
             }
         }
     }

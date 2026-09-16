@@ -1,8 +1,9 @@
 # Audio quality workbench
 
 All new evaluation code lives here, outside production source directories.
-Nothing in this directory builds, installs dependencies, downloads models or
-plays audio automatically. **The code and tests have been written, not executed.**
+Nothing in this directory installs dependencies, downloads models or plays audio
+automatically. The native regression suite and Kotlin unit tests were run for the
+classical-engine update; real-speech and device listening comparisons remain pending.
 
 ## Layout
 
@@ -179,3 +180,38 @@ Bass Gentle, Noise Reduction Strong, Quiet Speech Boost Off. Compare RNNoise and
 DPDFNet8 at matched listening levels; stronger treble or a lower noise floor is
 not sufficient evidence of better word understanding. See
 [speech understanding notes](../docs/SPEECH_UNDERSTANDING.md).
+
+## Selectable classical engines
+
+Hearing Assist now also offers the bundled **SpeexDSP** preprocessor and an
+experimental **Adaptive Wiener** engine, independently of RNNoise and DPDFNet8.
+Only one denoiser runs per session. Noise reduction Off bypasses every engine;
+RNNoise remains the default and the only engine with quiet-speech boost.
+All engines retain the shared per-ear fitting and final output limiter.
+
+The Wiener implementation uses the bundled Speex FFT (no additional model or
+runtime download), 20 ms sine windows, 10 ms hops, rolling minima of smoothed
+noise power, and decision-directed a priori SNR estimation. Gains are smoothed
+across frequency and time, with a 6/12 dB spectral attenuation floor for
+Gentle/Strong. This floor is not a per-sample output bound. There is no voice
+gate or automatic makeup gain. Its intended comparison case is steady fan/hiss
+noise; changing noise and sustained speech/music may be softened. It is not a
+claim of improved intelligibility over either neural engine.
+
+Both classical engines accept 8, 16, 24, 32, 44.1 and 48 kHz without resampling.
+Each adds a measured 10 ms algorithm delay plus SpeechFrontEnd's 10 ms frame
+adapter. Diagnostics identify the selected engine and this combined delay.
+
+The native `classical_speech_test` checks Wiener overlap reconstruction/delay,
+silence and invalid samples, noise attenuation and strength ordering, retention
+of a newly arriving sinusoid after noise adaptation, and Speex delay at all six
+rates. These synthetic checks passed locally, along with the existing RNNoise
+and leveler suites. A sinusoid is not a real-speech intelligibility test.
+The evaluator includes `wiener_gentle` and `wiener_strong`, using the same native
+implementation as Android. App debug assembly (all four ABIs), core-audio/data
+unit tests, ktlint and detekt also passed. Headset listening remains pending.
+
+Background references: [Speex preprocessing API](https://www.speex.org/docs/manual/speex-manual/node7.html)
+and [decision-directed SNR and smoothed Wiener enhancement](https://arxiv.org/abs/1503.07015).
+The Wiener implementation here is an independent, simpler classical filter;
+it does not implement that paper's periodicity detector.

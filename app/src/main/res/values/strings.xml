@@ -79,8 +79,12 @@
     <string name="assist_sound_quality">Sound clarity</string>
     <string name="assist_quality_description">Speech clarity softens lower frequencies to bring consonants forward without extra treble volume; bass reduction softens boomy voices. Natural capture avoids extra call processing where supported. Use Call mode if Natural cannot connect.</string>
     <string name="assist_speech_engine">Speech enhancement</string>
+    <string name="assist_wiener_name">Adaptive Wiener (experimental)</string>
+    <string name="assist_rnnoise_description">Neural speech enhancement with optional quiet-speech boost. Runs on this device; Off noise reduction bypasses the engine.</string>
+    <string name="assist_speex_description">Lightweight classic noise reduction. Try Gentle first; Strong may soften voices. Runs on this device; Off bypasses the engine.</string>
+    <string name="assist_wiener_description">Experimental filter for steady background noise such as fans and hiss. Adapts as you listen; changing noise or long sustained sounds may be softened. Start with Gentle and compare with Off.</string>
     <string name="assist_engine_description">DPDFNet8 is a more demanding speech model. Start with Gentle noise reduction and compare word clarity with RNNoise. Both run on this device; Off noise reduction bypasses the model.</string>
-    <string name="assist_dpdfnet_level_description">DPDFNet8 uses your fitted amplification and volume setting. The separate quiet-speech boost is available with RNNoise.</string>
+    <string name="assist_other_engine_level_description">This engine uses your fitted amplification and volume setting. The separate quiet-speech boost is available with RNNoise.</string>
     <string name="assist_capture_mode">Microphone processing</string>
     <string name="assist_capture_natural">Natural</string>
     <string name="assist_capture_call">Call mode</string>

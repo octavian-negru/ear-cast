@@ -54,7 +54,7 @@ personalized amplification profile, and boost quiet speech in real time.
 
 > Screenshots are from the running app on an emulator (the check values shown are
 > from an automated test pass). ▶️ A real demo video is coming after on-device
-> validation.
+> validation. Media sound has since moved to Home, with a 0–15 dB boost control.
 
 ---
 

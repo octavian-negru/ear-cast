@@ -31,7 +31,7 @@ void fail(JNIEnv* env, const char* message) {
 extern "C" JNIEXPORT jlong JNICALL
 Java_app_openhearing_core_audio_speech_NativeSpeexDenoiser_create(
     JNIEnv* env, jobject, jint rate, jint frames, jint suppression) {
-    if ((rate != 8000 && rate != 16000 && rate != 48000) || frames != rate / 100 ||
+    if ((rate != 8000 && rate != 16000 && rate != 24000 && rate != 32000 && rate != 44100 && rate != 48000) || frames != rate / 100 ||
         suppression < 0 || suppression > 18) {
         fail(env, "Unsupported speech processor configuration");
         return 0;

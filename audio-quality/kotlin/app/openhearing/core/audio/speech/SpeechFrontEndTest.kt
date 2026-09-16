@@ -21,6 +21,13 @@ class SpeechFrontEndTest {
     private val bypass = ListeningOptions(voiceComfort = VoiceComfort.OFF, speechClarity = SpeechClarity.OFF)
 
     @Test
+    fun `engine names preserve existing selections and support classical alternatives`() {
+        for (engine in SpeechEngine.entries) assertEquals(engine, SpeechEngine.fromName(engine.name))
+        assertEquals(SpeechEngine.RNNOISE, SpeechEngine.fromName("unknown"))
+        assertEquals(SpeechEngine.RNNOISE, ListeningOptions().speechEngine)
+    }
+
+    @Test
     fun `natural capture uses advertised raw support with recognition fallback`() {
         assertEquals(InputTuning.RAW_UNPROCESSED, CaptureMode.NATURAL.inputTuning(true))
         assertEquals(InputTuning.RAW_VOICE_RECOGNITION, CaptureMode.NATURAL.inputTuning(false))

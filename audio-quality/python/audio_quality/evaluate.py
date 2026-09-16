@@ -18,6 +18,8 @@ VARIANTS = {
     "off": ("off", 0, 0),
     "speex_gentle": ("speex", 6, 0),
     "speex_strong": ("speex", 12, 0),
+    "wiener_gentle": ("wiener", 6, 0),
+    "wiener_strong": ("wiener", 12, 0),
     "rnnoise_gentle": ("rnnoise", 6, 0),
     "rnnoise_strong": ("rnnoise", 12, 0),
     "rnnoise_quiet_6db": ("rnnoise", 6, 6),

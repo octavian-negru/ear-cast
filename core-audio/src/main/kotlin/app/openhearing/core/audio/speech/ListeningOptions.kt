@@ -16,10 +16,12 @@ enum class SpeechClarity(
     }
 }
 
-/** Alternate complete speech enhancers; never run both suppressors in series. */
+/** Alternate complete speech enhancers; never run suppressors in series. */
 enum class SpeechEngine {
     RNNOISE,
     DPDFNET,
+    SPEEX,
+    WIENER,
     ;
 
     companion object {
@@ -29,8 +31,9 @@ enum class SpeechEngine {
 }
 
 /**
- * Neural speech enhancement. suppressionDb sets the retained dry contribution
+ * Noise reduction strength. For neural engines, suppressionDb sets the retained dry contribution
  * (6 dB = about 50%, 12 dB = about 25%), not a guaranteed total attenuation bound.
+ * Classical engines use it as their spectral attenuation floor.
  * Off preserves environmental sound; headset firmware may already suppress it.
  */
 enum class NoiseReduction(

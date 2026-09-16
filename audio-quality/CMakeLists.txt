@@ -11,8 +11,11 @@ add_test(NAME neural_speech COMMAND neural_speech_test)
 add_executable(speech_leveler_test native/speech_leveler_test.cpp)
 target_link_libraries(speech_leveler_test PRIVATE neural_speech)
 add_test(NAME speech_leveler COMMAND speech_leveler_test)
+add_executable(classical_speech_test native/classical_speech_test.cpp)
+target_link_libraries(classical_speech_test PRIVATE wiener_speech)
+add_test(NAME classical_speech COMMAND classical_speech_test)
 add_executable(audio_render native/audio_render.cpp)
-target_link_libraries(audio_render PRIVATE neural_speech speex_preprocess)
+target_link_libraries(audio_render PRIVATE neural_speech speex_preprocess wiener_speech)
 
 # Optional complete DPDFNet replay uses pre-existing Linux v1.13.8 libraries.
 # Nothing is downloaded or built by the evaluation scripts.

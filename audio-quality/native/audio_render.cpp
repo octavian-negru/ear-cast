@@ -1,4 +1,5 @@
 #include "neural_denoiser.h"
+#include "wiener_denoiser.h"
 #ifdef OPENHEARING_HAS_DPDFNET
 #include "dpdfnet_denoiser.h"
 #endif
@@ -24,7 +25,7 @@ static_assert(sizeof(float) == 4 && std::numeric_limits<float>::is_iec559,
 int main(int argc, char** argv) {
     try {
         if (argc != 7 && argc != 8) throw std::invalid_argument(
-            "Usage: audio_render off|speex|rnnoise|dpdfnet rate suppression_db boost_db input.f32 output.f32 [model.onnx]");
+            "Usage: audio_render off|speex|wiener|rnnoise|dpdfnet rate suppression_db boost_db input.f32 output.f32 [model.onnx]");
         const std::string mode(argv[1]);
         const int rate = std::stoi(argv[2]);
         const int suppression = std::stoi(argv[3]);
@@ -33,7 +34,7 @@ int main(int argc, char** argv) {
             throw std::invalid_argument("Unsupported PCM rate");
         if (suppression < 0 || suppression > 18 || !std::isfinite(boost) || boost < 0 || boost > 12)
             throw std::invalid_argument("Invalid enhancement strength");
-        if (mode != "off" && mode != "speex" && mode != "rnnoise" && mode != "dpdfnet")
+        if (mode != "off" && mode != "speex" && mode != "rnnoise" && mode != "dpdfnet" && mode != "wiener")
             throw std::invalid_argument("Unknown backend");
         if ((mode == "dpdfnet") != (argc == 8)) throw std::invalid_argument("Only DPDFNet requires a model path");
         if (mode != "rnnoise" && boost != 0) throw std::invalid_argument("Boost requires RNNoise confidence");
@@ -49,6 +50,7 @@ int main(int argc, char** argv) {
         const int frames = rate / 100;
         int delay = 0;
         std::unique_ptr<openhearing::NeuralDenoiser> neural;
+        std::unique_ptr<openhearing::WienerDenoiser> wiener;
 #ifdef OPENHEARING_HAS_DPDFNET
         std::unique_ptr<openhearing::DpdfnetDenoiser> detailed;
 #endif
@@ -65,6 +67,9 @@ int main(int argc, char** argv) {
         } else if (mode == "rnnoise") {
             neural = std::make_unique<openhearing::NeuralDenoiser>(rate, suppression, boost);
             delay = neural->delay_samples();
+        } else if (mode == "wiener") {
+            wiener = std::make_unique<openhearing::WienerDenoiser>(rate, suppression);
+            delay = wiener->delay_samples();
         } else if (mode == "speex") {
             speex.reset(speex_preprocess_state_init(frames, rate));
             if (!speex) throw std::runtime_error("Cannot create Speex baseline");
@@ -92,6 +97,7 @@ int main(int argc, char** argv) {
             }
             const auto started = std::chrono::steady_clock::now();
             if (neural) neural->process(frame.data(), frames);
+            if (wiener) wiener->process(frame.data(), frames);
 #ifdef OPENHEARING_HAS_DPDFNET
             if (detailed) detailed->process(frame.data(), frames);
 #endif

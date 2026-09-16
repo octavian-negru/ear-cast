@@ -1,24 +1,14 @@
 package app.openhearing.core.audio.speech
 
-/** A mono, fixed-frame denoiser. Owned and closed by the audio worker, never shared between sessions. */
-interface FrameDenoiser : AutoCloseable {
-    val frameSize: Int
-
-    /** Algorithm delay excluding SpeechFrontEnd's frame adapter; null if not established. */
-    val algorithmDelaySamples: Int? get() = null
-    val diagnosticMetadata: Map<String, String> get() = emptyMap()
-
-    fun process(frame: FloatArray)
-}
-
-/** SpeexDSP 1.2.1 preprocessor at the actual stream rate; AGC and echo cancellation stay disabled. */
-class NativeSpeexDenoiser(
+/** Adaptive spectral Wiener filter; 20 ms windows, 10 ms hops, no automatic gain or voice gate. */
+class NativeWienerDenoiser(
     sampleRateHz: Int,
     suppressionDb: Int,
 ) : FrameDenoiser {
     override val frameSize = sampleRateHz / 100
     override val algorithmDelaySamples = frameSize
-    override val diagnosticMetadata = mapOf("speech_engine" to "SpeexDSP", "speech_runtime" to "bundled-speexdsp")
+    override val diagnosticMetadata =
+        mapOf("speech_engine" to "Adaptive Wiener", "speech_runtime" to "native-wiener-v1")
     private var handle: Long
 
     init {
