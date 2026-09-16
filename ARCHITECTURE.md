@@ -13,43 +13,43 @@ Android audio/BLE I/O, so the algorithms can be tested without a device or emula
                  └──────┬──────┘
         ┌───────┬───────┼────────┬─────────────┐
         ▼       ▼       ▼        ▼             ▼
- :core-audiogram :core-audio :airpods-protocol :data
+ :sound-profile :audio-engine :airpods-protocol :local-storage
         │       │       │        │             │
         └───────┴───────┴────────┴─────────────┘
                         ▼
-                  :core-common   units · SAFETY constants
+                  :foundation   units · SAFETY constants
 ```
 
 - `:app` depends on the cores; **no core depends back on `:app`.**
-- Everything depends on `:core-common`; `:core-common` depends on nothing app-specific.
-- `:core-common` and `:core-audiogram` are plain Kotlin/JVM modules (fast JUnit5 tests).
-- `:core-audio`, `:airpods-protocol`, `:data` are Android library modules (they
+- Everything depends on `:foundation`; `:foundation` depends on nothing app-specific.
+- `:foundation` and `:sound-profile` are plain Kotlin/JVM modules (fast JUnit5 tests).
+- `:audio-engine`, `:airpods-protocol`, `:local-storage` are Android library modules (they
   touch Android audio/BLE/persistence APIs) but keep their core logic pure where possible.
 
-### `:core-common`
-Strongly-typed units (`Hertz`, `DecibelsHl`, `DecibelsSpl`, `DecibelsFs`, `Ear`)
-and **`SafetyConstants`** — the single source of truth for every output-loudness
+### `:foundation`
+Strongly-typed units (`FrequencyHz`, `HearingDb`, `AcousticDb`, `DigitalDb`, `AudioEar`)
+and **`AudioLimits`** — the single source of truth for every output-loudness
 limit. Anything that produces sound must respect these.
 
-### `:core-audiogram`
-The audiogram domain: the `Audiogram`/`Threshold` model, the pure-tone
+### `:sound-profile`
+The audiogram domain: the `HearingCurve`/`HearingPoint` model, the pure-tone
 threshold-seeking staircase (Phase 1), and audiogram→gain-curve fitting (Phase 1).
 Pure Kotlin — no Android dependency.
 
-### `:core-audio`
+### `:audio-engine`
 The real-time DSP core: multiband gain, wide dynamic range compression (WDRC),
 feedback/howl guard, and the **SAFETY-CRITICAL output limiter**. The DSP math is
-pure Kotlin behind the `AudioEngine`/`AudioProcessor` interfaces; the concrete
+pure Kotlin behind the `StreamEngine`/`SampleTransform` interfaces; the concrete
 AudioRecord/AudioTrack engine is just the I/O shell. This is what makes the limiter
 unit-testable.
 
-`AssistAudioRoute` owns microphone/output selection, audio focus, and Bluetooth
+`LiveAudioRoute` owns microphone/output selection, audio focus, and Bluetooth
 communication routing (API 31+ device selection; legacy SCO below API 31).
-`AndroidAudioEngine` confirms actual input/output routes before submitting
+`AndroidStreamEngine` confirms actual input/output routes before submitting
 processed audio, reports connecting/running/failure state, and releases routing
 on every exit. The processor factory receives the transport's sample rate before
 building DSP. Classic SCO uses mono device output, with a bounded average of the
-two limited ear channels. The microphone preference is persisted in `:data` and
+two limited ear channels. The microphone preference is persisted in `:local-storage` and
 shared by the assist screen and tile; choosing the phone microphone provides the
 remote-listening use case inside the same Hearing Assist session.
 See [headset microphone routing](docs/HEADSET_MICROPHONE.md) for platform limits
@@ -75,26 +75,26 @@ L2CAP CoC. The protocol is **reverse-engineered and UNVERIFIED** (see
 [docs/PROTOCOL.md](docs/PROTOCOL.md)); everything protocol-specific is behind
 interfaces. Non-root path first.
 
-### `:data`
+### `:local-storage`
 Persistence for audiograms, profiles, and settings (DataStore/Room, Phase 4).
 
 ## Data flow
 
 ```
- Pure-tone screening ─► Audiogram ─► Gain curve / fitting ─► DSP chain ─► AudioEngine ─► earbuds
- (:core-audiogram)      (:core-     (:core-audiogram)        (:core-      (:core-audio)
+ Pure-tone screening ─► HearingCurve ─► Gain curve / fitting ─► DSP chain ─► StreamEngine ─► earbuds
+ (:sound-profile)      (:core-     (:sound-profile)        (:core-      (:audio-engine)
                          audiogram)                           audio)            │
                                                                                 ▼
                                                           (optional, best-effort) :airpods-protocol
                                                           tunes transparency/route — never required
 ```
 
-The DSP chain's **final stage is always an `OutputLimiter`**, so nothing can
+The DSP chain's **final stage is always an `OutputCeiling`**, so nothing can
 exceed the safety ceiling on the way to the device, regardless of upstream gain.
 
 ## Testing strategy
 
-- **Pure-Kotlin modules** (`:core-common`, `:core-audiogram`): JUnit5 unit tests,
+- **Pure-Kotlin modules** (`:foundation`, `:sound-profile`): JUnit5 unit tests,
   no Android. This is where the screening, fitting, and safety-math tests live.
 - **Android library modules**: JUnit5 unit tests (via the `android-junit5` plugin)
   for pure logic; Robolectric/instrumented tests for Android-touching code.
@@ -103,7 +103,7 @@ exceed the safety ceiling on the way to the device, regardless of upstream gain.
 
 New clarity, route-policy and diagnostic tests live together in
 [`audio-quality/`](audio-quality/README.md): native tests link production DSP, JVM
-tests are wired into `:core-audio`, and Python tools prepare real-speech corpora,
+tests are wired into `:audio-engine`, and Python tools prepare real-speech corpora,
 evaluate reference metrics and export blind listening comparisons. The suite never
 automatically compiles a renderer or downloads a model.
 

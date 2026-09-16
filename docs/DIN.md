@@ -8,8 +8,8 @@ is scientifically sufficient.
 
 **Status: engine + UI shipped, corpus NOT yet recorded.** The check stays off
 the home screen until the audio files below exist in `app/src/main/res/raw/`
-(`DigitCorpus.isAvailable()` gates it). Everything else is built and
-unit-tested (`DigitsInNoiseTest`, `SpeechNoiseMixerTest`, `WavCodecTest`).
+(`SpokenDigitLibrary.isAvailable()` gates it). Everything else is built and
+unit-tested (`SpeechCheckProtocolTest`, `SpeechMixtureTest`, `WaveFileCodecTest`).
 
 ## What to record (maintainer)
 
@@ -17,7 +17,7 @@ One clean utterance per digit, spoken calmly at a steady level:
 
 - Digits: **0, 1, 2, 3, 4, 5, 6, 8, 9** ("7" is excluded — the only
   two-syllable English digit, which would make triplets uneven in difficulty).
-- Format: **48 kHz, mono, 16-bit PCM WAV** (`WavCodec` accepts nothing else).
+- Format: **48 kHz, mono, 16-bit PCM WAV** (`WaveFileCodec` accepts nothing else).
 - File names: `din_digit_0.wav` … `din_digit_9.wav` (skip 7), `din_noise.wav`.
 - A quiet room and any decent phone/USB mic is fine for a screening-grade
   corpus. Keep a fist-width from the mic; avoid plosive blasts.
@@ -47,12 +47,12 @@ the digit alphabet change.
 - This is a self-recorded, **unvalidated** corpus: per-digit difficulty will
   not be perfectly homogeneous like a clinically calibrated DIN test. Fine for
   an "estimate" framing; per-digit level corrections can be added later inside
-  `DigitCorpus` without touching the engine.
+  `SpokenDigitLibrary` without touching the engine.
 - Results are displayed only (bands of "how you did in this check"), never fed
   into the amplification profile — an SNR has no principled mapping to
   frequency-specific gain.
 - The staircase reports range-pinned sessions ("beyond the range") instead of
-  fabricating a number (`DinResult.pinnedAtEdge`).
+  fabricating a number (`SpeechProtocolResult.pinnedAtEdge`).
 
 ## Procedure summary (what the engine does)
 
@@ -60,5 +60,5 @@ Smits-style adaptive DIN: start at +4 dB SNR, fixed 2 dB steps, one-down on a
 fully correct triplet / one-up otherwise, 24 triplets total, SRT = mean
 presented SNR of triplets 5–24. Noise is the level anchor (constant RMS at
 −25 dBFS); speech scales around it. Ramps ≥ `MIN_TONE_RAMP_MS`, peak-clamped,
-and played through `TonePlayer`'s limiter with instant mute — the same safety
+and played through `TestSignalPlayer`'s limiter with instant mute — the same safety
 shape as the pure-tone check.

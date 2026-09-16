@@ -11,7 +11,7 @@ honest about the limits.
 
 ## The choice: start with the half-gain rule
 
-`FractionalGainRule(fraction = 0.5)` — the **half-gain rule** — prescribes
+`ProportionalFit(fraction = 0.5)` — the **half-gain rule** — prescribes
 insertion gain equal to half the hearing loss (in dB HL) at each frequency, floored
 at 0 and capped at a safe per-band maximum.
 
@@ -21,7 +21,7 @@ We start here, deliberately, instead of a modern prescriptive target like
 | | Half-gain (chosen for v1) | NAL-NL2 / DSL v5 |
 |---|---|---|
 | Complexity | Trivial, transparent, auditable | Proprietary/complex non-linear formulae |
-| Inputs needed | Audiogram thresholds only | Thresholds **+ calibrated real-ear SPL, compression, loudness models** |
+| Inputs needed | HearingCurve thresholds only | Thresholds **+ calibrated real-ear SPL, compression, loudness models** |
 | Calibration sensitivity | Degrades gracefully when uncalibrated | Assumes calibrated dB SPL to be meaningful |
 | Safety to ship first | High — conservative, easy to reason about | Higher risk without calibration + WDRC |
 | Good enough for v1? | Yes, as a linear baseline | The eventual goal once we have WDRC + calibration |
@@ -35,9 +35,9 @@ and potentially unsafe. The half-gain rule is the honest, safe baseline.
 
 ## The seam for better fittings
 
-`FittingStrategy` is a one-method interface. A future `NalNl2Fitting` (or a
+`ProfileFitting` is a one-method interface. A future `NalNl2Fitting` (or a
 simplified NAL-R linear fit) drops in behind it without touching the screening or
-DSP code. `FractionalGainRule` already generalizes the family (e.g. one-third gain),
+DSP code. `ProportionalFit` already generalizes the family (e.g. one-third gain),
 so swapping prescriptions is a localized change.
 
 **Planned path:** Phase 2 adds WDRC + calibration hooks; once output can be
@@ -49,4 +49,4 @@ option alongside the simple linear rule.
 Until the audio path is calibrated, the screening's "dB HL" values and these
 gains are **relative estimates, not absolute clinical quantities**. The app must
 say so wherever it shows an audiogram or applies gain. The output limiter
-(SafetyConstants) bounds loudness regardless of any fitting error.
+(AudioLimits) bounds loudness regardless of any fitting error.

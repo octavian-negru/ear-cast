@@ -176,7 +176,7 @@ is built and unit-tested, but **not yet validated on real hardware.**
 
 | Area | Status |
 |---|---|
-| Audiogram screening engine (staircase, fitting) | ✅ pure-Kotlin, unit-tested |
+| HearingCurve screening engine (staircase, fitting) | ✅ pure-Kotlin, unit-tested |
 | Real-time assist DSP (EQ + WDRC + feedback guard + limiter) | ✅ unit-tested; limiter safety suite is the release gate |
 | Android audio engine + foreground assist service | ✅ builds — **needs on-device validation** |
 | Onboarding, persistence, assist UI, accessibility | ✅ |
@@ -197,9 +197,9 @@ Clean multi-module Kotlin (Compose/Material 3, MVVM, Hilt, coroutines). DSP and
 safety logic live in pure-Kotlin modules so they're unit-tested with no emulator.
 See [ARCHITECTURE.md](ARCHITECTURE.md).
 
-`:app` · `:core-common` (units + safety constants) · `:core-audiogram` (screening
-+ fitting) · `:core-audio` (DSP + limiter) · `:airpods-protocol` (UNVERIFIED) ·
-`:data` (persistence).
+`:app` · `:foundation` (units + safety constants) · `:sound-profile` (screening
++ fitting) · `:audio-engine` (DSP + limiter) · `:airpods-protocol` (UNVERIFIED) ·
+`:local-storage` (persistence).
 
 ---
 

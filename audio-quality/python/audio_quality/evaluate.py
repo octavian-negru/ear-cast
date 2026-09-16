@@ -167,7 +167,7 @@ def evaluate(manifest_path, renderer, output_directory, deepfilter_model=None, s
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifest", type=Path)
-    parser.add_argument("--renderer", type=Path, required=True, help="Existing audio_render executable; never built here")
+    parser.add_argument("--renderer", type=Path, required=True, help="Existing render_audio executable; never built here")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--deepfilter-model", type=Path)
     parser.add_argument("--dpdfnet-models", type=Path, help="Bundled models; renderer needs DPDFNet support")

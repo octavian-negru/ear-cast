@@ -8,10 +8,10 @@ classical-engine update; real-speech and device listening comparisons remain pen
 ## Layout
 
 - `native/`: adapter and leveler regression tests, plus an offline PCM renderer.
-  The renderer links the actual production `NeuralDenoiser` and `SpeechLeveler`.
+  The renderer links the actual production `RnnoiseFilter` and `VoiceLeveler`.
   It also provides Off and the previous Speex preprocessor as baselines.
 - `kotlin/`: framing, downstream limiter integration, route policy, headset
-  identity and diagnostic-recording tests. The core-audio test source set includes
+  identity and diagnostic-recording tests. The audio-engine test source set includes
   this directory. Existing unrelated module tests retain their original locations.
 - `python/audio_quality/`: real-speech corpus creation, replay, metrics, blind
   listening exports, recording extraction and explicit acceptance gates.
@@ -63,7 +63,7 @@ cmake --build /tmp/openhearing-audio-quality
 ctest --test-dir /tmp/openhearing-audio-quality --output-on-failure
 ```
 
-The app's Kotlin tests are included in the usual `:core-audio:testDebugUnitTest`
+The app's Kotlin tests are included in the usual `:audio-engine:testDebugUnitTest`
 task on an Android build host. Release/R8, JNI, all four ABIs and device routes
 still require their own build/device checks. The native CLI does not exercise
 Kotlin fitting/WDRC/limiters: use those tests and the recorded post-limiter taps.
@@ -87,7 +87,7 @@ artificial seams. Omitting noise produces seeded white noise only as a sanity ca
 
 ```bash
 python -m audio_quality.prepare_corpus --clean /path/speech.wav --noise /path/room.wav --output /tmp/corpus
-python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/openhearing-audio-quality/audio_render --output /tmp/comparison
+python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/openhearing-audio-quality/render_audio --output /tmp/comparison
 python -m audio_quality.check_report /tmp/comparison/report.json audio-quality/acceptance.example.json
 ```
 
@@ -121,7 +121,7 @@ For actual diagnostic recordings:
 
 ```bash
 python -m audio_quality.extract_recording /path/sound-recording.zip --output /tmp/capture
-python -m audio_quality.evaluate /tmp/capture/manifest.json --renderer /tmp/openhearing-audio-quality/audio_render --output /tmp/capture-comparison
+python -m audio_quality.evaluate /tmp/capture/manifest.json --renderer /tmp/openhearing-audio-quality/render_audio --output /tmp/capture-comparison
 ```
 
 The raw microphone tap is not a clean reference. Such reports intentionally omit
@@ -138,7 +138,7 @@ an already-downloaded standard DFN3 directory containing `config.ini` and
 behavior. No model name, download, placeholder tensor graph or random weights are used.
 
 ```bash
-python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/openhearing-audio-quality/audio_render --deepfilter-model /path/DeepFilterNet3 --output /tmp/dfn-comparison
+python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/openhearing-audio-quality/render_audio --deepfilter-model /path/DeepFilterNet3 --output /tmp/dfn-comparison
 ```
 
 The evaluator uses the [upstream enhancement API](https://github.com/Rikorose/DeepFilterNet/blob/main/DeepFilterNet/df/enhance.py),
@@ -155,10 +155,10 @@ v1.13.8 and ONNX Runtime 1.28.2 shared libraries. Supply a directory containing
 `libsherpa-onnx-c-api.so`, `libonnxruntime.so` and their required runtime dependencies:
 
 ```bash
-cmake -S audio-quality -B /tmp/quality-dpdfnet -DCMAKE_BUILD_TYPE=Release -DOPENHEARING_SHERPA_RUNTIME_DIR=/path/to/linux/lib
+cmake -S audio-quality -B /tmp/quality-dpdfnet -DCMAKE_BUILD_TYPE=Release -DEARCAST_SHERPA_RUNTIME_DIR=/path/to/linux/lib
 cmake --build /tmp/quality-dpdfnet
 LD_LIBRARY_PATH=/path/to/linux/lib ctest --test-dir /tmp/quality-dpdfnet --output-on-failure
-LD_LIBRARY_PATH=/path/to/linux/lib python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/quality-dpdfnet/audio_render --dpdfnet-models core-audio/src/main/assets/speech-models --output /tmp/dpdfnet-comparison
+LD_LIBRARY_PATH=/path/to/linux/lib python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/quality-dpdfnet/render_audio --dpdfnet-models audio-engine/src/main/assets/speech-models --output /tmp/dpdfnet-comparison
 ```
 
 These commands are deferred instructions, not commands executed during this update.
@@ -199,16 +199,16 @@ noise; changing noise and sustained speech/music may be softened. It is not a
 claim of improved intelligibility over either neural engine.
 
 Both classical engines accept 8, 16, 24, 32, 44.1 and 48 kHz without resampling.
-Each adds a measured 10 ms algorithm delay plus SpeechFrontEnd's 10 ms frame
+Each adds a measured 10 ms algorithm delay plus InputEnhancement's 10 ms frame
 adapter. Diagnostics identify the selected engine and this combined delay.
 
-The native `classical_speech_test` checks Wiener overlap reconstruction/delay,
+The native `classic_filters_test` checks Wiener overlap reconstruction/delay,
 silence and invalid samples, noise attenuation and strength ordering, retention
 of a newly arriving sinusoid after noise adaptation, and Speex delay at all six
 rates. These synthetic checks passed locally, along with the existing RNNoise
 and leveler suites. A sinusoid is not a real-speech intelligibility test.
 The evaluator includes `wiener_gentle` and `wiener_strong`, using the same native
-implementation as Android. App debug assembly (all four ABIs), core-audio/data
+implementation as Android. App debug assembly (all four ABIs), audio-engine/data
 unit tests, ktlint and detekt also passed. Headset listening remains pending.
 
 Background references: [Speex preprocessing API](https://www.speex.org/docs/manual/speex-manual/node7.html)

@@ -27,7 +27,7 @@ Phases 0,1,2,4,5 plus consumer phases A,B are **built, unit-tested**. The app is
 | Phase | State |
 |---|---|
 | 0 Scaffold (modules, CI, docs, license) | ✅ done |
-| 1 Audiogram engine (staircase, fitting) + check screen | ✅ done |
+| 1 HearingCurve engine (staircase, fitting) + check screen | ✅ done |
 | 2 Real-time assist DSP + Android engine + service | ✅ done |
 | 3 AirPods protocol | ❌ **not started** — UNVERIFIED, [docs/PROTOCOL.md](docs/PROTOCOL.md) |
 | 4 Persistence, onboarding, assist UI, accessibility | ✅ done |
@@ -61,9 +61,9 @@ recorded in [docs/PROJECT_LOG.md](docs/PROJECT_LOG.md) (Phase A entry).
   compile/target SDK 35, JDK 17.
 - **DSP is pure Kotlin** behind I/O interfaces (AAudio/AudioTrack/AudioRecord is a
   thin shell) so the safety-critical and signal logic is JVM-unit-tested.
-- **Namespace / applicationId:** `app.openhearing`.
+- **Namespace / applicationId:** `app.earcast`.
 - **Fitting = half-gain rule** for v1 (uncalibrated + no per-band yet); NAL-NL2
-  slots behind `FittingStrategy` later — see [docs/FITTING.md](docs/FITTING.md).
+  slots behind `ProfileFitting` later — see [docs/FITTING.md](docs/FITTING.md).
 - **Earbud-agnostic first.** Works fully on any headset; AirPods is a best-effort,
   clearly-`UNVERIFIED` enhancement, never a hard dependency.
 - **Assist is per-ear stereo** since Phase C: mono mic in, stereo out, one chain
@@ -72,31 +72,31 @@ recorded in [docs/PROJECT_LOG.md](docs/PROJECT_LOG.md) (Phase A entry).
 
 ## Module map (see [ARCHITECTURE.md](ARCHITECTURE.md))
 
-- `:core-common` — units (`Hertz`, `DecibelsHl/Spl/Fs`, `Ear`) + **`SafetyConstants`**
+- `:foundation` — units (`FrequencyHz`, `HearingDb/Spl/Fs`, `AudioEar`) + **`AudioLimits`**
   (single source of truth for output limits).
-- `:core-audiogram` (pure JVM) — `Audiogram`, `HughsonWestlakeStaircase`,
-  `PureToneScreening`, `GainCurve`/`FittingStrategy`/`FractionalGainRule`, `AudiogramCodec`.
-- `:core-audio` (Android lib) — `dsp/`: `Biquad`, `GainEqualizer`, `Wdrc`,
-  `FeedbackGuard`, `LookaheadLimiter`, `HearingAssistChain`; `ToneGenerator`,
-  `TonePlayer`, `AndroidAudioEngine`, `OutputLimiter`.
+- `:sound-profile` (pure JVM) — `HearingCurve`, `AdaptiveThresholdSearch`,
+  `ToneCheckProtocol`, `FrequencyGainCurve`/`ProfileFitting`/`ProportionalFit`, `HearingCurveCodec`.
+- `:audio-engine` (Android lib) — `dsp/`: `BiquadFilter`, `ProfileEqualizer`, `DynamicCompressor`,
+  `FeedbackSuppressor`, `PeakLimiter`, `MonoListeningChain`; `TestSignalGenerator`,
+  `TestSignalPlayer`, `AndroidStreamEngine`, `OutputCeiling`.
 - `:airpods-protocol` (Android lib) — `AirPodsController` interface, all `UNVERIFIED`.
-- `:data` (Android lib) — `SettingsRepository` + `ProfileRepository` (DataStore;
-  multi-profile list via internal `ProfileListCodec`, legacy keys auto-migrate).
-- `:app` — Compose UI (`OpenHearingApp` nav, onboarding gate, hearingtest/ incl.
-  `AudiogramChart`, manualentry/, assist/, settings), Hilt modules (`di/`),
-  `assist/AssistController` + `AssistSessionFactory` + `AssistService` +
-  `AssistTileService` (quick-settings tile).
+- `:local-storage` (Android lib) — `PreferenceStorage` + `ProfileStorage` (DataStore;
+  multi-profile list via internal `SavedProfilesCodec`, legacy keys auto-migrate).
+- `:app` — Compose UI (`EarCastApp` nav, onboarding gate, hearingtest/ incl.
+  `ProfileChart`, manualentry/, assist/, settings), Hilt modules (`di/`),
+  `assist/LiveAudioController` + `LiveSessionBuilder` + `LiveAudioService` +
+  `LiveAudioTile` (quick-settings tile).
 
-Data flow: screening → `Audiogram` → `FittingStrategy` → `GainCurve` →
-`HearingAssistChain` (EQ→WDRC→feedback guard→master gain→**limiter**) →
-`AndroidAudioEngine`. The limiter is ALWAYS the final stage.
+Data flow: screening → `HearingCurve` → `ProfileFitting` → `FrequencyGainCurve` →
+`MonoListeningChain` (EQ→WDRC→feedback guard→master gain→**limiter**) →
+`AndroidStreamEngine`. The limiter is ALWAYS the final stage.
 
 ## Safety invariants (treat violations as critical bugs)
 
-- Nothing reaches the device without passing an `OutputLimiter`
-  (`LookaheadLimiter` = smooth limiting + hard brick-wall backstop). Its safety
-  test suite (`LookaheadLimiterSafetyTest`) is the **Phase 2 release gate**.
-- All limits live in `SafetyConstants` (`:core-common`); never redefine them.
+- Nothing reaches the device without passing an `OutputCeiling`
+  (`PeakLimiter` = smooth limiting + hard brick-wall backstop). Its safety
+  test suite (`LookaheadLimiterSafetyRegressionTest`) is the **Phase 2 release gate**.
+- All limits live in `AudioLimits` (`:foundation`); never redefine them.
 - Tones ramp (raised-cosine, ≥ `MIN_TONE_RAMP_MS`); amplitude is clamped; master
   gain is capped; instant mute/stop is always on screen; fail **quiet**, never loud.
 

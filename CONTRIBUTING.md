@@ -49,8 +49,8 @@ Run the same checks CI runs before opening a PR; they must be green.
 Any change to an **audio output path** (the limiter, gain, tone generation,
 real-time pipeline) is safety-critical. Such PRs must:
 
-- keep/extend the `OutputLimiter` safety tests (see [docs/SAFETY.md](docs/SAFETY.md)),
-- never allow output above `SafetyConstants` limits,
+- keep/extend the `OutputCeiling` safety tests (see [docs/SAFETY.md](docs/SAFETY.md)),
+- never allow output above `AudioLimits` limits,
 - be explicitly flagged in the PR description so they get extra review.
 
 For **protocol** work, never present a guessed packet format as fact — mark it

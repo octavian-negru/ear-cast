@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">OpenHearing</string>
+    <string name="app_name">Ear Cast</string>
     <string name="tagline">Free, open-source sound amplification for any earbuds. No accounts, no ads — nothing leaves your phone.</string>
 
     <string name="disclaimer_title">Not a medical device</string>
-    <string name="disclaimer_body">OpenHearing is a sound-amplification and hearing-assistance tool. It is NOT a medical device and NOT a substitute for a professional hearing exam. It does not diagnose, treat, cure, or prevent any condition. If you have concerns about your hearing, please see an audiologist or doctor. Always keep the volume at a comfortable level and stop if you feel any discomfort.</string>
+    <string name="disclaimer_body">Ear Cast is a sound-amplification and hearing-assistance tool. It is NOT a medical device and NOT a substitute for a professional hearing exam. It does not diagnose, treat, cure, or prevent any condition. If you have concerns about your hearing, please see an audiologist or doctor. Always keep the volume at a comfortable level and stop if you feel any discomfort.</string>
 
     <string name="assist_channel_name">Hearing assist</string>
     <string name="assist_active_title">Hearing assist is on</string>
@@ -15,7 +15,7 @@
 
     <!-- Onboarding -->
     <string name="onboarding_welcome">Welcome</string>
-    <string name="onboarding_ack">Please read and acknowledge the above before using OpenHearing.</string>
+    <string name="onboarding_ack">Please read and acknowledge the above before using Ear Cast.</string>
     <string name="onboarding_agree">I understand and agree</string>
 
     <!-- Home -->
@@ -113,7 +113,7 @@
 
     <!-- Manual entry -->
     <string name="manual_title">Enter results manually</string>
-    <string name="manual_intro">If you have results from a professional hearing test, enter the threshold for each pitch (in dB HL, as printed on your report). OpenHearing builds your sound profile from them.</string>
+    <string name="manual_intro">If you have results from a professional hearing test, enter the threshold for each pitch (in dB HL, as printed on your report). Ear Cast builds your sound profile from them.</string>
     <string name="manual_save">Save profile</string>
     <string name="manual_value">%1$d dB HL</string>
     <string name="manual_chart_title">Enter your audiogram</string>
@@ -192,4 +192,40 @@
     <string name="about_body">Free software under the GNU GPL v3. No accounts, no ads, no trackers — the app never asks for internet access, so nothing you do can leave your phone.</string>
     <string name="about_source">Source code</string>
     <string name="about_privacy">Privacy policy</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_listen">Listen</string>
+    <string name="nav_profile">Sound profile</string>
+    <string name="nav_settings">Settings</string>
+    <string name="section_expanded">Expanded</string>
+    <string name="section_collapsed">Collapsed</string>
+    <string name="welcome_title">Sound, your way.</string>
+    <string name="welcome_detail">A little more clarity. A sound profile that feels like you. All on your phone.</string>
+    <string name="welcome_action">Set up Ear Cast</string>
+    <string name="home_subtitle">Make room for the sounds you love.</string>
+    <string name="listen_card_title">Bring sound closer</string>
+    <string name="listen_card_detail">Use your phone or headset microphone to listen through your headphones.</string>
+    <string name="listen_card_action">Open live listening</string>
+    <string name="profile_card_title">Start with your sound</string>
+    <string name="profile_card_detail">Create a personal sound profile to shape live listening, music and videos.</string>
+    <string name="profile_card_action">Create sound profile</string>
+    <string name="profile_subtitle">A personal starting point for how you listen.</string>
+    <string name="profile_editor_title">Draw your sound profile</string>
+    <string name="profile_editor_detail">Enter the values from your audiogram directly on the chart. Set each ear separately.</string>
+    <string name="profile_editor_action">Open audiogram</string>
+    <string name="profile_check_title">Find your starting point</string>
+    <string name="profile_check_detail">Listen to a few tones and answer at your own pace. The result is a rough estimate, not a medical test.</string>
+    <string name="profile_check_action">Try the tone check</string>
+    <string name="profile_ready">Your saved profile is ready to use.</string>
+    <string name="notice_summary">Personal audio, not medical care</string>
+    <string name="comfort_summary">Keep listening comfortable</string>
+    <string name="estimate_summary">About these estimates</string>
+    <string name="recording_section">Record &amp; compare sound</string>
+    <string name="preview_section">Try your sound profile</string>
+    <string name="details_section">Detailed results</string>
+    <string name="privacy_title">Privacy &amp; credits</string>
+    <string name="privacy_body">Ear Cast processes sound on your device. There are no accounts or ads. Diagnostic recording is optional, stays on your device, and is shared only when you choose Export.</string>
+    <string name="credits_body">Ear Cast is based on OpenHearing, licensed under GPL v3. It includes RNNoise, SpeexDSP, DPDFNet8 and sherpa-onnx. Original copyright and third-party license notices are retained with the source.</string>
+    <string name="listen_subtitle">Your microphone. Your headphones. Your sound.</string>
+    <string name="settings_subtitle">Small adjustments. More comfortable listening.</string>
+    <string name="manual_subtitle">Choose an ear and place its points on the chart.</string>
 </resources>

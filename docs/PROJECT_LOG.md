@@ -18,7 +18,7 @@ sound-amplification tool, **not a medical device** (no "diagnose/treat/medical")
   Gradle KTS + version catalog · JUnit5/Turbine/Robolectric · ktlint + detekt.
   minSdk 26, compile/target SDK 35, JDK 17.
 - **DSP = pure Kotlin** behind I/O interfaces, so safety/signal logic is JVM-tested.
-- **Namespace** `app.openhearing`.
+- **Namespace** `app.earcast`.
 - **Earbud-agnostic first**; AirPods is an `UNVERIFIED` enhancement, never required.
 - **Fitting = half-gain rule** for v1 (NAL-NL2 deferred until calibration + WDRC);
   see [FITTING.md](FITTING.md).
@@ -35,36 +35,36 @@ Maintainer's machine disk is near-full; freed regenerable `~/.gradle/caches`.
 ## Phase-by-phase
 
 ### Phase 0 — Scaffold ✅
-Six-module Gradle project (`:app`, `:core-common`, `:core-audiogram`, `:core-audio`,
-`:airpods-protocol`, `:data`), version catalog, wrapper, ktlint/detekt, GitHub
+Six-module Gradle project (`:app`, `:foundation`, `:sound-profile`, `:audio-engine`,
+`:airpods-protocol`, `:local-storage`), version catalog, wrapper, ktlint/detekt, GitHub
 Actions CI (build + test + lint), full docs set, GPLv3 LICENSE, issue/PR templates.
-Safety seeded day one: `SafetyConstants` + tested `HardCeilingLimiter`. Disclaimer
+Safety seeded day one: `AudioLimits` + tested `SampleCeiling`. Disclaimer
 UI. Pushed; repo configured (description + topics).
 
-### Phase 1 — Audiogram engine ✅
-`HughsonWestlakeStaircase` (down-10/up-5, 2-of-3 ascending criterion),
-`PureToneScreening` (both ears × 6 frequencies), `Audiogram` model, half-gain
-`FittingStrategy`/`GainCurve`. `ToneGenerator` (raised-cosine ramps, amplitude
-clamp), `ToneLevel` (uncalibrated mapping), `TonePlayer` (AudioTrack + limiter).
-Debug screen (`HearingTestViewModel`/`HearingTestScreen`) runs on phone speaker /
+### Phase 1 — HearingCurve engine ✅
+`AdaptiveThresholdSearch` (down-10/up-5, 2-of-3 ascending criterion),
+`ToneCheckProtocol` (both ears × 6 frequencies), `HearingCurve` model, half-gain
+`ProfileFitting`/`FrequencyGainCurve`. `TestSignalGenerator` (raised-cosine ramps, amplitude
+clamp), `TestSignalLevel` (uncalibrated mapping), `TestSignalPlayer` (AudioTrack + limiter).
+Debug screen (`ToneCheckStateModel`/`ToneCheckScreen`) runs on phone speaker /
 any headset. Simulated-listener tests prove staircase convergence. docs/FITTING.md
 + docs/DEVICE_TESTING.md.
 
 ### Phase 2 — Real-time assist ✅
-Pure-Kotlin `dsp/`: `Biquad` peaking EQ → `GainEqualizer`, `Wdrc` broadband
-compression, `FeedbackGuard` (autocorrelation-based howl detect + duck),
-`LookaheadLimiter` (smooth limiting + hard brick-wall backstop), composed in
-`HearingAssistChain`. **Limiter safety suite** (steady overload, transients,
+Pure-Kotlin `dsp/`: `BiquadFilter` peaking EQ → `ProfileEqualizer`, `DynamicCompressor` broadband
+compression, `FeedbackSuppressor` (autocorrelation-based howl detect + duck),
+`PeakLimiter` (smooth limiting + hard brick-wall backstop), composed in
+`MonoListeningChain`. **Limiter safety suite** (steady overload, transients,
 sustained full-scale, runaway ramp, garbage, NaN/∞) = the release gate.
-`AndroidAudioEngine` (AudioRecord→process→AudioTrack, urgent-audio thread),
-`AssistController` + foreground-microphone `AssistService`, RECORD_AUDIO/foreground
+`AndroidStreamEngine` (AudioRecord→process→AudioTrack, urgent-audio thread),
+`LiveAudioController` + foreground-microphone `LiveAudioService`, RECORD_AUDIO/foreground
 permissions. **Not yet run on a device.**
 
 ### Phase 4 — Usable app ✅
-DataStore `SettingsRepository` (consent, high-contrast, comfort ceiling) +
-`ProfileRepository` (single active profile); `AudiogramCodec` (compact, tested).
+DataStore `PreferenceStorage` (consent, high-contrast, comfort ceiling) +
+`ProfileStorage` (single active profile); `HearingCurveCodec` (compact, tested).
 Consent/onboarding gate; the screening saves its result as the active profile.
-`AssistViewModel`/`AssistScreen` (mic-permission flow, amplification slider,
+`ListenStateModel`/`ListenScreen` (mic-permission flow, amplification slider,
 instant stop) builds a mono gain curve from the saved profile. Settings + high-
 contrast theme + accessibility (large targets, semantics, scalable type).
 
@@ -104,39 +104,39 @@ before consumer release.
 ### Phase B — User-demanded features ✅ (2026-07-03)
 Driven by the demand research (top asks: live control, professional-audiogram
 import, profiles, latency trust):
-- **Live master gain**: volatile per-block parameter in `HearingAssistChain`,
-  adjustable while running; clamped to `SafetyConstants`, limiter downstream;
+- **Live master gain**: volatile per-block parameter in `MonoListeningChain`,
+  adjustable while running; clamped to `AudioLimits`, limiter downstream;
   +2 chain safety tests.
-- **Manual audiogram entry** (`ManualEntryScreen`/`ViewModel`): thresholds from
+- **Manual audiogram entry** (`ProfileEditorScreen`/`ViewModel`): thresholds from
   a professional test (per ear/pitch, 5 dB steps) saved as a profile — bypasses
   the uncalibrated on-device check.
 - **Multi-profile persistence**: encoded profile list + active id in DataStore
-  (`ProfileListCodec`, internal, tested); every check/manual entry saves a new
+  (`SavedProfilesCodec`, internal, tested); every check/manual entry saves a new
   dated profile (= history); legacy single-profile keys migrate on read;
   switcher + delete UI on the assist screen; +5 repository tests.
 - **Safety stops**: `ACTION_AUDIO_BECOMING_NOISY` receiver stops assist on
   headset disconnect (never falls back to the speaker); starting with no
   headphones shows a feedback warning and requires "Start anyway".
-- **Quick-settings tile** (`AssistTileService`): toggle assist from the shade;
+- **Quick-settings tile** (`LiveAudioTile`): toggle assist from the shade;
   opens the app if permission/profile is missing.
 All flows verified on the emulator (including tile toggle and live slider while
 running). 76 JVM tests green.
 
 ### Phase C — Differentiators ✅ (2026-07-03)
-- **Per-ear stereo assist** (`StereoAssistChain`): mono mic duplicated to
-  interleaved stereo, one full `HearingAssistChain` per channel with its own
+- **Per-ear stereo assist** (`StereoListeningChain`): mono mic duplicated to
+  interleaved stereo, one full `MonoListeningChain` per channel with its own
   fitted curve and limiter — asymmetric hearing gets per-side correction (the
-  old mono path averaged both ears). `AndroidAudioEngine` gained a
+  old mono path averaged both ears). `AndroidStreamEngine` gained a
   mono-capture/stereo-output mode. Needs real-earbud confirmation (gate 1).
-- **Environment presets** (`AssistPreset`: standard/conversation/outdoors):
+- **Environment presets** (`ListeningPreset`: standard/conversation/outdoors):
   conversation adds +4 dB in the 1–4 kHz speech band on top of the fitted
-  curves; outdoors adds a 150 Hz low-cut (new `Biquad.highPass`). Persisted;
+  curves; outdoors adds a 150 Hz low-cut (new `BiquadFilter.highPass`). Persisted;
   segmented-button selector on the assist screen; applies on next start.
-- **Experimental media EQ** (`MediaEqController` + pure `MediaEqPlanner`):
+- **Experimental media EQ** (`MediaSoundController` + pure `MediaCurvePlanner`):
   per-ear curves applied to other apps' audio via `DynamicsProcessing` on the
   global mix (API 28+, deprecated platform behavior → explicitly experimental,
   graceful "not supported" fallback, toggle snaps back off on failure). Boosts
-  capped at `SafetyConstants.MEDIA_EQ_MAX_BAND_GAIN_DB` (12 dB), never cuts,
+  capped at `AudioLimits.MEDIA_EQ_MAX_BAND_GAIN_DB` (12 dB), never cuts,
   effect-limiter always on. New normal permission: MODIFY_AUDIO_SETTINGS.
   Settings-screen toggle; effect lives only while the process does.
 All emulator-verified (stereo session ran with conversation preset; media EQ
@@ -146,25 +146,25 @@ toggle attach succeeded). 88 JVM tests green.
 First of the "viral" phases (D–H planned: share card, A/B profile demo, remote
 mic, loudness meter, digits-in-noise). A "Share results" button on the completed
 check screen opens a preview-then-share dialog: the visible card (app name, date,
-`AudiogramChart`, "not a diagnosis" disclaimer, repo footer) is recorded via
+`ProfileChart`, "not a diagnosis" disclaimer, repo footer) is recorded via
 Compose 1.7 `rememberGraphicsLayer()`/`toImageBitmap()`, written as PNG to
 `cacheDir/shared/results.png`, and handed to the system share sheet through a new
 `FileProvider` (one-time URI grant; still no INTERNET permission). The card is
 pinned to the light theme inside a `Surface` so exports look identical from
-dark-mode/high-contrast sessions (`AudiogramChart` gained an optional `darkTheme`
+dark-mode/high-contrast sessions (`ProfileChart` gained an optional `darkTheme`
 param, default unchanged). Emulator-verified in dark mode: preview correct,
 chooser opens, no crashes.
 
 ### Phases E–H — Viral features ✅ code-complete (2026-07-09)
 - **E · "Hear the difference" A/B demo**: synthesized speech-like clip (pure
-  `DemoClipGenerator`, license-clean, deterministic, HF "consonant" bursts where
-  profiles boost most) rendered offline through the real `StereoAssistChain`
-  (`DemoRenderer`), streamed by a new stereo `AbPlayer` with a **mid-playback
-  raw/processed crossfade toggle** (pure `AbBufferSource`, JVM-tested). Card on
+  `PreviewSignalGenerator`, license-clean, deterministic, HF "consonant" bursts where
+  profiles boost most) rendered offline through the real `StereoListeningChain`
+  (`PreviewRenderer`), streamed by a new stereo `PreviewPlayer` with a **mid-playback
+  raw/processed crossfade toggle** (pure `PreviewBufferSource`, JVM-tested). Card on
   the results + assist screens; disabled while the mic loop runs.
 - **F · Remote microphone mode** (Live Listen for any earbuds): new home
   destination reusing the assist pipeline with an `AssistMode` — raw mic tuning
-  (`UNPROCESSED`→`VOICE_RECOGNITION` fallback via new `InputTuning`), 20 ms
+  (`UNPROCESSED`→`VOICE_RECOGNITION` fallback via new `CaptureTuning`), 20 ms
   blocks, wake lock for screen-off, per-mode notification. **Headphones are a
   hard requirement (no "Start anyway")** because the feedback guard is bypassed
   in this mode (documented in SAFETY.md; limiter untouched). Works without a
@@ -173,16 +173,16 @@ chooser opens, no crashes.
   guard had been inert inside the live chain — activation is now calibrated to
   post-WDRC levels (0.03) with a chain-level regression test.
 - **G · Listening meter** (Headphone-Safety-inspired): lock-free post-limiter
-  level tap (`OutputLevelMeter` + `MeteredAudioProcessor` wrapper — chain
-  untouched), pure `ExposureTracker` (energy-based relative units, 3 dB exchange
-  rate, explicitly NOT dB SPL), 1 s sampling loop in `AssistService`, daily
+  level tap (`SignalMeter` + `MeteredTransform` wrapper — chain
+  untouched), pure `ListeningTracker` (energy-based relative units, 3 dB exchange
+  rate, explicitly NOT dB SPL), 1 s sampling loop in `LiveAudioService`, daily
   rollover persisted in DataStore, card on the assist screen with a gentle
   ≥80% note.
-- **H · Digits-in-noise check**: complete Smits-style engine (`DinStaircase` +
-  `DigitsInNoiseScreening`, 9-digit alphabet excluding "7", simulated-listener
-  convergence test ±1.5 dB), `SpeechNoiseMixer` (noise-anchored, exact SNR,
-  ramped, clamped) and a pure `WavCodec`, plus the full keypad UI
-  (`DinTestScreen`). **Gated off the home screen until the maintainer records
+- **H · Digits-in-noise check**: complete Smits-style engine (`SnrSearch` +
+  `SpeechProtocol`, 9-digit alphabet excluding "7", simulated-listener
+  convergence test ±1.5 dB), `SpeechMixture` (noise-anchored, exact SNR,
+  ramped, clamped) and a pure `WaveFileCodec`, plus the full keypad UI
+  (`SpeechCheckScreen`). **Gated off the home screen until the maintainer records
   the CC0 digit corpus** — procedure, naming, and caveats in docs/DIN.md. TTS
   was rejected (device-dependent voices make results non-comparable).
 Full check green after each phase; release build verified on the emulator

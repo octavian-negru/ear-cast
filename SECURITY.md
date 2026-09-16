@@ -15,7 +15,7 @@ steps to reproduce.
 ## Scope — hearing safety is a security concern
 
 We treat any defect that can exceed the output-loudness limits in
-`SafetyConstants` (see [docs/SAFETY.md](docs/SAFETY.md)) as a **critical** issue,
+`AudioLimits` (see [docs/SAFETY.md](docs/SAFETY.md)) as a **critical** issue,
 on par with a traditional security vulnerability. These get priority handling.
 
 ## Supported versions

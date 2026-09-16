@@ -19,7 +19,7 @@ release (R8-minified) APK**:
 - **No crashes** (process stayed alive through start and stop); UI reached the
   running state ("Stop assist" shown).
 - **Foreground microphone service started cleanly** (`Background started FGS:
-  Allowed … AssistService … targetSdkVersion:35`).
+  Allowed … LiveAudioService … targetSdkVersion:35`).
 - Audio path engaged: `AudioFlinger … thread ready to run` + active mixing for the
   duration. **No `AudioRecord`/`AudioTrack` errors** — mic capture
   (`VOICE_COMMUNICATION`, mono, PCM-float) and playback both initialized.
@@ -75,7 +75,7 @@ speaker or any headset, and sanity-check the audiogram + half-gain output.
    through both ears across 6 frequencies (12 points).
 5. Mid-test, press **Stop / mute now** — audio must cut **immediately**.
 6. Complete the screening. Verify the results screen shows:
-   - an **Audiogram** table (estimated dB HL) per ear, per frequency;
+   - an **HearingCurve** table (estimated dB HL) per ear, per frequency;
    - a **Prescribed gain (half-gain rule)** table per ear (≈ half the dB HL,
      capped, ≥ 0);
    - the uncalibrated/​see-an-audiologist caveat.
@@ -122,7 +122,7 @@ remaining open questions are hardware questions:
 1. **Phone microphone tuning per OEM** — with the phone next to a TV, compare
    intelligibility against headset-microphone input; verify the platform input
    processing remains intelligible (steady music should not pump or get "eaten").
-2. **Screen off, 60 min** — start Hearing Assist with Phone microphone, lock the phone, leave it near the
+2. **AppDestination off, 60 min** — start Hearing Assist with Phone microphone, lock the phone, leave it near the
    TV for an hour (ideally on an aggressive-battery-manager OEM). The stream
    must not stop or glitch; check battery drain.
 3. **Bluetooth disconnect mid-session** — take the earbuds out of range / pod

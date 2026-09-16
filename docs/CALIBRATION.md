@@ -15,11 +15,11 @@ honest about what that means and how we stay safe anyway.
 
 1. **Digital ceiling + limiter.** The hearing-assist chain always ends in the
    look-ahead limiter, which guarantees no output sample exceeds a configured
-   linear ceiling (`HearingAssistChain.DEFAULT_CEILING_LINEAR`, lowered by the
+   linear ceiling (`MonoListeningChain.DEFAULT_CEILING_LINEAR`, lowered by the
    user's comfort setting). This guarantee is unit-tested and does not depend on
    any calibration being correct.
 2. **Conservative defaults.** Until the user calibrates, the comfort ceiling
-   defaults low (`DataStoreSettingsRepository` default `0.5`), so the app errs
+   defaults low (`PreferencesStore` default `0.5`), so the app errs
    quiet.
 
 ## Comfort calibration (what the app offers today)
@@ -27,7 +27,7 @@ honest about what that means and how we stay safe anyway.
 In **Settings → Comfort calibration**, the user previews a 1 kHz tone at the
 candidate maximum and adjusts a slider until that maximum is comfortably loud —
 never painful. That value becomes the assist-mode output ceiling
-(`SettingsRepository.observeComfortCeiling`).
+(`PreferenceStorage.observeComfortCeiling`).
 
 This is a **subjective, relative** calibration: it pins the loudest the app will
 ever get to a level the user has personally confirmed is comfortable. It is not a

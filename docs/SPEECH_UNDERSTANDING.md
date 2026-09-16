@@ -50,8 +50,8 @@ implements an explicit aligned mix. The pinned model's Mask contributes two
 delay hops, its deep-filter centre another two, and analysis/synthesis one:
 50 ms before resampling and the extra 10 ms Kotlin adapter. This is source-derived
 delay, not measured acoustic latency. Offline replay flushes this entire tail.
-See [runtime provenance](../core-audio/src/main/cpp/vendor/sherpa-onnx/README.md)
-and [model provenance](../core-audio/src/main/assets/speech-models/README.md).
+See [runtime provenance](../audio-engine/src/main/cpp/vendor/sherpa-onnx/README.md)
+and [model provenance](../audio-engine/src/main/assets/speech-models/README.md).
 
 The model does not expose speech confidence through this API. Quiet Speech Boost
 is therefore explicitly unavailable with DPDFNet8; fitted amplification and the

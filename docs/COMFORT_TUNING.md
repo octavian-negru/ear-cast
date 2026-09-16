@@ -38,8 +38,8 @@ Regression coverage checks EQ response and clarity contrast at 8, 16, 24, 32,
 continuity, stereo processing, feedback protection and the final output ceiling.
 Synthetic response checks do not establish improved word recognition.
 
-Validation completed on this workspace: `:core-audio:testDebugUnitTest`,
-`:data:testDebugUnitTest`, `:core-common:test`, `ktlintCheck` and `detekt` for
+Validation completed on this workspace: `:audio-engine:testDebugUnitTest`,
+`:local-storage:testDebugUnitTest`, `:foundation:test`, `ktlintCheck` and `detekt` for
 the changed modules, and `:app:assembleDebug`, all using the installed offline
 toolchain. The APK is `app/build/outputs/apk/debug/app-debug.apk`. Device listening
 and real-speech intelligibility comparisons have not been performed.

@@ -20,11 +20,10 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "OpenHearing"
+rootProject.name = "EarCast"
 
 include(":app")
-include(":core-common")
-include(":core-audiogram")
-include(":core-audio")
-include(":airpods-protocol")
-include(":data")
+include(":foundation")
+include(":sound-profile")
+include(":audio-engine")
+include(":local-storage")

@@ -4,15 +4,15 @@ OpenHearing plays calibrated tones (the screening) and amplifies live sound (the
 assist mode) **directly into people's ears**. Hearing safety is non-negotiable.
 Any code path that could exceed these limits is treated as a **critical bug**.
 
-This document is the policy; `app.openhearing.common.SafetyConstants` in
-`:core-common` is the machine-enforced source of truth. Code must reference those
+This document is the policy; `app.earcast.common.AudioLimits` in
+`:foundation` is the machine-enforced source of truth. Code must reference those
 constants, never redefine its own limits.
 
 ## Hard rules
 
 1. **Hard output ceiling.** No audio the app produces may exceed
-   `SafetyConstants.MAX_OUTPUT_SPL_DB`. The final stage of every processing chain
-   MUST be an `OutputLimiter` (`:core-audio`) enforcing this. There is no path to
+   `AudioLimits.MAX_OUTPUT_SPL_DB`. The final stage of every processing chain
+   MUST be an `OutputCeiling` (`:audio-engine`) enforcing this. There is no path to
    the audio device that bypasses the limiter.
 2. **Quieter ceiling for test tones.** Screening tones are capped lower
    (`MAX_TONE_SPL_DB`) — they never need to be as loud as assist mode, and many
@@ -25,7 +25,7 @@ constants, never redefine its own limits.
    mute, reachable on every screen where audio can play.
 5. **Feedback / howl guard.** Assist mode must detect and suppress acoustic
    feedback before it becomes loud (Phase 2). The guard's activation threshold is
-   calibrated to post-WDRC levels inside the chain (see `HearingAssistChain`).
+   calibrated to post-WDRC levels inside the chain (see `MonoListeningChain`).
    The phone microphone can also be used for remote listening, but it is still
    Hearing Assist: the feedback guard remains enabled and the output limiter is
    still the final stage.
@@ -42,7 +42,7 @@ headroom and keep generous margin.
 
 ## Testing policy (release gate)
 
-- The `OutputLimiter` ships with an explicit safety test suite. Phase 0 pins the
+- The `OutputCeiling` ships with an explicit safety test suite. Phase 0 pins the
   core invariant (*nothing exceeds the ceiling*, including extreme/garbage input).
 - **Phase 2 gate:** before any real-time amplification reaches users, the limiter
   must have tests covering: steady overload, sudden transients, sustained
