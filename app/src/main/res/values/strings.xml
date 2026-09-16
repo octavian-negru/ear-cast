@@ -116,7 +116,11 @@
     <string name="manual_intro">If you have results from a professional hearing test, enter the threshold for each pitch (in dB HL, as printed on your report). OpenHearing builds your sound profile from them.</string>
     <string name="manual_save">Save profile</string>
     <string name="manual_value">%1$d dB HL</string>
-    <string name="manual_slider">%1$s ear, %2$d hertz threshold</string>
+    <string name="manual_chart_title">Enter your audiogram</string>
+    <string name="manual_chart_hint">Choose an ear, then tap the diagram at each frequency and hearing level. Points snap to 5 dB steps. Larger dB values appear lower on the chart.</string>
+    <string name="manual_chart_description">Editable audiogram for %1$s. Tap a frequency and hearing level to set a threshold in 5 dB steps.</string>
+    <string name="manual_level_axis">Hearing threshold (dB HL)</string>
+    <string name="manual_frequency_axis">Frequency (Hz)</string>
     <string name="check_manual_entry">Enter results manually</string>
 
     <!-- Share results -->

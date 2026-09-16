@@ -3,6 +3,7 @@
 package app.openhearing.ui.hearingtest
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import app.openhearing.R
 import app.openhearing.audiogram.Audiogram
 import app.openhearing.common.Ear
+import kotlin.math.abs
 import kotlin.math.log2
 
 // Audiology convention: right ear = red circles, left ear = blue crosses. The
@@ -57,14 +60,16 @@ private data class EarSeries(
 /**
  * Audiogram-style plot of the hearing-check result: pitch (log-spaced) on the
  * x-axis, estimated threshold in dB HL on the inverted y-axis, one series per
- * ear. Purely visual — the detailed table remains the accessible data source
- * (the canvas carries a short content description pointing there).
+ * ear. Optional point entry is used by manual setup. The hearing-check results
+ * screen also provides a detailed table below its read-only chart.
  */
 @Composable
 fun AudiogramChart(
     audiogram: Audiogram,
     modifier: Modifier = Modifier,
     darkTheme: Boolean = isSystemInDarkTheme(),
+    description: String = stringResource(R.string.check_chart_description),
+    onPointChange: ((Double, Double) -> Unit)? = null,
 ) {
     val dark = darkTheme
     val rightColor = if (dark) RightDark else RightLight
@@ -73,7 +78,6 @@ fun AudiogramChart(
     val labelStyle =
         MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
     val textMeasurer = rememberTextMeasurer()
-    val chartDescription = stringResource(R.string.check_chart_description)
 
     val frequencies =
         (audiogram.frequenciesFor(Ear.RIGHT) + audiogram.frequenciesFor(Ear.LEFT))
@@ -93,10 +97,32 @@ fun AudiogramChart(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(240.dp)
-                    .semantics { contentDescription = chartDescription },
+                    .height(if (onPointChange == null) 240.dp else 320.dp)
+                    .then(
+                        if (onPointChange == null) {
+                            Modifier
+                        } else {
+                            Modifier.pointerInput(frequencies, onPointChange) {
+                                detectTapGestures { point ->
+                                    val left = 32.dp.toPx()
+                                    val right = size.width - 12.dp.toPx()
+                                    val top = 8.dp.toPx()
+                                    val bottom = size.height - 20.dp.toPx()
+                                    if (point.x in left..right && point.y in top..bottom) {
+                                        val fraction = (point.x - left) / (right - left)
+                                        val logFrequency =
+                                            log2(frequencies.first()) +
+                                                fraction * (log2(frequencies.last()) - log2(frequencies.first()))
+                                        val frequency = frequencies.minBy { abs(log2(it) - logFrequency) }
+                                        val level = DB_MIN + (point.y - top) / (bottom - top) * (DB_MAX - DB_MIN)
+                                        onPointChange(frequency, level)
+                                    }
+                                }
+                            }
+                        },
+                    ).semantics { contentDescription = description },
         ) {
-            drawChart(series, frequencies, gridColor, textMeasurer, labelStyle)
+            drawChart(series, frequencies, gridColor, textMeasurer, labelStyle, editable = onPointChange != null)
         }
         Legend(rightColor = rightColor, leftColor = leftColor)
     }
@@ -108,6 +134,7 @@ private fun DrawScope.drawChart(
     gridColor: Color,
     textMeasurer: TextMeasurer,
     labelStyle: TextStyle,
+    editable: Boolean,
 ) {
     val left = 32.dp.toPx()
     val right = size.width - 12.dp.toPx()
@@ -121,13 +148,15 @@ private fun DrawScope.drawChart(
     fun yOf(dbHl: Double): Float = top + ((dbHl - DB_MIN) / (DB_MAX - DB_MIN)).toFloat() * (bottom - top)
 
     // Recessive grid with dB labels down the left and pitch labels along the bottom.
-    var db = 0
-    while (db <= DB_MAX - DB_GRID_STEP / 2) {
+    val gridStep = if (editable) 10 else DB_GRID_STEP
+    var db = if (editable) DB_MIN.toInt() else 0
+    val lastGrid = if (editable) DB_MAX else DB_MAX - DB_GRID_STEP / 2
+    while (db <= lastGrid) {
         val y = yOf(db.toDouble())
         drawLine(gridColor, Offset(left, y), Offset(right, y), strokeWidth = 1f)
         val label = textMeasurer.measure(db.toString(), labelStyle)
         drawText(label, topLeft = Offset(left - label.size.width - 6.dp.toPx(), y - label.size.height / 2f))
-        db += DB_GRID_STEP
+        db += gridStep
     }
     frequencies.forEach { freq ->
         val x = xOf(freq)
