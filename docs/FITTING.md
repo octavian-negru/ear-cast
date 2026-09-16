@@ -1,10 +1,10 @@
 # Fitting: turning an audiogram into a gain curve
 
-This documents how OpenHearing maps a measured audiogram to prescribed
+This documents how EarCast maps a measured audiogram to prescribed
 amplification, and **why** we chose the formula we did. It is intentionally
 honest about the limits.
 
-> Reminder: OpenHearing is a hearing-**assistance** tool, not a medical device or
+> Reminder: EarCast is a hearing-**assistance** tool, not a medical device or
 > a certified hearing aid. The fitting here is a reasonable, conservative starting
 > point — not a clinical prescription. See docs/SAFETY.md and the in-app
 > disclaimers.
@@ -28,7 +28,7 @@ We start here, deliberately, instead of a modern prescriptive target like
 
 The decisive factor is **calibration**. NAL-NL2's benefits depend on knowing the
 real output level in dB SPL at the eardrum and on pairing the prescription with
-wide-dynamic-range compression (WDRC). OpenHearing does not yet have per-device /
+wide-dynamic-range compression (WDRC). EarCast does not yet have per-device /
 per-earbud calibration or WDRC (both are Phase 2). Prescribing a sophisticated
 non-linear target on top of an **uncalibrated** chain would be false precision —
 and potentially unsafe. The half-gain rule is the honest, safe baseline.

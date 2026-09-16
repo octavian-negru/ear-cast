@@ -39,7 +39,7 @@ known, until we reproduce it.
 - ❓ How much differs between **AirPods Pro 2** and **Pro 3**, and across firmware.
 
 **Working assumption for the app:** we may not be able to drive Apple's on-device
-hearing-aid DSP from Android at all. OpenHearing therefore does its own
+hearing-aid DSP from Android at all. EarCast therefore does its own
 amplification (`:audio-engine`) and treats AirPods control as a best-effort bonus.
 
 ## How to capture BLE / HCI logs (for the maintainer with hardware)

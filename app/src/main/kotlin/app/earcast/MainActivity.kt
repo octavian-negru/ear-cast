@@ -8,7 +8,7 @@ import app.earcast.ui.EarCastApp
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class CastActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

@@ -3,11 +3,16 @@
 package app.earcast.ui.manualentry
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -30,13 +35,26 @@ import app.earcast.common.HearingDb
 import app.earcast.ui.hearingtest.ProfileChart
 import kotlin.math.roundToInt
 
+private data class TonePreviewData(
+    val ear: AudioEar,
+    val frequencies: List<Double>,
+    val selectedFrequency: Double,
+    val selectedLevel: Int,
+    val previewState: TonePreviewState,
+)
+
 /** UI-only editing of the same per-ear thresholds used by manual profile saving. */
 @Composable
 internal fun ProfilePlotEditor(
     levels: Map<AudioEar, Map<Double, Int>>,
+    frequencies: List<Double>,
+    previewState: TonePreviewState,
     onChange: (AudioEar, Double, Int) -> Unit,
+    onPreview: (AudioEar, Double) -> Unit,
+    onStopPreview: () -> Unit,
 ) {
     var selectedEar by rememberSaveable { mutableStateOf(AudioEar.RIGHT) }
+    var selectedFrequency by rememberSaveable { mutableStateOf(frequencies.firstOrNull() ?: 1000.0) }
     val audiogram =
         remember(levels) {
             HearingCurve(
@@ -66,12 +84,77 @@ internal fun ProfilePlotEditor(
                 audiogram = audiogram,
                 description = stringResource(R.string.manual_chart_description, earLabel(selectedEar)),
                 onPointChange = { frequency, level ->
+                    selectedFrequency = frequency
                     val step = ProfileEditorModel.LEVEL_STEP_DB
                     onChange(selectedEar, frequency, (level / step).roundToInt() * step)
                 },
             )
             Text(stringResource(R.string.manual_frequency_axis), style = MaterialTheme.typography.labelMedium)
+            TonePreviewControl(
+                preview =
+                    TonePreviewData(
+                        ear = selectedEar,
+                        frequencies = frequencies,
+                        selectedFrequency = selectedFrequency,
+                        selectedLevel = levels.getValue(selectedEar).getValue(selectedFrequency),
+                        previewState = previewState,
+                    ),
+                onFrequencyChange = { selectedFrequency = it },
+                onPreview = onPreview,
+                onStopPreview = onStopPreview,
+            )
         }
+    }
+}
+
+@Composable
+private fun TonePreviewControl(
+    preview: TonePreviewData,
+    onFrequencyChange: (Double) -> Unit,
+    onPreview: (AudioEar, Double) -> Unit,
+    onStopPreview: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 12.dp)) {
+        Text(stringResource(R.string.manual_preview_title), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.manual_preview_description), style = MaterialTheme.typography.bodySmall)
+        Box(Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.manual_preview_frequency, preview.selectedFrequency.toInt()))
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                preview.frequencies.forEach { frequency ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.manual_preview_frequency, frequency.toInt())) },
+                        onClick = {
+                            onFrequencyChange(frequency)
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
+        Text(
+            stringResource(R.string.manual_preview_level, preview.selectedLevel),
+            style = MaterialTheme.typography.labelMedium,
+        )
+        if (preview.previewState.isPlaying) {
+            Button(onClick = onStopPreview, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.manual_preview_stop))
+            }
+        } else {
+            Button(
+                onClick = { onPreview(preview.ear, preview.selectedFrequency) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.manual_preview_play))
+            }
+        }
+        Text(
+            stringResource(R.string.manual_preview_safety),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

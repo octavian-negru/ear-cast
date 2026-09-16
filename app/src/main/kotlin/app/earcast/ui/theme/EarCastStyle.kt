@@ -62,7 +62,7 @@ private val EarCastTypography =
     Typography().let { base ->
         base.copy(
             headlineLarge = base.headlineLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold),
-            headlineMedium = base.headlineMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+            headlineMedium = base.headlineMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.sp),
             headlineSmall = base.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
             titleLarge = base.titleLarge.copy(fontWeight = FontWeight.SemiBold),
             titleMedium = base.titleMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -71,7 +71,7 @@ private val EarCastTypography =
         )
     }
 
-/** Ear Cast uses system font scaling, paired light/dark palettes and optional extra contrast. */
+/** EarCast uses system font scaling, paired light/dark palettes and optional extra contrast. */
 @Composable
 fun EarCastTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -101,9 +101,9 @@ fun EarCastTheme(
         typography = EarCastTypography,
         shapes =
             Shapes(
-                small = RoundedCornerShape(12.dp),
-                medium = RoundedCornerShape(20.dp),
-                large = RoundedCornerShape(28.dp),
+                small = RoundedCornerShape(4.dp),
+                medium = RoundedCornerShape(8.dp),
+                large = RoundedCornerShape(12.dp),
             ),
         content = content,
     )

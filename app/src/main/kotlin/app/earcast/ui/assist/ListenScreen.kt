@@ -54,6 +54,7 @@ import app.earcast.core.audio.InputSource
 import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.dsp.ListeningPreset
 import app.earcast.data.SoundProfile
+import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.headphonesConnected
 import app.earcast.ui.demo.SoundPreviewCard
 import kotlinx.coroutines.launch
@@ -400,14 +401,9 @@ private fun SpeakerWarning() {
 
 @Composable
 private fun SafetyNote() {
-    Card(
+    CollapsibleNotice(
+        title = stringResource(R.string.notice_summary),
+        body = stringResource(R.string.assist_safety_note),
         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-    ) {
-        Text(
-            stringResource(R.string.assist_safety_note),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(12.dp),
-        )
-    }
+    )
 }

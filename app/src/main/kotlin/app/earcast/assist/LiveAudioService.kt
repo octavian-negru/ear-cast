@@ -16,7 +16,7 @@ import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
-import app.earcast.CastActivity
+import app.earcast.MainActivity
 import app.earcast.R
 import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.dsp.ListeningTracker
@@ -177,7 +177,7 @@ class LiveAudioService : Service() {
             PendingIntent.getActivity(
                 this,
                 0,
-                Intent(this, CastActivity::class.java),
+                Intent(this, MainActivity::class.java),
                 PendingIntent.FLAG_IMMUTABLE,
             )
         val stopIntent =

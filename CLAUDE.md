@@ -1,4 +1,4 @@
-# CLAUDE.md — OpenHearing project context
+# CLAUDE.md — EarCast project context
 
 > This file is auto-loaded each session. It is the end-to-end orientation for
 > anyone (human or AI) picking up this repo. Full chronological history is in
@@ -6,7 +6,7 @@
 
 ## What this is
 
-**OpenHearing** — a free, open-source Android app bringing AirPods Pro 2/3-style
+**EarCast** — a private Android app bringing AirPods Pro 2/3-style
 hearing assistance to Android: (1) a pure-tone hearing **screening** → audiogram,
 (2) turn it into an amplification/EQ **profile**, (3) **assist** mode amplifies
 quiet sound (speech) in real time on any earbuds.
@@ -16,8 +16,7 @@ tool, NOT a medical device*. Never use "diagnose / treat / medical" in user-faci
 copy. Every health surface carries the disclaimer (README, onboarding, before any
 test). Hearing safety is non-negotiable — see [docs/SAFETY.md](docs/SAFETY.md).
 
-- **Repo:** https://github.com/HMAKT99/OpenHearing (owner `HMAKT99`, branch `main`)
-- **License:** GPLv3 · **Author:** Arun Kumar Thiagarajan <arunkt.bm14@gmail.com>
+- **Repository:** private · **License:** GPLv3 · **Author:** Arun Kumar Thiagarajan <arunkt.bm14@gmail.com>
 
 ## Current status (2026-07-03)
 
@@ -145,5 +144,4 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
 [ARCHITECTURE](ARCHITECTURE.md) · [SAFETY](docs/SAFETY.md) · [FITTING](docs/FITTING.md) ·
 [CALIBRATION](docs/CALIBRATION.md) · [PROTOCOL](docs/PROTOCOL.md) ·
 [DEVICE_TESTING](docs/DEVICE_TESTING.md) · [RELEASE](docs/RELEASE.md) ·
-[PRIVACY](docs/PRIVACY.md) · [PROJECT_LOG](docs/PROJECT_LOG.md) ·
-[CONTRIBUTING](CONTRIBUTING.md)
+[PRIVACY](docs/PRIVACY.md) · [PROJECT_LOG](docs/PROJECT_LOG.md)

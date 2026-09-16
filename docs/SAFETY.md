@@ -1,6 +1,6 @@
 # Hearing safety policy
 
-OpenHearing plays calibrated tones (the screening) and amplifies live sound (the
+EarCast plays calibrated tones (the screening) and amplifies live sound (the
 assist mode) **directly into people's ears**. Hearing safety is non-negotiable.
 Any code path that could exceed these limits is treated as a **critical bug**.
 
@@ -49,10 +49,10 @@ headroom and keep generous margin.
   full-scale input, ramp on/off, and a simulated feedback howl — all proving the
   output stays at or below the ceiling.
 - Any change touching an audio output path requires its safety tests to pass in CI
-  and should be called out in review (see CONTRIBUTING.md).
+   and must be included in the release review.
 
 ## Disclaimers (must appear in-app and in docs)
 
-OpenHearing is **not a medical device**, not a certified hearing aid, and not a
+EarCast is **not a medical device**, not a certified hearing aid, and not a
 substitute for a professional hearing exam. It does not diagnose or treat anything.
 This disclaimer appears in the README, in onboarding, and before any test starts.

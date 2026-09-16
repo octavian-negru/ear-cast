@@ -8,7 +8,7 @@ settings and that speech clarity is still limited.
 
 ## Processing changes
 
-- Fitted EQ now compensates for neighbouring filters' contributions. Previously,
+- Fitted EQ now compensates for neighbouring filters' effects. Previously,
   every peaking filter applied its full target, so their overlapping responses
   added excess gain before compression. A bounded setup-time fit now approaches
   the requested levels at measured frequencies. Between-frequency response remains

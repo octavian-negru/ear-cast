@@ -50,7 +50,7 @@ class AudioSessionRecorder(
     @Volatile private var lastTimestampNanos = -1L
 
     @Volatile private var outputUnderruns = 0
-    private val writer = Thread(::writeSession, "Ear Cast-Diagnostics").apply { isDaemon = true }
+    private val writer = Thread(::writeSession, "EarCast-Diagnostics").apply { isDaemon = true }
 
     init {
         require(sampleRate > 0 && framesPerBlock > 0 && maximumBlocks > 0)

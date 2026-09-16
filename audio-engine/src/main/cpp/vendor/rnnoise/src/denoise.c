@@ -458,7 +458,7 @@ float rnnoise_process_frame(DenoiseState *st, float *out, const float *in) {
   return rnnoise_process_frame_with_dry_mix(st, out, in, 0.f);
 }
 
-/* OpenHearing: preserve ambience without mixing undelayed PCM with delayed audio. */
+/* EarCast: preserve ambience without mixing undelayed PCM with delayed audio. */
 float rnnoise_process_frame_with_dry_mix(DenoiseState *st, float *out, const float *in, float dry_mix) {
   int i;
   kiss_fft_cpx dry_X[FREQ_SIZE];

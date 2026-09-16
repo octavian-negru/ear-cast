@@ -106,6 +106,41 @@ fun QuietNotice(
     }
 }
 
+@Composable
+fun CollapsibleNotice(
+    title: String,
+    body: String,
+    modifier: Modifier = Modifier,
+    initiallyExpanded: Boolean = false,
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSecondaryContainer,
+) {
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = containerColor)) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = contentColor,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = { expanded = !expanded }) {
+                    Text(stringResource(if (expanded) R.string.notice_hide else R.string.notice_details))
+                }
+            }
+            AnimatedVisibility(expanded) {
+                Text(
+                    body,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        }
+    }
+}
+
 /** Decorative waveform, drawn locally with no image downloads. */
 @Composable
 fun SoundMark(modifier: Modifier = Modifier) {

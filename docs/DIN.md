@@ -36,11 +36,10 @@ One clean utterance per digit, spoken calmly at a steady level:
 
 ## License
 
-Record your own voice and release the files **CC0** in this repo (state it in
-the commit message). This keeps the corpus redistributable by F-Droid and
-forks with zero questions. Community contributions of other languages follow
-the same pipeline: the engine is language-agnostic — only the recordings and
-the digit alphabet change.
+Record your own voice and release the files **CC0** in this repo. This keeps the
+corpus redistributable by F-Droid. Additional languages can use the same
+pipeline: the engine is language-agnostic — only the recordings and the digit
+alphabet change.
 
 ## Honest caveats (also reflected in the UI copy)
 

@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -29,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.audiogram.SpeechProtocol
+import app.earcast.ui.common.CollapsibleNotice
 
 /**
  * Listening-in-noise check: spoken digits in adaptive background noise. The
@@ -63,16 +62,11 @@ fun SpeechCheckScreen(
 
 @Composable
 private fun NoticeCard() {
-    Card(
+    CollapsibleNotice(
+        title = stringResource(R.string.estimate_summary),
+        body = stringResource(R.string.din_notice),
         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-    ) {
-        Text(
-            stringResource(R.string.din_notice),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(12.dp),
-        )
-    }
+    )
 }
 
 @Composable

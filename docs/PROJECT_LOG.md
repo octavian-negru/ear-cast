@@ -1,13 +1,13 @@
 # Project log
 
-A chronological record of how OpenHearing was built, the decisions made, and what
+A chronological record of how EarCast was built, the decisions made, and what
 is verified vs. not — so the full context survives across sessions. High-level
 orientation is in [CLAUDE.md](../CLAUDE.md).
 
 ## Origin & mission
 
 Apple ships a hearing screening + hearing-aid/transparency mode on AirPods Pro 2/3,
-locked to its own platforms. OpenHearing brings equivalent **hearing assistance**
+locked to its own platforms. EarCast brings equivalent **hearing assistance**
 to Android, working with any earbuds, with best-effort AirPods support. It is a
 sound-amplification tool, **not a medical device** (no "diagnose/treat/medical").
 

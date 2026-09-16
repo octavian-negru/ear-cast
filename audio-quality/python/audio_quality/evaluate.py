@@ -39,7 +39,7 @@ DPDFNET_HASHES = {
 
 
 def native_render(renderer, samples, rate, variant, dpdfnet_models=None):
-    with tempfile.TemporaryDirectory(prefix="openhearing-quality-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="earcast-quality-") as temporary:
         source, target = Path(temporary) / "input.f32", Path(temporary) / "output.f32"
         np.asarray(samples, dtype="<f4").tofile(source)
         backend, suppression, boost = (VARIANTS | DPDFNET_VARIANTS)[variant]

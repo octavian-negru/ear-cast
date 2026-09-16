@@ -6,7 +6,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -15,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -29,7 +27,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -40,15 +37,15 @@ import app.earcast.BuildConfig
 import app.earcast.R
 import app.earcast.common.AudioLimits
 import app.earcast.ui.assist.ListenScreen
+import app.earcast.ui.common.ActionCard
+import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.PageHeading
 import app.earcast.ui.dintest.SpeechCheckScreen
 import app.earcast.ui.hearingtest.ToneCheckScreen
 import app.earcast.ui.manualentry.ProfileEditorScreen
 import app.earcast.ui.theme.EarCastTheme
 
 private enum class AppDestination { HOME, HEARING_TEST, MANUAL_ENTRY, ASSIST, DIN_TEST, SETTINGS }
-
-private const val SOURCE_URL = "https://github.com/HMAKT99/OpenHearing"
-private const val PRIVACY_URL = "https://github.com/HMAKT99/OpenHearing/blob/main/docs/PRIVACY.md"
 
 @Composable
 fun EarCastApp(rootViewModel: AppStateModel = hiltViewModel()) {
@@ -110,19 +107,42 @@ private fun HomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
     ) {
-        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
-        Text(
-            stringResource(R.string.tagline),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        DisclaimerCard(modifier = Modifier.padding(top = 24.dp))
+        PageHeading(stringResource(R.string.app_name), stringResource(R.string.tagline))
+        DisclaimerCard(modifier = Modifier.padding(top = 8.dp))
 
-        HomeButton(stringResource(R.string.home_hearing_check), onRunHearingTest)
+        Text(
+            stringResource(R.string.home_start_section),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 24.dp),
+        )
+        ActionCard(
+            title = stringResource(R.string.home_hearing_check),
+            detail = stringResource(R.string.check_intro),
+            action = stringResource(R.string.check_start),
+            onClick = onRunHearingTest,
+        )
+        ActionCard(
+            title = stringResource(R.string.home_assist),
+            detail = stringResource(R.string.listen_card_detail),
+            action = stringResource(R.string.listen_card_action),
+            onClick = onAssist,
+        )
+
+        Text(
+            stringResource(R.string.home_tools_section),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 28.dp),
+        )
         if (showDinTest) HomeButton(stringResource(R.string.home_din_test), onDinTest)
-        HomeButton(stringResource(R.string.home_assist), onAssist)
+        Text(
+            stringResource(R.string.home_media_section),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 24.dp),
+        )
         MediaEqCard(state = root, onToggle = rootViewModel::setMediaEq, onBoostChange = rootViewModel::setMediaBoost)
-        HomeButton(stringResource(R.string.home_settings), onSettings)
+        OutlinedButton(onClick = onSettings, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+            Text(stringResource(R.string.home_settings))
+        }
     }
 }
 
@@ -131,9 +151,9 @@ private fun HomeButton(
     label: String,
     onClick: () -> Unit,
 ) {
-    Button(
+    OutlinedButton(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp).padding(top = 12.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(top = 12.dp),
     ) { Text(label, style = MaterialTheme.typography.titleMedium) }
 }
 
@@ -152,7 +172,7 @@ private fun OnboardingScreen(onAccept: () -> Unit) {
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(top = 8.dp),
         )
-        DisclaimerCard(modifier = Modifier.padding(top = 16.dp))
+        DisclaimerCard(modifier = Modifier.padding(top = 16.dp), initiallyExpanded = true)
         Text(
             stringResource(R.string.onboarding_ack),
             style = MaterialTheme.typography.bodyMedium,
@@ -302,7 +322,6 @@ private fun MediaBoostControl(
 
 @Composable
 private fun AboutCard() {
-    val uriHandler = LocalUriHandler.current
     Card(modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.about_title), style = MaterialTheme.typography.titleSmall)
@@ -316,38 +335,21 @@ private fun AboutCard() {
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp),
             )
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                OutlinedButton(
-                    onClick = { uriHandler.openUri(SOURCE_URL) },
-                    modifier = Modifier.padding(end = 12.dp),
-                ) { Text(stringResource(R.string.about_source)) }
-                OutlinedButton(
-                    onClick = { uriHandler.openUri(PRIVACY_URL) },
-                ) { Text(stringResource(R.string.about_privacy)) }
-            }
         }
     }
 }
 
 @Composable
-private fun DisclaimerCard(modifier: Modifier = Modifier) {
-    Card(
+private fun DisclaimerCard(
+    modifier: Modifier = Modifier,
+    initiallyExpanded: Boolean = false,
+) {
+    CollapsibleNotice(
+        title = stringResource(R.string.disclaimer_title),
+        body = stringResource(R.string.disclaimer_body),
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                stringResource(R.string.disclaimer_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-            )
-            Text(
-                stringResource(R.string.disclaimer_body),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            Spacer(Modifier.padding(2.dp))
-        }
-    }
+        initiallyExpanded = initiallyExpanded,
+        containerColor = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+    )
 }

@@ -2,11 +2,11 @@
 
 _Last updated: 2026-09-12_
 
-OpenHearing is designed to collect as little as possible — effectively nothing.
+EarCast is designed to collect as little as possible — effectively nothing.
 
-## What OpenHearing does with your data
+## What EarCast does with your data
 
-- **Microphone:** In assist mode, OpenHearing captures audio from the selected
+- **Microphone:** In assist mode, EarCast captures audio from the selected
   phone or headset microphone, processes it on the phone in real time, and plays
   it back to your headset. Audio streams locally between the connected headset
   and phone. **It is never recorded, stored, or uploaded.** It exists only
@@ -36,13 +36,13 @@ your results chart, Android sends it to the app you choose.
 
 ## Children
 
-OpenHearing is a general-audience hearing-assistance tool and is not directed at
+EarCast is a general-audience hearing-assistance tool and is not directed at
 children.
 
 ## Contact
 
-For privacy questions or to report a concern, open an issue at
-https://github.com/HMAKT99/OpenHearing or use the channels in SECURITY.md.
+For privacy questions or to report a concern, use the private channels documented
+in SECURITY.md.
 
-> OpenHearing is a hearing-assistance tool, not a medical device. See the README
+> EarCast is a hearing-assistance tool, not a medical device. See the README
 > and docs/SAFETY.md.

@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.audiogram.HearingCurve
 import app.earcast.common.AudioEar
+import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.demo.SoundPreviewCard
 import app.earcast.ui.share.ProfileShareDialog
 
@@ -75,16 +76,11 @@ fun ToneCheckScreen(
 
 @Composable
 private fun CalibrationNotice() {
-    Card(
+    CollapsibleNotice(
+        title = stringResource(R.string.estimate_summary),
+        body = stringResource(R.string.check_notice),
         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-    ) {
-        Text(
-            stringResource(R.string.check_notice),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(12.dp),
-        )
-    }
+    )
 }
 
 @Composable
@@ -201,10 +197,10 @@ private fun Results(
         state.audiogram?.let { AudiogramTable(it) }
         state.gains.forEach { GainTable(it) }
         SoundPreviewCard()
-        Text(
-            stringResource(R.string.check_results_disclaimer),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(vertical = 16.dp),
+        CollapsibleNotice(
+            title = stringResource(R.string.estimate_summary),
+            body = stringResource(R.string.check_results_disclaimer),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
         )
         BigButton(stringResource(R.string.check_run_again), onClick = onRestart)
         Spacer(Modifier.padding(4.dp))

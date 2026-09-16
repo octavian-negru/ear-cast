@@ -93,7 +93,7 @@ RNNOISE_EXPORT void rnnoise_destroy(DenoiseState *st);
  */
 RNNOISE_EXPORT float rnnoise_process_frame(DenoiseState *st, float *out, const float *in);
 
-/** OpenHearing extension: dry_mix in [0, 1], blended before overlap-add using
+/** EarCast extension: dry_mix in [0, 1], blended before overlap-add using
  * the same delayed, high-passed spectrum. 0 is upstream full suppression;
  * 1 retains the input (with the model's high-pass, bandwidth and delay).
  */

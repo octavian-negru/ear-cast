@@ -1,6 +1,6 @@
 # Calibration
 
-OpenHearing produces and amplifies sound, but Android gives no portable way to
+EarCast produces and amplifies sound, but Android gives no portable way to
 know the true sound pressure level (dB SPL) reaching a given user's ear — it
 depends on the phone, its DAC, the headset/earbuds, and fit. This document is
 honest about what that means and how we stay safe anyway.
@@ -39,8 +39,8 @@ A precise calibration would require a reference: e.g. a sound-level meter (or a
 coupler/ear simulator) measuring a known test tone, to derive the dB SPL-per-dBFS
 offset for a specific phone + earbud combination. The codebase leaves room for a
 per-device `CalibrationProfile` offset to slot in front of the limiter ceiling
-once such a measurement exists. Community-contributed calibration data for common
-phone/earbud pairs (including AirPods Pro 2/3) is a good future contribution.
+once such a measurement exists. Calibration data for common phone/earbud pairs
+(including AirPods Pro 2/3) could be added in a future release.
 
 Until then: **comfort calibration + the hard limiter** are the safety model, and
 the app states clearly that results are estimates.

@@ -1,6 +1,6 @@
 # Architecture
 
-OpenHearing is a multi-module Kotlin/Android app following MVVM + clean layering.
+EarCast is a multi-module Kotlin/Android app following MVVM + clean layering.
 The guiding principle: **the safety-critical and signal-processing logic lives in
 Kotlin/JVM DSP classes and a native speech-processing library, decoupled from
 Android audio/BLE I/O, so the algorithms can be tested without a device or emulator.**

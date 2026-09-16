@@ -20,7 +20,7 @@ on par with a traditional security vulnerability. These get priority handling.
 
 ## Supported versions
 
-OpenHearing is pre-release (Phase 0). Until a stable release, only the latest
+EarCast is pre-release (Phase 0). Until a stable release, only the latest
 `main` is supported.
 
 ## No secrets in the repo

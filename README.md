@@ -1,25 +1,21 @@
-# OpenHearing
+# EarCast
 
-**Free, open-source hearing assistance for Android — no root, any earbuds.**
-
-[![CI](https://github.com/HMAKT99/OpenHearing/actions/workflows/ci.yml/badge.svg)](https://github.com/HMAKT99/OpenHearing/actions/workflows/ci.yml)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/HMAKT99/OpenHearing?include_prereleases&label=Download)](https://github.com/HMAKT99/OpenHearing/releases/latest)
+**Hearing assistance for Android — no root, any earbuds.**
 
 Apple ships a hearing screening and a hearing-aid mode on AirPods Pro 2/3 — but
-locks them to iPhone/iPad/Mac. OpenHearing brings open hearing assistance to
+locks them to iPhone/iPad/Mac. EarCast brings hearing assistance to
 **Android**, working with **any** earbuds: screen your hearing, build a
 personalized amplification profile, and boost quiet speech in real time.
 
 > Complement to [LibrePods](https://github.com/kavishdevar/librepods): LibrePods
-> drives AirPods' own hearing-aid mode (root required); OpenHearing does its own
+> drives AirPods' own hearing-aid mode (root required); EarCast does its own
 > on-device processing — **no root, any earbuds.**
 
 ---
 
 ## ⚠️ Important: this is not a medical device
 
-> **OpenHearing is a sound-amplification and hearing-assistance tool. It is NOT a
+> **EarCast is a sound-amplification and hearing-assistance tool. It is NOT a
 > medical device, NOT a certified hearing aid, and NOT a substitute for a
 > professional hearing exam.** It does not diagnose or treat any condition. If you
 > have concerns about your hearing, see an audiologist or doctor. Keep the volume
@@ -102,10 +98,7 @@ Bluetooth devices cannot supply microphone audio. Classic Bluetooth uses mono
 call audio. Device compatibility and latency need hardware validation.
 See [setup, compatibility, and testing](docs/HEADSET_MICROPHONE.md).
 
-1. **Install** — grab the APK from
-   [Releases](https://github.com/HMAKT99/OpenHearing/releases/latest) (or add this
-   repo to [Obtainium](https://github.com/ImranR98/Obtainium) for auto-updates;
-   F-Droid submission in progress).
+1. **Install** — install the APK supplied through the private release process.
 2. **Read & accept** the safety disclaimer on first launch.
 3. **Take the hearing check** — put on a headset in a quiet room, tap
    **Hearing check → Start**. After each tone, tap **Yes, I heard it** or
@@ -130,7 +123,7 @@ and [docs/DEVICE_TESTING.md](docs/DEVICE_TESTING.md) for details.
 
 ## Privacy
 
-Privacy is **platform-enforced, not just promised**: OpenHearing declares **no
+Privacy is **platform-enforced, not just promised**: EarCast declares **no
 `INTERNET` permission**, so it physically cannot make network calls. Your hearing
 data and profile stay on the device. Microphone audio is processed in real time
 and streamed locally between the phone and your connected headset; it is
@@ -143,7 +136,7 @@ and streamed locally between the phone and your connected headset; it is
 Verify it yourself from the APK:
 
 ```bash
-aapt dump permissions OpenHearing-<version>.apk
+aapt dump permissions EarCast-<version>.apk
 ```
 
 The only permissions are `RECORD_AUDIO` (the mic for assist mode),
@@ -186,7 +179,7 @@ is built and unit-tested, but **not yet validated on real hardware.**
 
 **On AirPods:** the protocol is reverse-engineered, not public; we build on
 [LibrePods](https://github.com/kavishdevar/librepods)/CAPod. It may not be fully
-controllable from Android without root/firmware access — which is why OpenHearing
+controllable from Android without root/firmware access — which is why EarCast
 works fully on **any** earbuds first.
 
 ---
@@ -203,20 +196,10 @@ See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## Contributing
-
-Contributions welcome — especially **hardware testers** (AirPods Pro 2/3 + an
-Android phone) and accessibility feedback. See [CONTRIBUTING.md](CONTRIBUTING.md),
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [docs/SAFETY.md](docs/SAFETY.md).
-
-## License
-
-**GPLv3** — see [LICENSE](LICENSE).
-
 ## Credits
 
 - [LibrePods](https://github.com/kavishdevar/librepods) and CAPod for the AirPods
   reverse-engineering groundwork.
 
-> OpenHearing is an independent project, not affiliated with or endorsed by Apple.
+> EarCast is an independent project, not affiliated with or endorsed by Apple.
 > "AirPods" is a trademark of Apple Inc., used only to describe hardware compatibility.

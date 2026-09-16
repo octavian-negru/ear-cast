@@ -3,7 +3,7 @@
 For the selectable headset microphone path, also run the connection, cancellation,
 route-loss and latency checks in [HEADSET_MICROPHONE.md](HEADSET_MICROPHONE.md).
 
-Some parts of OpenHearing can only be validated on a real phone (audio output,
+Some parts of EarCast can only be validated on a real phone (audio output,
 and later BLE/AirPods). This is the maintainer's hands-on checklist. Automated
 unit tests cover the pure logic; this covers what they can't.
 
@@ -59,7 +59,7 @@ speaker or any headset, and sanity-check the audiogram + half-gain output.
 
 ### Steps
 
-1. Launch **OpenHearing**. Confirm the home screen shows the **"Not a medical
+1. Launch **EarCast**. Confirm the home screen shows the **"Not a medical
    device"** disclaimer card.
 2. Tap **Run hearing screening (debug)**. Confirm the uncalibrated-estimate notice
    is shown before the test.

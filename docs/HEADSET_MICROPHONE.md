@@ -13,7 +13,7 @@ Headset microphone -> optional RNNoise/DPDFNet8 + bass shaping
                   -> output limiter -> same headset speakers
 ```
 
-The phone must remain connected and run OpenHearing. This does not install a
+The phone must remain connected and run EarCast. This does not install a
 standalone hearing-aid program on the headset or require an AirPods protocol.
 Only microphones exposed by Android are available; private ANC/transparency
 microphone feeds cannot be selected through these APIs.
@@ -52,7 +52,7 @@ unprocessed: headset firmware can still alter it before Android receives it.
 The CMF Buds 2 microphone is designed for calls. Nothing describes its Clear Voice
 Technology as reducing ambient noise while recording voice. **Inference:** this can
 work against listening to other people around the wearer; those sounds may already
-be suppressed before OpenHearing receives them. Neither EQ, denoising nor changing
+be suppressed before EarCast receives them. Neither EQ, denoising nor changing
 the phone's audio library can recover information removed at capture.
 The app cannot access the buds' private transparency/ANC microphone feeds.
 For surrounding speech, compare the phone microphone placed near the talker, which
@@ -83,7 +83,7 @@ settings, not a calibrated hearing-aid prescription. The low-band release is
 upstream; the feedback guard, master cap and final lookahead limiter remain downstream.
 
 Optional neural enhancement runs once on the mono microphone signal,
-before per-ear fitting. Choose RNNoise or DPDFNet8; only one runs. Gentle retains about 50% dry contribution, Strong about
+before per-ear fitting. Choose RNNoise or DPDFNet8; only one runs. Gentle retains about 50% dry signal, Strong about
 25%, blended in the same delayed spectrum before synthesis. These are not hard
 attenuation limits. The RNNoise model runs at 48 kHz; quality-10 SpeexDSP resampling
 adapts 8/16/24/32/44.1 kHz capture without recreating missing bandwidth. Optional

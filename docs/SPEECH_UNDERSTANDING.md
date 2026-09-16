@@ -44,9 +44,9 @@ available comparison. If the new engine cannot initialize, the session reports
 failure rather than secretly changing engines. [Project and model profiles](https://github.com/ceva-ip/DPDFNet),
 [paper](https://arxiv.org/abs/2512.16420).
 
-Strong/Gentle still retain about 25%/50% original contribution. In this runtime,
+Strong/Gentle still retain about 25%/50% original signal. In this runtime,
 the streaming API ignores the offline attenuation setting, so our adapter
-implements an explicit aligned mix. The pinned model's Mask contributes two
+implements an explicit aligned mix. The pinned model's Mask adds two
 delay hops, its deep-filter centre another two, and analysis/synthesis one:
 50 ms before resampling and the extra 10 ms Kotlin adapter. This is source-derived
 delay, not measured acoustic latency. Offline replay flushes this entire tail.

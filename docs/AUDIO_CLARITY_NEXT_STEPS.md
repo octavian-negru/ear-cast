@@ -35,7 +35,7 @@ enhanced, then converted back. All intermediate samples remain floating point;
 RNNoise receives PCM16-scale floats, not normalized floats or re-quantized shorts.
 Resampling does not recreate frequencies absent from the capture.
 
-Gentle retains approximately 50% dry contribution, Strong approximately 25%.
+Gentle retains approximately 50% dry signal, Strong approximately 25%.
 The blend happens in the same delayed spectrum before synthesis, preventing a
 timing mismatch between paths. These are blend settings, not guaranteed 6/12 dB
 attenuation limits. There is no VAD gate, speaker-selection rule or second denoiser.

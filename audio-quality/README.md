@@ -58,9 +58,9 @@ They were **not run** during implementation. The native workbench does not need
 Android, Gradle or JNI headers:
 
 ```bash
-cmake -S audio-quality -B /tmp/openhearing-audio-quality -DCMAKE_BUILD_TYPE=Release
-cmake --build /tmp/openhearing-audio-quality
-ctest --test-dir /tmp/openhearing-audio-quality --output-on-failure
+cmake -S audio-quality -B /tmp/earcast-audio-quality -DCMAKE_BUILD_TYPE=Release
+cmake --build /tmp/earcast-audio-quality
+ctest --test-dir /tmp/earcast-audio-quality --output-on-failure
 ```
 
 The app's Kotlin tests are included in the usual `:audio-engine:testDebugUnitTest`
@@ -87,14 +87,14 @@ artificial seams. Omitting noise produces seeded white noise only as a sanity ca
 
 ```bash
 python -m audio_quality.prepare_corpus --clean /path/speech.wav --noise /path/room.wav --output /tmp/corpus
-python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/openhearing-audio-quality/render_audio --output /tmp/comparison
+python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/earcast-audio-quality/render_audio --output /tmp/comparison
 python -m audio_quality.check_report /tmp/comparison/report.json audio-quality/acceptance.example.json
 ```
 
 Every output directory must be new. Mixtures use declared SNR, speech level and
 random seed, with common headroom applied to clean and noisy signals. Source hashes
 are recorded. Optional `--rir /path/response.wav` convolves both the speech target
-and its contribution to the mixture; those cases evaluate denoising with room
+and its role in the mixture; those cases evaluate denoising with room
 reflections, not removal of reverberation. None of these synthetic mixtures is
 labeled as a measured five-metre result.
 
@@ -121,7 +121,7 @@ For actual diagnostic recordings:
 
 ```bash
 python -m audio_quality.extract_recording /path/sound-recording.zip --output /tmp/capture
-python -m audio_quality.evaluate /tmp/capture/manifest.json --renderer /tmp/openhearing-audio-quality/render_audio --output /tmp/capture-comparison
+python -m audio_quality.evaluate /tmp/capture/manifest.json --renderer /tmp/earcast-audio-quality/render_audio --output /tmp/capture-comparison
 ```
 
 The raw microphone tap is not a clean reference. Such reports intentionally omit
@@ -138,7 +138,7 @@ an already-downloaded standard DFN3 directory containing `config.ini` and
 behavior. No model name, download, placeholder tensor graph or random weights are used.
 
 ```bash
-python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/openhearing-audio-quality/render_audio --deepfilter-model /path/DeepFilterNet3 --output /tmp/dfn-comparison
+python -m audio_quality.evaluate /tmp/corpus/manifest.json --renderer /tmp/earcast-audio-quality/render_audio --deepfilter-model /path/DeepFilterNet3 --output /tmp/dfn-comparison
 ```
 
 The evaluator uses the [upstream enhancement API](https://github.com/Rikorose/DeepFilterNet/blob/main/DeepFilterNet/df/enhance.py),

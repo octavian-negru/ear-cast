@@ -1,6 +1,6 @@
 # Release & distribution
 
-How to build a signed release and what must be cleared before putting OpenHearing
+How to build a signed release and what must be cleared before putting EarCast
 in front of real users.
 
 ## ⚠️ Release gates (do not skip)
@@ -24,14 +24,14 @@ Before any public consumer release:
 
 1. Generate an upload keystore (one time, keep it safe and **never commit it**):
    ```bash
-   keytool -genkey -v -keystore openhearing-release.jks \
-     -keyalg RSA -keysize 2048 -validity 10000 -alias openhearing
+   keytool -genkey -v -keystore earcast-release.jks \
+     -keyalg RSA -keysize 2048 -validity 10000 -alias earcast
    ```
 2. Create `keystore.properties` in the repo root (gitignored):
    ```properties
-   storeFile=/absolute/path/to/openhearing-release.jks
+   storeFile=/absolute/path/to/earcast-release.jks
    storePassword=********
-   keyAlias=openhearing
+   keyAlias=earcast
    keyPassword=********
    ```
 3. Build:

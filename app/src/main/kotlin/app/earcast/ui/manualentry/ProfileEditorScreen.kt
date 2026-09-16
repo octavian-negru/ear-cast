@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
+import app.earcast.ui.common.CollapsibleNotice
 
 /**
  * Manual audiogram entry with plotted thresholds.
@@ -34,6 +35,7 @@ fun ProfileEditorScreen(
     viewModel: ProfileEditorModel = hiltViewModel(),
 ) {
     val levels by viewModel.levels.collectAsStateWithLifecycle()
+    val previewState by viewModel.previewState.collectAsStateWithLifecycle()
 
     Column(
         modifier =
@@ -43,15 +45,19 @@ fun ProfileEditorScreen(
                 .padding(24.dp),
     ) {
         Text(stringResource(R.string.manual_title), style = MaterialTheme.typography.headlineSmall)
-        Text(
-            stringResource(R.string.manual_intro),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(vertical = 12.dp),
+        CollapsibleNotice(
+            title = stringResource(R.string.manual_notice_title),
+            body = stringResource(R.string.manual_intro),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
         )
 
         ProfilePlotEditor(
             levels = levels,
+            frequencies = viewModel.frequencies,
+            previewState = previewState,
             onChange = viewModel::setLevel,
+            onPreview = viewModel::previewTone,
+            onStopPreview = viewModel::stopPreview,
         )
 
         Button(

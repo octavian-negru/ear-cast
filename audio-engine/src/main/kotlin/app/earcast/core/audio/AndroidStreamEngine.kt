@@ -60,7 +60,7 @@ class AndroidStreamEngine(
         routeLost = false
         val sessionId = ++generation
         onStatus(StreamStatus(StreamPhase.CONNECTING))
-        thread = Thread({ runSession(format, processorFactory, sessionId) }, "Ear Cast-Assist").apply { start() }
+        thread = Thread({ runSession(format, processorFactory, sessionId) }, "EarCast-Assist").apply { start() }
     }
 
     override fun stop() {

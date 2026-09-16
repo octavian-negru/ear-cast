@@ -31,7 +31,7 @@ enum class EnhancementEngine {
 }
 
 /**
- * Noise reduction strength. For neural engines, suppressionDb sets the retained dry contribution
+ * Noise reduction strength. For neural engines, suppressionDb sets the retained dry signal
  * (6 dB = about 50%, 12 dB = about 25%), not a guaranteed total attenuation bound.
  * Classical engines use it as their spectral attenuation floor.
  * Off preserves environmental sound; headset firmware may already suppress it.

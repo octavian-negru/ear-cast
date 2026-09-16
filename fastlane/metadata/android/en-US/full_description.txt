@@ -1,4 +1,4 @@
-OpenHearing is a free, open-source hearing-assistance app for Android. It runs a
+EarCast is a private hearing-assistance app for Android. It runs a
 pure-tone hearing check, builds a personalized amplification profile from the
 result, and uses it to amplify quiet sound — like speech — in real time, with any
 headset or earbuds.
@@ -19,11 +19,11 @@ Features:
 * Completely private: no accounts, no analytics, no ads, no network access. Audio
   is processed on-device and never recorded or transmitted.
 
-IMPORTANT: OpenHearing is a sound-amplification and hearing-assistance tool. It is
+IMPORTANT: EarCast is a sound-amplification and hearing-assistance tool. It is
 NOT a medical device, NOT a certified hearing aid, and NOT a substitute for a
 professional hearing exam. It does not diagnose or treat any condition. If you
 have concerns about your hearing, please see an audiologist or doctor. Keep the
 volume comfortable and stop if anything is too loud.
 
-OpenHearing is independent and not affiliated with or endorsed by Apple. "AirPods"
+EarCast is independent and not affiliated with or endorsed by Apple. "AirPods"
 is a trademark of Apple Inc., used only to describe hardware compatibility.

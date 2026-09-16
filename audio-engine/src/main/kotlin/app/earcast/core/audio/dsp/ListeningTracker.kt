@@ -26,7 +26,7 @@ object ListeningTracker {
     private val DAILY_ALLOWANCE_UNITS =
         REF_HOURS * 3_600.0 * dbToPower(REF_LEVEL_DBFS)
 
-    /** Listening units contributed by a drained window spanning [seconds]. */
+    /** Listening units added by a drained window spanning [seconds]. */
     fun unitsFor(
         window: MeterWindow,
         seconds: Double,

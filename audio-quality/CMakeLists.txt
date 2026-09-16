@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(openhearing_audio_quality LANGUAGES C CXX)
+project(earcast_audio_quality LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(EARCAST_BUILD_JNI OFF CACHE BOOL "No JNI needed by the offline suite" FORCE)
