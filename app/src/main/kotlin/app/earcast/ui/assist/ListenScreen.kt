@@ -9,7 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -21,7 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -55,6 +53,8 @@ import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.dsp.ListeningPreset
 import app.earcast.data.SoundProfile
 import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.DetailSection
+import app.earcast.ui.common.ScreenHeader
 import app.earcast.ui.common.headphonesConnected
 import app.earcast.ui.demo.SoundPreviewCard
 import kotlinx.coroutines.launch
@@ -69,6 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ListenScreen(
     onBack: () -> Unit,
+    onOpenProfile: () -> Unit,
     viewModel: ListenStateModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -113,17 +114,13 @@ fun ListenScreen(
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        Text(stringResource(R.string.assist_title), style = MaterialTheme.typography.headlineSmall)
+        ScreenHeader(title = stringResource(R.string.assist_title), onBack = onBack)
         SafetyNote()
 
         if (!state.hasProfile) {
-            Text(
-                stringResource(R.string.assist_no_profile),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(vertical = 16.dp),
-            )
+            EmptyAssistState(onOpenProfile)
         } else {
             AssistControls(
                 state = state,
@@ -133,10 +130,23 @@ fun ListenScreen(
                 onStop = { LiveAudioService.stop(context) },
             )
         }
+    }
+}
 
-        Spacer(Modifier.padding(4.dp))
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.back))
+@Composable
+private fun EmptyAssistState(onOpenProfile: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.assist_no_profile), style = MaterialTheme.typography.bodyMedium)
+            Button(
+                onClick = onOpenProfile,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 12.dp),
+            ) {
+                Text(stringResource(R.string.profile_card_action), style = MaterialTheme.typography.labelLarge)
+            }
         }
     }
 }
@@ -155,10 +165,38 @@ private fun AssistControls(
             StreamPhase.RUNNING -> stringResource(R.string.assist_on)
             else -> stringResource(R.string.assist_off)
         },
-        style = MaterialTheme.typography.titleLarge,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
         fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(top = 8.dp),
+        modifier = Modifier.padding(top = 4.dp),
     )
+
+    SessionAudioStatus(state.sessionStatus)
+
+    if (speakerWarning && !state.active) SpeakerWarning()
+
+    if (state.active) {
+        Button(
+            onClick = onStop,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(top = 12.dp),
+        ) { Text(stringResource(R.string.assist_stop_button), style = MaterialTheme.typography.labelLarge) }
+    } else {
+        Button(
+            onClick = onStart,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(top = 12.dp),
+        ) {
+            Text(
+                if (speakerWarning) {
+                    stringResource(R.string.assist_start_anyway)
+                } else {
+                    stringResource(R.string.assist_start)
+                },
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+    }
+
+    ListeningMeterCard(exposure = state.exposure, running = state.running)
 
     GainControl(masterGainDb = state.masterGainDb, onChange = viewModel::setMasterGain)
 
@@ -174,52 +212,26 @@ private fun AssistControls(
         onChange = viewModel::setPreset,
     )
 
-    SessionAudioStatus(state.sessionStatus)
+    DetailSection(title = stringResource(R.string.assist_more_options)) {
+        SoundOptionsPanel(
+            options = state.listeningOptions,
+            enabled = !state.active,
+            onChange = viewModel::setListeningOptions,
+        )
+        RecordingPanel(viewModel, state.active)
 
-    if (speakerWarning && !state.active) SpeakerWarning()
-
-    Spacer(Modifier.padding(8.dp))
-    if (state.active) {
-        Button(
-            onClick = onStop,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
-        ) { Text(stringResource(R.string.assist_stop_button), style = MaterialTheme.typography.titleMedium) }
-    } else {
-        Button(
-            onClick = onStart,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
-        ) {
-            Text(
-                if (speakerWarning) {
-                    stringResource(R.string.assist_start_anyway)
-                } else {
-                    stringResource(R.string.assist_start)
-                },
-                style = MaterialTheme.typography.titleMedium,
+        if (state.profiles.size > 1) {
+            ProfilesCard(
+                profiles = state.profiles,
+                activeProfileId = state.activeProfileId,
+                running = state.active,
+                onSelect = viewModel::selectProfile,
+                onDelete = viewModel::deleteProfile,
             )
         }
+
+        SoundPreviewCard()
     }
-
-    ListeningMeterCard(exposure = state.exposure, running = state.running)
-
-    SoundOptionsPanel(
-        options = state.listeningOptions,
-        enabled = !state.active,
-        onChange = viewModel::setListeningOptions,
-    )
-    RecordingPanel(viewModel, state.active)
-
-    if (state.profiles.size > 1) {
-        ProfilesCard(
-            profiles = state.profiles,
-            activeProfileId = state.activeProfileId,
-            running = state.active,
-            onSelect = viewModel::selectProfile,
-            onDelete = viewModel::deleteProfile,
-        )
-    }
-
-    SoundPreviewCard(modifier = Modifier.padding(top = 8.dp))
 }
 
 @Composable
@@ -259,7 +271,7 @@ private fun MicrophoneSelector(
                             InputSource.PHONE -> stringResource(R.string.assist_phone_microphone)
                             InputSource.HEADSET -> stringResource(R.string.assist_headset_microphone)
                         },
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }
@@ -365,7 +377,7 @@ private fun ProfilesCard(
                     RadioButton(selected = profile.id == activeProfileId, onClick = null)
                     Text(
                         profile.name,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(start = 8.dp).weight(1f),
                     )
                     TextButton(onClick = { onDelete(profile.id) }) {
@@ -404,6 +416,6 @@ private fun SafetyNote() {
     CollapsibleNotice(
         title = stringResource(R.string.notice_summary),
         body = stringResource(R.string.assist_safety_note),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
     )
 }

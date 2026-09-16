@@ -12,12 +12,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -43,9 +55,45 @@ fun PageHeading(
     if (subtitle != null) {
         Text(
             subtitle,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
+            modifier = Modifier.padding(top = 6.dp, bottom = 12.dp),
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun ScreenHeader(
+    title: String,
+    subtitle: String? = null,
+    onBack: (() -> Unit)? = null,
+) {
+    if (onBack == null) {
+        PageHeading(title, subtitle)
+        return
+    }
+    TopAppBar(
+        title = {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+    )
+    if (subtitle != null) {
+        Text(
+            subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 6.dp, bottom = 12.dp),
         )
     }
 }
@@ -56,19 +104,49 @@ fun ActionCard(
     detail: String,
     action: String,
     onClick: () -> Unit,
+    emphasis: ActionCardEmphasis = ActionCardEmphasis.PRIMARY,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (emphasis == ActionCardEmphasis.PRIMARY) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+            ),
     ) {
-        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(title, style = MaterialTheme.typography.headlineSmall)
-            Text(detail, style = MaterialTheme.typography.bodyLarge)
-            Button(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp)) {
-                Text(action, style = MaterialTheme.typography.titleMedium)
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(detail, style = MaterialTheme.typography.bodyMedium)
+            if (emphasis == ActionCardEmphasis.PRIMARY) {
+                Button(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    ActionCardButtonContent(action)
+                }
+            } else {
+                OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    ActionCardButtonContent(action)
+                }
             }
         }
     }
+}
+
+enum class ActionCardEmphasis {
+    PRIMARY,
+    SECONDARY,
+}
+
+@Composable
+private fun ActionCardButtonContent(action: String) {
+    Text(action, style = MaterialTheme.typography.labelLarge)
+    Icon(
+        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+        contentDescription = null,
+        modifier = Modifier.padding(start = 8.dp),
+    )
 }
 
 /** Long explanations stay available without overwhelming the primary controls. */
@@ -87,7 +165,10 @@ fun DetailSection(
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                Text(if (expanded) "−" else "+", style = MaterialTheme.typography.titleLarge)
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = null,
+                )
             }
         }
         AnimatedVisibility(expanded) {
@@ -116,6 +197,8 @@ fun CollapsibleNotice(
     contentColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSecondaryContainer,
 ) {
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    val state = stringResource(if (expanded) R.string.section_expanded else R.string.section_collapsed)
+    val toggleDescription = stringResource(if (expanded) R.string.notice_collapse else R.string.notice_expand)
     Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = containerColor)) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -125,8 +208,19 @@ fun CollapsibleNotice(
                     color = contentColor,
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = { expanded = !expanded }) {
-                    Text(stringResource(if (expanded) R.string.notice_hide else R.string.notice_details))
+                IconButton(
+                    onClick = { expanded = !expanded },
+                    modifier =
+                        Modifier.semantics {
+                            contentDescription = toggleDescription
+                            stateDescription = state
+                        },
+                ) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = null,
+                        tint = contentColor,
+                    )
                 }
             }
             AnimatedVisibility(expanded) {

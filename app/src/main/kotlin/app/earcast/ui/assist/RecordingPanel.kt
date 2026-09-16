@@ -45,9 +45,9 @@ internal fun RecordingPanel(
     val scope = rememberCoroutineScope()
     var exporting by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    Card(Modifier.fillMaxWidth().padding(top = 16.dp)) {
+    Card(Modifier.fillMaxWidth().padding(top = 12.dp)) {
         Column(Modifier.padding(16.dp)) {
-            Text("Sound comparison recording", style = MaterialTheme.typography.titleMedium)
+            Text("Sound comparison recording", style = MaterialTheme.typography.titleSmall)
             Text(
                 "Record up to 30 seconds of microphone and processed sound on your next start. " +
                     "Recordings stay on this device until you choose Export.",
@@ -59,7 +59,7 @@ internal fun RecordingPanel(
                     onCheckedChange = viewModel::armDiagnostics,
                     enabled = !active && !state.saving && !exporting,
                 )
-                Text("Record next session")
+                Text("Record next session", style = MaterialTheme.typography.bodyMedium)
             }
             OutlinedTextField(
                 value = state.notes,
@@ -69,7 +69,7 @@ internal fun RecordingPanel(
                 maxLines = 3,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Text(state.message, style = MaterialTheme.typography.bodySmall)
+            Text(state.message, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
             Row {
                 TextButton(
                     enabled = !active && !state.saving && !exporting && state.lastDirectory != null,

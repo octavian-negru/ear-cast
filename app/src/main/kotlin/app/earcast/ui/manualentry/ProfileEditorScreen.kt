@@ -3,7 +3,6 @@
 package app.earcast.ui.manualentry
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -11,10 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -23,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.ScreenHeader
 
 /**
  * Manual audiogram entry with plotted thresholds.
@@ -36,15 +34,18 @@ fun ProfileEditorScreen(
 ) {
     val levels by viewModel.levels.collectAsStateWithLifecycle()
     val previewState by viewModel.previewState.collectAsStateWithLifecycle()
+    DisposableEffect(viewModel) {
+        onDispose { viewModel.stopPreview() }
+    }
 
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        Text(stringResource(R.string.manual_title), style = MaterialTheme.typography.headlineSmall)
+        ScreenHeader(title = stringResource(R.string.manual_title), onBack = onBack)
         CollapsibleNotice(
             title = stringResource(R.string.manual_notice_title),
             body = stringResource(R.string.manual_intro),
@@ -62,11 +63,12 @@ fun ProfileEditorScreen(
 
         Button(
             onClick = { viewModel.save(onSaved = onBack) },
-            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(top = 16.dp),
-        ) { Text(stringResource(R.string.manual_save), style = MaterialTheme.typography.titleMedium) }
-        Spacer(Modifier.padding(4.dp))
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.back))
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(top = 16.dp),
+        ) {
+            androidx.compose.material3.Text(
+                stringResource(R.string.manual_save),
+                style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
+            )
         }
     }
 }

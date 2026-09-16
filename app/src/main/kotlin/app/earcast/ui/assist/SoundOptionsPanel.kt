@@ -41,9 +41,9 @@ internal fun SoundOptionsPanel(
     enabled: Boolean,
     onChange: (EnhancementOptions) -> Unit,
 ) {
-    Card(Modifier.fillMaxWidth().padding(top = 16.dp)) {
+    Card(Modifier.fillMaxWidth().padding(top = 12.dp)) {
         Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleSmall)
             Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
             EngineChoice(options.speechEngine, enabled) { onChange(options.copy(speechEngine = it)) }
             Text(

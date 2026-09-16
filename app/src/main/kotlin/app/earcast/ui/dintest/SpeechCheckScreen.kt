@@ -5,7 +5,6 @@ package app.earcast.ui.dintest
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -18,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.audiogram.SpeechProtocol
 import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.ScreenHeader
 
 /**
  * Listening-in-noise check: spoken digits in adaptive background noise. The
@@ -41,21 +42,24 @@ fun SpeechCheckScreen(
     viewModel: SpeechCheckStateModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    DisposableEffect(viewModel) {
+        onDispose { viewModel.mute() }
+    }
 
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        Text(stringResource(R.string.din_title), style = MaterialTheme.typography.headlineSmall)
+        ScreenHeader(title = stringResource(R.string.din_title), onBack = onBack)
         NoticeCard()
 
         when (state.phase) {
-            SpeechCheckPhase.NOT_STARTED -> NotStarted(onStart = viewModel::start, onBack = onBack)
+            SpeechCheckPhase.NOT_STARTED -> NotStarted(onStart = viewModel::start)
             SpeechCheckPhase.IN_PROGRESS -> InProgress(state = state, viewModel = viewModel)
-            SpeechCheckPhase.DONE -> Results(state = state, onBack = onBack)
+            SpeechCheckPhase.DONE -> Results(state = state)
         }
     }
 }
@@ -70,10 +74,7 @@ private fun NoticeCard() {
 }
 
 @Composable
-private fun NotStarted(
-    onStart: () -> Unit,
-    onBack: () -> Unit,
-) {
+private fun NotStarted(onStart: () -> Unit) {
     Column {
         Text(
             stringResource(R.string.din_intro),
@@ -82,12 +83,8 @@ private fun NotStarted(
         )
         Button(
             onClick = onStart,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
-        ) { Text(stringResource(R.string.din_start), style = MaterialTheme.typography.titleMedium) }
-        Spacer(Modifier.padding(4.dp))
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.back))
-        }
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        ) { Text(stringResource(R.string.din_start), style = MaterialTheme.typography.labelLarge) }
     }
 }
 
@@ -122,19 +119,19 @@ private fun InProgress(
             OutlinedButton(
                 onClick = viewModel::backspace,
                 enabled = state.entered.isNotEmpty(),
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.din_backspace)) }
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.din_backspace), style = MaterialTheme.typography.labelLarge) }
             Button(
                 onClick = viewModel::submit,
                 enabled = state.entered.size == SpeechProtocol.TRIPLET_SIZE && !state.isPlaying,
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.din_submit)) }
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.din_submit), style = MaterialTheme.typography.labelLarge) }
         }
 
         Button(
             onClick = viewModel::mute,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(top = 16.dp),
-        ) { Text(stringResource(R.string.check_mute)) }
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 16.dp),
+        ) { Text(stringResource(R.string.check_mute), style = MaterialTheme.typography.labelLarge) }
     }
 }
 
@@ -146,7 +143,7 @@ private fun EnteredDigits(entered: List<Int>) {
         }.joinToString("  ")
     Text(
         display,
-        style = MaterialTheme.typography.displaySmall,
+        style = MaterialTheme.typography.headlineLarge,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.padding(vertical = 16.dp),
     )
@@ -165,8 +162,8 @@ private fun Keypad(
                     OutlinedButton(
                         onClick = { onDigit(digit) },
                         enabled = enabled,
-                        modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-                    ) { Text(digit.toString(), style = MaterialTheme.typography.titleLarge) }
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                    ) { Text(digit.toString(), style = MaterialTheme.typography.titleMedium) }
                 }
             }
         }
@@ -174,10 +171,7 @@ private fun Keypad(
 }
 
 @Composable
-private fun Results(
-    state: SpeechCheckState,
-    onBack: () -> Unit,
-) {
+private fun Results(state: SpeechCheckState) {
     Column {
         Text(
             stringResource(R.string.din_complete),
@@ -213,8 +207,5 @@ private fun Results(
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(vertical = 16.dp),
         )
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.back))
-        }
     }
 }

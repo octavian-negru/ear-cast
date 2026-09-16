@@ -28,7 +28,7 @@ fun ListeningMeterCard(
     modifier: Modifier = Modifier,
 ) {
     if (!running && exposure.todayPercent == 0) return
-    Card(modifier = modifier.fillMaxWidth().padding(top = 16.dp)) {
+    Card(modifier = modifier.fillMaxWidth().padding(top = 12.dp)) {
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.exposure_title), style = MaterialTheme.typography.titleSmall)
             Text(
@@ -40,7 +40,7 @@ fun ListeningMeterCard(
                 Text(
                     stringResource(R.string.exposure_session, formatDuration(exposure.sessionSeconds)),
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 12.dp),
+                    modifier = Modifier.padding(top = 10.dp),
                 )
                 Text(
                     stringResource(R.string.exposure_level_now),
@@ -55,7 +55,7 @@ fun ListeningMeterCard(
             Text(
                 stringResource(R.string.exposure_today, exposure.todayPercent),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 12.dp),
+                modifier = Modifier.padding(top = 10.dp),
             )
             LinearProgressIndicator(
                 progress = { (exposure.todayPercent / 100f).coerceIn(0f, 1f) },
@@ -66,7 +66,7 @@ fun ListeningMeterCard(
                     stringResource(R.string.exposure_high_note),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 12.dp),
+                    modifier = Modifier.padding(top = 10.dp),
                 )
             }
         }

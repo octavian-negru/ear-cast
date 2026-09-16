@@ -35,7 +35,7 @@ fun SoundPreviewCard(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     if (!state.available) return
 
-    Card(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Card(modifier = modifier.fillMaxWidth().padding(top = 12.dp)) {
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.demo_title), style = MaterialTheme.typography.titleSmall)
             Text(
@@ -61,13 +61,13 @@ fun SoundPreviewCard(
                     )
                     Text(
                         stringResource(R.string.demo_toggle),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(start = 12.dp),
                     )
                 }
                 Button(
                     onClick = viewModel::togglePlayback,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 8.dp),
                 ) {
                     Text(
                         if (state.playing) {

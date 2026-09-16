@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,6 +38,7 @@ import app.earcast.R
 import app.earcast.audiogram.HearingCurve
 import app.earcast.common.AudioEar
 import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.ScreenHeader
 import app.earcast.ui.demo.SoundPreviewCard
 import app.earcast.ui.share.ProfileShareDialog
 
@@ -52,24 +54,25 @@ fun ToneCheckScreen(
     viewModel: ToneCheckStateModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    DisposableEffect(viewModel) {
+        onDispose { viewModel.mute() }
+    }
 
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        Text(stringResource(R.string.check_title), style = MaterialTheme.typography.headlineSmall)
+        ScreenHeader(title = stringResource(R.string.check_title), onBack = onBack)
         CalibrationNotice()
 
         when (state.phase) {
-            ToneCheckPhase.NOT_STARTED ->
-                NotStarted(onStart = viewModel::start, onManualEntry = onManualEntry, onBack = onBack)
+            ToneCheckPhase.NOT_STARTED -> NotStarted(onStart = viewModel::start, onManualEntry = onManualEntry)
             ToneCheckPhase.IN_PROGRESS ->
                 InProgress(state = state, viewModel = viewModel)
-            ToneCheckPhase.DONE ->
-                Results(state = state, onRestart = viewModel::start, onBack = onBack)
+            ToneCheckPhase.DONE -> Results(state = state, onRestart = viewModel::start)
         }
     }
 }
@@ -87,24 +90,19 @@ private fun CalibrationNotice() {
 private fun NotStarted(
     onStart: () -> Unit,
     onManualEntry: () -> Unit,
-    onBack: () -> Unit,
 ) {
     Column {
         Text(
             stringResource(R.string.check_intro),
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+            modifier = Modifier.padding(top = 8.dp, bottom = 20.dp),
         )
         BigButton(stringResource(R.string.check_start), onClick = onStart)
         Spacer(Modifier.padding(4.dp))
         OutlinedButton(
             onClick = onManualEntry,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) { Text(stringResource(R.string.check_manual_entry)) }
-        Spacer(Modifier.padding(4.dp))
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.back))
-        }
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        ) { Text(stringResource(R.string.check_manual_entry), style = MaterialTheme.typography.labelLarge) }
     }
 }
 
@@ -148,8 +146,8 @@ private fun InProgress(
         Spacer(Modifier.padding(4.dp))
         OutlinedButton(
             onClick = viewModel::replay,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) { Text(stringResource(R.string.check_replay)) }
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        ) { Text(stringResource(R.string.check_replay), style = MaterialTheme.typography.labelLarge) }
 
         SafetyControls(state = state, viewModel = viewModel)
     }
@@ -174,8 +172,8 @@ private fun SafetyControls(
             )
             Button(
                 onClick = viewModel::mute,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.check_mute)) }
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.check_mute), style = MaterialTheme.typography.labelLarge) }
         }
     }
 }
@@ -184,7 +182,6 @@ private fun SafetyControls(
 private fun Results(
     state: ToneCheckState,
     onRestart: () -> Unit,
-    onBack: () -> Unit,
 ) {
     var showShare by rememberSaveable { mutableStateOf(false) }
     Column {
@@ -207,15 +204,12 @@ private fun Results(
         state.audiogram?.let { audiogram ->
             OutlinedButton(
                 onClick = { showShare = true },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.check_share)) }
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.check_share), style = MaterialTheme.typography.labelLarge) }
             Spacer(Modifier.padding(4.dp))
             if (showShare) {
                 ProfileShareDialog(audiogram = audiogram, onDismiss = { showShare = false })
             }
-        }
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.back))
         }
     }
 }
@@ -286,9 +280,9 @@ private fun BigButton(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .heightIn(min = 64.dp),
+                .heightIn(min = 56.dp),
     ) {
-        Text(label, style = MaterialTheme.typography.titleMedium)
+        Text(label, style = MaterialTheme.typography.labelLarge)
     }
 }
 
