@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import app.earcast.R
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.PageHeading
+import app.earcast.ui.common.SoundMark
 
 @Composable
 fun OnboardingScreen(onAccept: () -> Unit) {
@@ -29,6 +30,7 @@ fun OnboardingScreen(onAccept: () -> Unit) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 24.dp),
     ) {
+        SoundMark(Modifier.padding(bottom = 8.dp))
         PageHeading(stringResource(R.string.app_name), stringResource(R.string.onboarding_welcome))
         CollapsibleNotice(
             title = stringResource(R.string.disclaimer_title),

@@ -104,17 +104,23 @@ fun ProfileChart(
                         } else {
                             Modifier.pointerInput(frequencies, onPointChange) {
                                 detectTapGestures { point ->
-                                    val left = 32.dp.toPx()
-                                    val right = size.width - 12.dp.toPx()
-                                    val top = 8.dp.toPx()
-                                    val bottom = size.height - 20.dp.toPx()
-                                    if (point.x in left..right && point.y in top..bottom) {
-                                        val fraction = (point.x - left) / (right - left)
+                                    val plotLeft = 32.dp.toPx()
+                                    val plotRight = size.width - 12.dp.toPx()
+                                    val plotTop = 8.dp.toPx()
+                                    val plotBottom = size.height - 20.dp.toPx()
+                                    val hitLeft = maxOf(0f, plotLeft - 28.dp.toPx())
+                                    val hitRight = minOf(size.width.toFloat(), plotRight + 28.dp.toPx())
+                                    val hitTop = maxOf(0f, plotTop - 24.dp.toPx())
+                                    val hitBottom = minOf(size.height.toFloat(), plotBottom + 24.dp.toPx())
+                                    if (point.x in hitLeft..hitRight && point.y in hitTop..hitBottom) {
+                                        val x = point.x.coerceIn(plotLeft, plotRight)
+                                        val y = point.y.coerceIn(plotTop, plotBottom)
+                                        val fraction = (x - plotLeft) / (plotRight - plotLeft)
                                         val logFrequency =
                                             log2(frequencies.first()) +
                                                 fraction * (log2(frequencies.last()) - log2(frequencies.first()))
                                         val frequency = frequencies.minBy { abs(log2(it) - logFrequency) }
-                                        val level = DB_MIN + (point.y - top) / (bottom - top) * (DB_MAX - DB_MIN)
+                                        val level = DB_MIN + (y - plotTop) / (plotBottom - plotTop) * (DB_MAX - DB_MIN)
                                         onPointChange(frequency, level)
                                     }
                                 }

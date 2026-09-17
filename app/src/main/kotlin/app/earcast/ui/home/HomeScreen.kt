@@ -35,6 +35,7 @@ import app.earcast.ui.common.ActionCardEmphasis
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
 import app.earcast.ui.common.PageHeading
+import app.earcast.ui.common.SoundMark
 
 @Composable
 fun HomeScreen(
@@ -51,6 +52,7 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
+        SoundMark(Modifier.padding(bottom = 4.dp))
         PageHeading(stringResource(R.string.app_name), stringResource(R.string.home_subtitle))
         SafetyDisclaimer()
         HomeActions(state = state, onOpenProfile = onOpenProfile, onOpenAssist = onOpenAssist)

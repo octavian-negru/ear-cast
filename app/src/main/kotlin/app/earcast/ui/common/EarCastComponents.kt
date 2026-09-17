@@ -3,6 +3,7 @@
 package app.earcast.ui.common
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,17 +19,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,7 +62,6 @@ fun PageHeading(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun ScreenHeader(
     title: String,
     subtitle: String? = null,
@@ -73,21 +71,19 @@ fun ScreenHeader(
         PageHeading(title, subtitle)
         return
     }
-    TopAppBar(
-        title = {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics { heading() },
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
-    )
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+        }
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { heading() },
+        )
+    }
     if (subtitle != null) {
         Text(
             subtitle,
@@ -114,19 +110,30 @@ fun ActionCard(
                     if (emphasis == ActionCardEmphasis.PRIMARY) {
                         MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        MaterialTheme.colorScheme.surfaceVariant
+                        MaterialTheme.colorScheme.surface
                     },
             ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(detail, style = MaterialTheme.typography.bodyMedium)
             if (emphasis == ActionCardEmphasis.PRIMARY) {
-                Button(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Button(
+                    onClick = onClick,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                ) {
                     ActionCardButtonContent(action)
                 }
             } else {
-                OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                OutlinedButton(
+                    onClick = onClick,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
                     ActionCardButtonContent(action)
                 }
             }
@@ -239,14 +246,22 @@ fun CollapsibleNotice(
 @Composable
 fun SoundMark(modifier: Modifier = Modifier) {
     val color = MaterialTheme.colorScheme.primary
-    Canvas(modifier.fillMaxWidth().height(68.dp)) {
-        val heights = listOf(0.2f, 0.4f, 0.7f, 1f, 0.65f, 0.35f, 0.6f, 0.85f, 0.5f, 0.25f, 0.4f)
-        val spacing = 16.dp.toPx()
-        val start = (size.width - spacing * (heights.size - 1)) / 2
-        heights.forEachIndexed { index, fraction ->
-            val half = size.height * fraction * 0.42f
-            val x = start + index * spacing
-            drawLine(color, Offset(x, center.y - half), Offset(x, center.y + half), 7.dp.toPx(), StrokeCap.Round)
+    val markerColor = MaterialTheme.colorScheme.tertiary
+    Canvas(modifier.fillMaxWidth().height(42.dp)) {
+        val centerY = center.y
+        val dotRadius = 5.dp.toPx()
+        drawCircle(markerColor, dotRadius, Offset(12.dp.toPx(), centerY))
+        val points =
+            listOf(
+                Offset(24.dp.toPx(), centerY),
+                Offset(34.dp.toPx(), centerY - 10.dp.toPx()),
+                Offset(44.dp.toPx(), centerY + 7.dp.toPx()),
+                Offset(54.dp.toPx(), centerY - 16.dp.toPx()),
+                Offset(64.dp.toPx(), centerY + 4.dp.toPx()),
+                Offset(74.dp.toPx(), centerY),
+            )
+        points.zipWithNext().forEach { (start, end) ->
+            drawLine(color, start, end, 3.dp.toPx(), StrokeCap.Round)
         }
     }
 }
