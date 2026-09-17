@@ -2,13 +2,9 @@
 
 package app.earcast.ui.demo
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -21,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioPanel
 
 /**
  * "Hear the difference" A/B demo card: plays the sample sound with a live
@@ -35,55 +34,52 @@ fun SoundPreviewCard(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     if (!state.available) return
 
-    Card(modifier = modifier.fillMaxWidth().padding(top = 12.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.demo_title), style = MaterialTheme.typography.titleSmall)
+    StudioPanel(modifier = modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.demo_title), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.demo_desc),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        if (state.assistRunning) {
             Text(
-                stringResource(R.string.demo_desc),
+                stringResource(R.string.demo_assist_running),
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 12.dp),
             )
-            if (state.assistRunning) {
-                Text(
-                    stringResource(R.string.demo_assist_running),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 12.dp),
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            ) {
+                Switch(
+                    checked = state.processedActive,
+                    onCheckedChange = viewModel::setProcessed,
                 )
-            } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                ) {
-                    Switch(
-                        checked = state.processedActive,
-                        onCheckedChange = viewModel::setProcessed,
-                    )
-                    Text(
-                        stringResource(R.string.demo_toggle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 12.dp),
-                    )
-                }
-                Button(
-                    onClick = viewModel::togglePlayback,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 8.dp),
-                ) {
-                    Text(
-                        if (state.playing) {
-                            stringResource(R.string.demo_stop)
-                        } else {
-                            stringResource(R.string.demo_play)
-                        },
-                    )
-                }
                 Text(
-                    stringResource(R.string.demo_flat_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
+                    stringResource(R.string.demo_toggle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 12.dp),
                 )
             }
+            StudioButton(
+                label =
+                    if (state.playing) {
+                        stringResource(R.string.demo_stop)
+                    } else {
+                        stringResource(R.string.demo_play)
+                    },
+                onClick = viewModel::togglePlayback,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                style = if (state.playing) StudioButtonStyle.DANGER else StudioButtonStyle.PRIMARY,
+            )
+            Text(
+                stringResource(R.string.demo_flat_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }

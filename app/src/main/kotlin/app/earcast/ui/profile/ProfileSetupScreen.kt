@@ -2,16 +2,9 @@
 
 package app.earcast.ui.profile
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,6 +16,13 @@ import app.earcast.ui.common.ActionCardEmphasis
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
 import app.earcast.ui.common.PageHeading
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioPage
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSectionLabel
+import app.earcast.ui.common.StudioStatus
+import app.earcast.ui.common.StudioTone
 
 @Composable
 fun ProfileSetupScreen(
@@ -32,18 +32,12 @@ fun ProfileSetupScreen(
     onManualEntry: () -> Unit,
     onRunDinTest: () -> Unit,
 ) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-    ) {
+    StudioPage {
         PageHeading(stringResource(R.string.nav_profile), stringResource(R.string.profile_subtitle))
-        ProfileNotice()
         ProfileStatus(hasProfile)
         ProfileRoutes(onRunHearingTest, onManualEntry)
         if (showDinTest) AdditionalTools(onRunDinTest)
+        ProfileNotice()
     }
 }
 
@@ -53,19 +47,26 @@ private fun ProfileNotice() {
         title = stringResource(R.string.notice_summary),
         body = stringResource(R.string.disclaimer_body),
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-        containerColor = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     )
 }
 
 @Composable
 private fun ProfileStatus(hasProfile: Boolean) {
-    if (!hasProfile) return
-    Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+    StudioPanel(
+        modifier = Modifier.fillMaxWidth(),
+        tone = if (hasProfile) StudioTone.TINT else StudioTone.WARM,
+    ) {
+        StudioStatus(
+            label = stringResource(if (hasProfile) R.string.home_profile_ready else R.string.home_profile_needed),
+            active = hasProfile,
+        )
         Text(
-            stringResource(R.string.profile_ready),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(16.dp),
+            stringResource(if (hasProfile) R.string.profile_ready else R.string.profile_missing_detail),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 10.dp),
         )
     }
 }
@@ -75,12 +76,7 @@ private fun ProfileRoutes(
     onRunHearingTest: () -> Unit,
     onManualEntry: () -> Unit,
 ) {
-    Text(
-        stringResource(R.string.profile_setup_section),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 20.dp),
-    )
+    StudioSectionLabel(stringResource(R.string.profile_setup_section), modifier = Modifier.padding(top = 4.dp))
     ActionCard(
         title = stringResource(R.string.profile_check_title),
         detail = stringResource(R.string.profile_check_detail),
@@ -99,11 +95,11 @@ private fun ProfileRoutes(
 @Composable
 private fun AdditionalTools(onRunDinTest: () -> Unit) {
     DetailSection(title = stringResource(R.string.home_tools_section)) {
-        OutlinedButton(
+        StudioButton(
+            label = stringResource(R.string.home_din_test),
             onClick = onRunDinTest,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 4.dp),
-        ) {
-            Text(stringResource(R.string.home_din_test), style = MaterialTheme.typography.labelLarge)
-        }
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            style = StudioButtonStyle.SECONDARY,
+        )
     }
 }

@@ -5,16 +5,10 @@ package app.earcast.ui.dintest
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -29,6 +23,13 @@ import app.earcast.R
 import app.earcast.audiogram.SpeechProtocol
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.ScreenHeader
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioPage
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSectionLabel
+import app.earcast.ui.common.StudioStatus
+import app.earcast.ui.common.StudioTone
 
 /**
  * Listening-in-noise check: spoken digits in adaptive background noise. The
@@ -46,13 +47,7 @@ fun SpeechCheckScreen(
         onDispose { viewModel.mute() }
     }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-    ) {
+    StudioPage {
         ScreenHeader(title = stringResource(R.string.din_title), onBack = onBack)
         NoticeCard()
 
@@ -75,16 +70,19 @@ private fun NoticeCard() {
 
 @Composable
 private fun NotStarted(onStart: () -> Unit) {
-    Column {
+    StudioPanel(tone = StudioTone.TINT, modifier = Modifier.fillMaxWidth()) {
+        StudioSectionLabel(stringResource(R.string.din_prepare_title), index = "01")
         Text(
             stringResource(R.string.din_intro),
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 10.dp, bottom = 18.dp),
         )
-        Button(
+        StudioButton(
+            label = stringResource(R.string.din_start),
             onClick = onStart,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) { Text(stringResource(R.string.din_start), style = MaterialTheme.typography.labelLarge) }
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -94,44 +92,51 @@ private fun InProgress(
     viewModel: SpeechCheckStateModel,
 ) {
     Column {
-        LinearProgressIndicator(
-            progress = { state.tripletNumber.toFloat() / state.totalTriplets },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-        )
-        Text(
-            stringResource(R.string.din_progress, state.tripletNumber, state.totalTriplets),
-            style = MaterialTheme.typography.labelLarge,
-        )
-        Text(
-            if (state.isPlaying) {
-                stringResource(R.string.din_playing)
-            } else {
-                stringResource(R.string.din_enter_prompt)
-            },
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 12.dp),
-        )
-
-        EnteredDigits(state.entered)
+        StudioPanel(tone = StudioTone.DARK, modifier = Modifier.fillMaxWidth()) {
+            StudioStatus(
+                stringResource(R.string.din_progress, state.tripletNumber, state.totalTriplets),
+                active = state.isPlaying,
+            )
+            LinearProgressIndicator(
+                progress = { state.tripletNumber.toFloat() / state.totalTriplets },
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            )
+            Text(
+                if (state.isPlaying) {
+                    stringResource(R.string.din_playing)
+                } else {
+                    stringResource(R.string.din_enter_prompt)
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier.padding(top = 16.dp),
+            )
+            EnteredDigits(state.entered)
+        }
         Keypad(enabled = !state.isPlaying, onDigit = viewModel::tapDigit)
 
         Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(
+            StudioButton(
+                label = stringResource(R.string.din_backspace),
                 onClick = viewModel::backspace,
                 enabled = state.entered.isNotEmpty(),
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-            ) { Text(stringResource(R.string.din_backspace), style = MaterialTheme.typography.labelLarge) }
-            Button(
+                modifier = Modifier.weight(1f),
+                style = StudioButtonStyle.SECONDARY,
+            )
+            StudioButton(
+                label = stringResource(R.string.din_submit),
                 onClick = viewModel::submit,
                 enabled = state.entered.size == SpeechProtocol.TRIPLET_SIZE && !state.isPlaying,
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-            ) { Text(stringResource(R.string.din_submit), style = MaterialTheme.typography.labelLarge) }
+                modifier = Modifier.weight(1f),
+            )
         }
 
-        Button(
+        StudioButton(
+            label = stringResource(R.string.check_mute),
             onClick = viewModel::mute,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 16.dp),
-        ) { Text(stringResource(R.string.check_mute), style = MaterialTheme.typography.labelLarge) }
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            style = StudioButtonStyle.DANGER,
+        )
     }
 }
 
@@ -145,7 +150,8 @@ private fun EnteredDigits(entered: List<Int>) {
         display,
         style = MaterialTheme.typography.headlineLarge,
         fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(vertical = 16.dp),
+        color = MaterialTheme.colorScheme.background,
+        modifier = Modifier.padding(vertical = 14.dp),
     )
 }
 
@@ -159,11 +165,13 @@ private fun Keypad(
         rows.forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { digit ->
-                    OutlinedButton(
+                    StudioButton(
+                        label = digit.toString(),
                         onClick = { onDigit(digit) },
                         enabled = enabled,
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    ) { Text(digit.toString(), style = MaterialTheme.typography.titleMedium) }
+                        modifier = Modifier.weight(1f),
+                        style = StudioButtonStyle.SECONDARY,
+                    )
                 }
             }
         }
@@ -172,12 +180,8 @@ private fun Keypad(
 
 @Composable
 private fun Results(state: SpeechCheckState) {
-    Column {
-        Text(
-            stringResource(R.string.din_complete),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-        )
+    StudioPanel(tone = StudioTone.TINT, modifier = Modifier.fillMaxWidth()) {
+        StudioStatus(stringResource(R.string.din_complete), active = true)
         if (state.pinnedAtEdge) {
             Text(
                 stringResource(R.string.din_result_pinned),

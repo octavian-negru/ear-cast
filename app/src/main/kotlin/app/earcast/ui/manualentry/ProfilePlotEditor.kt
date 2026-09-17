@@ -7,15 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +29,12 @@ import app.earcast.audiogram.HearingPoint
 import app.earcast.common.AudioEar
 import app.earcast.common.FrequencyHz
 import app.earcast.common.HearingDb
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioChoice
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSectionLabel
+import app.earcast.ui.common.StudioSplitRow
 import app.earcast.ui.hearingtest.ProfileChart
 import kotlin.math.roundToInt
 
@@ -68,50 +68,49 @@ internal fun ProfilePlotEditor(
             )
         }
 
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.manual_chart_title), style = MaterialTheme.typography.titleMedium)
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                listOf(AudioEar.RIGHT, AudioEar.LEFT).forEachIndexed { index, ear ->
-                    SegmentedButton(
-                        selected = selectedEar == ear,
-                        onClick = { selectedEar = ear },
-                        shape = SegmentedButtonDefaults.itemShape(index, 2),
-                    ) { Text(earLabel(ear)) }
-                }
+    StudioPanel(Modifier.fillMaxWidth()) {
+        StudioSectionLabel(stringResource(R.string.manual_chart_title), index = "01")
+        StudioSplitRow(modifier = Modifier.padding(top = 12.dp)) {
+            listOf(AudioEar.RIGHT, AudioEar.LEFT).forEach { ear ->
+                StudioChoice(
+                    label = earLabel(ear),
+                    selected = selectedEar == ear,
+                    onClick = { selectedEar = ear },
+                    modifier = Modifier.weight(1f),
+                )
             }
-            AudiogramEntryControl(
-                ear = selectedEar,
-                frequency = selectedFrequency,
-                levelDbHl = levels.getValue(selectedEar).getValue(selectedFrequency),
-                frequencies = frequencies,
-                onFrequencyChange = { selectedFrequency = it },
-                onLevelChange = { level -> onChange(selectedEar, selectedFrequency, level) },
-            )
-            Text(stringResource(R.string.manual_chart_hint), style = MaterialTheme.typography.bodySmall)
-            Text(stringResource(R.string.manual_level_axis), style = MaterialTheme.typography.labelMedium)
-            ProfileChart(
-                audiogram = audiogram,
-                description = stringResource(R.string.manual_chart_description, earLabel(selectedEar)),
-                onPointChange = { frequency, level ->
-                    selectedFrequency = frequency
-                    val step = ProfileEditorModel.LEVEL_STEP_DB
-                    onChange(selectedEar, frequency, (level / step).roundToInt() * step)
-                },
-            )
-            Text(stringResource(R.string.manual_frequency_axis), style = MaterialTheme.typography.labelMedium)
-            TonePreviewControl(
-                preview =
-                    TonePreviewData(
-                        ear = selectedEar,
-                        selectedFrequency = selectedFrequency,
-                        selectedLevel = levels.getValue(selectedEar).getValue(selectedFrequency),
-                        previewState = previewState,
-                    ),
-                onPreview = onPreview,
-                onStopPreview = onStopPreview,
-            )
         }
+        AudiogramEntryControl(
+            ear = selectedEar,
+            frequency = selectedFrequency,
+            levelDbHl = levels.getValue(selectedEar).getValue(selectedFrequency),
+            frequencies = frequencies,
+            onFrequencyChange = { selectedFrequency = it },
+            onLevelChange = { level -> onChange(selectedEar, selectedFrequency, level) },
+        )
+        Text(stringResource(R.string.manual_chart_hint), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.manual_level_axis), style = MaterialTheme.typography.labelMedium)
+        ProfileChart(
+            audiogram = audiogram,
+            description = stringResource(R.string.manual_chart_description, earLabel(selectedEar)),
+            onPointChange = { frequency, level ->
+                selectedFrequency = frequency
+                val step = ProfileEditorModel.LEVEL_STEP_DB
+                onChange(selectedEar, frequency, (level / step).roundToInt() * step)
+            },
+        )
+        Text(stringResource(R.string.manual_frequency_axis), style = MaterialTheme.typography.labelMedium)
+        TonePreviewControl(
+            preview =
+                TonePreviewData(
+                    ear = selectedEar,
+                    selectedFrequency = selectedFrequency,
+                    selectedLevel = levels.getValue(selectedEar).getValue(selectedFrequency),
+                    previewState = previewState,
+                ),
+            onPreview = onPreview,
+            onStopPreview = onStopPreview,
+        )
     }
 }
 
@@ -160,9 +159,12 @@ private fun FrequencyPicker(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth()) {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.manual_preview_frequency, selectedFrequency.toInt()))
-        }
+        StudioButton(
+            label = stringResource(R.string.manual_preview_frequency, selectedFrequency.toInt()),
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+            style = StudioButtonStyle.SECONDARY,
+        )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             frequencies.forEach { frequency ->
                 DropdownMenuItem(
@@ -199,16 +201,18 @@ private fun TonePreviewControl(
             style = MaterialTheme.typography.labelMedium,
         )
         if (preview.previewState.isPlaying) {
-            Button(onClick = onStopPreview, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.manual_preview_stop))
-            }
+            StudioButton(
+                label = stringResource(R.string.manual_preview_stop),
+                onClick = onStopPreview,
+                modifier = Modifier.fillMaxWidth(),
+                style = StudioButtonStyle.DANGER,
+            )
         } else {
-            Button(
+            StudioButton(
+                label = stringResource(R.string.manual_preview_play),
                 onClick = { onPreview(preview.ear, preview.selectedFrequency) },
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.manual_preview_play))
-            }
+            )
         }
         Text(
             stringResource(R.string.manual_preview_safety),

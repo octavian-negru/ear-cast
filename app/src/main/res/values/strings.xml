@@ -17,6 +17,10 @@
     <string name="onboarding_welcome">Welcome</string>
     <string name="onboarding_ack">Please read and acknowledge the above before using EarCast.</string>
     <string name="onboarding_agree">I understand and agree</string>
+    <string name="onboarding_private_title">Private by default</string>
+    <string name="onboarding_private_detail">No account, no ads and no internet permission. Your listening data stays on this device.</string>
+    <string name="onboarding_personal_title">Built around your hearing</string>
+    <string name="onboarding_personal_detail">Create a profile from a guided tone check or enter an existing audiogram.</string>
 
     <!-- Home -->
     <string name="home_hearing_check">Hearing check</string>
@@ -26,12 +30,16 @@
     <string name="home_tools_section">More tools</string>
     <string name="loading_app">Loading EarCast</string>
     <string name="home_media_section">Media playback</string>
+    <string name="home_profile_ready">Profile ready</string>
+    <string name="home_profile_needed">Profile needed</string>
+    <string name="home_private_status">Private on-device</string>
 
     <!-- Hearing check -->
     <string name="check_title">Hearing check</string>
     <string name="check_notice">Estimate only — uncalibrated. This check is not a medical test and not a substitute for a professional hearing exam. Use headphones in a quiet room. Keep the volume comfortable; stop if anything is too loud.</string>
     <string name="check_intro">You\'ll hear quiet tones at different pitches in each ear. After each tone, tap whether you heard it. It takes a couple of minutes.</string>
     <string name="check_start">Start hearing check</string>
+    <string name="check_prepare_title">Find a quiet place</string>
     <string name="check_progress">Point %1$d of %2$d</string>
     <string name="check_ear_freq">%1$s ear · %2$d Hz</string>
     <string name="check_playing">Playing tone…</string>
@@ -101,6 +109,13 @@
     <string name="assist_noise_description">Gentle reduces background noise while keeping more surrounding sound. Strong focuses more on speech and may soften quiet voices or other sounds. Compare with Off if distant voices disappear.</string>
     <string name="assist_quality_restart">Stop assist to change sound clarity settings.</string>
     <string name="assist_more_options">More options</string>
+    <string name="assist_signal_path">Signal path</string>
+    <string name="assist_console_ready">Ready when you are</string>
+    <string name="assist_console_ready_detail">Connect headphones, choose a comfortable level and start listening.</string>
+    <string name="assist_console_live">Listening is live</string>
+    <string name="assist_console_live_detail">Your microphone is being shaped through your sound profile.</string>
+    <string name="assist_gain_quieter">Quieter</string>
+    <string name="assist_gain_louder">Louder</string>
     <string name="assist_quiet_speech">Quiet speech boost</string>
     <string name="assist_mono_output">This output provides mono sound.</string>
     <string name="assist_quiet_speech_description">Gradually lifts quiet speech with noise reduction enabled. Off keeps the original speech level. Strong can also make background sound louder.</string>
@@ -166,6 +181,7 @@
     <string name="exposure_session">This session: %1$s</string>
     <string name="exposure_today">Today: %1$d%% of the daily meter</string>
     <string name="exposure_level_now">Output level</string>
+    <string name="exposure_live">Live level</string>
     <string name="exposure_high_note">Assist has been running loud for a while. Consider lowering the level or taking a break.</string>
 
     <!-- Listening-in-noise check (digits in noise) -->
@@ -174,6 +190,7 @@
     <string name="din_notice">This check estimates how well you pick out speech from background noise. Because it compares speech against noise, your volume setting barely affects the result — just set a comfortable level first. It is an estimate, not a diagnosis, and not a substitute for a professional hearing assessment.</string>
     <string name="din_intro">You\'ll hear three spoken digits mixed with noise, 24 times. After each one, type the digits you heard. The noise adapts as you go — it\'s normal for it to get hard; guess if unsure.</string>
     <string name="din_start">Start the check</string>
+    <string name="din_prepare_title">Listen, remember, enter</string>
     <string name="din_progress">Round %1$d of %2$d</string>
     <string name="din_playing">Listen…</string>
     <string name="din_enter_prompt">Type the three digits you heard.</string>
@@ -193,6 +210,8 @@
     <string name="settings_comfort_desc">Sets the maximum loudness assist mode will ever reach. Tap Preview, then lower the level if the tone is too loud. (For a precise dB SPL calibration you\'d need a sound-level meter — see docs.)</string>
     <string name="settings_comfort_slider">Maximum comfortable loudness</string>
     <string name="settings_comfort_preview">Preview maximum loudness</string>
+    <string name="settings_display_section">Display</string>
+    <string name="settings_listening_section">Listening ceiling</string>
 
     <!-- Media EQ (experimental) -->
     <string name="media_eq_title">Media sound (experimental)</string>
@@ -237,6 +256,7 @@
     <string name="profile_check_action">Try the tone check</string>
     <string name="profile_setup_section">Create or update your profile</string>
     <string name="profile_ready">Your saved profile is ready to use.</string>
+    <string name="profile_missing_detail">Choose the guided check or enter an audiogram to unlock personal listening.</string>
     <string name="notice_summary">Personal audio, not medical care</string>
     <string name="comfort_summary">Keep listening comfortable</string>
     <string name="estimate_summary">About these estimates</string>

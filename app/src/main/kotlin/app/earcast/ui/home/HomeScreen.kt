@@ -3,15 +3,9 @@
 package app.earcast.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -36,6 +30,11 @@ import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SoundMark
+import app.earcast.ui.common.StudioPage
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSectionLabel
+import app.earcast.ui.common.StudioSplitRow
+import app.earcast.ui.common.StudioStatus
 
 @Composable
 fun HomeScreen(
@@ -45,18 +44,22 @@ fun HomeScreen(
     onSetMediaEq: (Boolean) -> Unit,
     onSetMediaBoost: (Float) -> Unit,
 ) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-    ) {
-        SoundMark(Modifier.padding(bottom = 4.dp))
+    val profileStatusLabel =
+        if (state.hasProfile) R.string.home_profile_ready else R.string.home_profile_needed
+    StudioPage {
+        SoundMark()
         PageHeading(stringResource(R.string.app_name), stringResource(R.string.home_subtitle))
-        SafetyDisclaimer()
+        StudioSplitRow {
+            StudioStatus(
+                label = stringResource(profileStatusLabel),
+                active = state.hasProfile,
+                modifier = Modifier.weight(1f),
+            )
+            StudioStatus(label = stringResource(R.string.home_private_status), active = true)
+        }
         HomeActions(state = state, onOpenProfile = onOpenProfile, onOpenAssist = onOpenAssist)
         MediaPlaybackSection(state, onSetMediaEq, onSetMediaBoost)
+        SafetyDisclaimer()
     }
 }
 
@@ -66,8 +69,8 @@ private fun SafetyDisclaimer() {
         title = stringResource(R.string.disclaimer_title),
         body = stringResource(R.string.disclaimer_body),
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-        containerColor = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     )
 }
 
@@ -77,12 +80,7 @@ private fun HomeActions(
     onOpenProfile: () -> Unit,
     onOpenAssist: () -> Unit,
 ) {
-    Text(
-        stringResource(R.string.home_start_section),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 20.dp),
-    )
+    StudioSectionLabel(stringResource(R.string.home_start_section), modifier = Modifier.padding(top = 6.dp))
     if (state.hasProfile) {
         ActionCard(
             title = stringResource(R.string.listen_card_title),
@@ -117,20 +115,15 @@ private fun MediaPlaybackSection(
         title = stringResource(R.string.home_media_section),
         initiallyExpanded = state.mediaEqEnabled || state.mediaEqFailed,
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                MediaSoundToggle(state, onSetMediaEq)
-                Text(
-                    stringResource(R.string.media_eq_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                MediaBoostControl(state, onSetMediaBoost)
-                MediaSoundStatus(state)
-            }
+        StudioPanel(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+            MediaSoundToggle(state, onSetMediaEq)
+            Text(
+                stringResource(R.string.media_eq_desc),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            MediaBoostControl(state, onSetMediaBoost)
+            MediaSoundStatus(state)
         }
     }
 }

@@ -3,10 +3,13 @@
 package app.earcast.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +40,7 @@ import app.earcast.ui.home.HomeScreen
 import app.earcast.ui.manualentry.ProfileEditorScreen
 import app.earcast.ui.navigation.PrimaryDestination
 import app.earcast.ui.navigation.navigationBarContent
+import app.earcast.ui.navigation.primaryNavigationRail
 import app.earcast.ui.onboarding.OnboardingScreen
 import app.earcast.ui.profile.ProfileSetupScreen
 import app.earcast.ui.settings.SettingsScreen
@@ -56,6 +60,7 @@ fun EarCastApp(rootViewModel: AppStateModel = hiltViewModel()) {
                     .fillMaxSize()
                     .background(Brush.verticalGradient(listOf(colors.surface, colors.background))),
         ) {
+            SignalGrid()
             when (root.consentAccepted) {
                 null -> LoadingState()
                 false -> OnboardingScreen(onAccept = rootViewModel::acceptDisclaimer)
@@ -80,54 +85,109 @@ private fun MainNav(
     BackHandler(enabled = screen != AppDestination.HOME) {
         screen = if (screen.isProfileSetupFlow()) AppDestination.PROFILE else AppDestination.HOME
     }
-    Scaffold(
-        containerColor = Color.Transparent,
-        bottomBar = {
-            if (screen.showsPrimaryNavigation()) {
-                navigationBarContent(
-                    selected = screen.primaryDestination(),
-                    onDestinationSelected = { destination -> screen = destination.toAppDestination() },
-                )
-            }
-        },
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            Box(Modifier.widthIn(max = 720.dp).fillMaxWidth().fillMaxHeight()) {
-                when (screen) {
-                    AppDestination.HOME ->
-                        HomeScreen(
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val useRail = maxWidth >= 840.dp && screen.showsPrimaryNavigation()
+        Scaffold(
+            containerColor = Color.Transparent,
+            bottomBar = {
+                if (!useRail && screen.showsPrimaryNavigation()) {
+                    navigationBarContent(
+                        selected = screen.primaryDestination(),
+                        onDestinationSelected = { destination -> screen = destination.toAppDestination() },
+                    )
+                }
+            },
+        ) { innerPadding ->
+            Row(Modifier.fillMaxSize().padding(innerPadding)) {
+                if (useRail) {
+                    primaryNavigationRail(
+                        selected = screen.primaryDestination(),
+                        onDestinationSelected = { destination -> screen = destination.toAppDestination() },
+                    )
+                }
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    Box(Modifier.widthIn(max = if (useRail) 920.dp else 720.dp).fillMaxWidth().fillMaxHeight()) {
+                        DestinationContent(
+                            screen = screen,
                             state = state,
-                            onOpenProfile = { screen = AppDestination.PROFILE },
-                            onOpenAssist = { screen = AppDestination.ASSIST },
+                            onNavigate = { screen = it },
                             onSetMediaEq = onSetMediaEq,
                             onSetMediaBoost = onSetMediaBoost,
                         )
-                    AppDestination.PROFILE ->
-                        ProfileSetupScreen(
-                            hasProfile = state.hasProfile,
-                            showDinTest = state.dinAvailable,
-                            onRunHearingTest = { screen = AppDestination.HEARING_TEST },
-                            onManualEntry = { screen = AppDestination.MANUAL_ENTRY },
-                            onRunDinTest = { screen = AppDestination.DIN_TEST },
-                        )
-                    AppDestination.HEARING_TEST ->
-                        ToneCheckScreen(
-                            onBack = { screen = AppDestination.PROFILE },
-                            onManualEntry = { screen = AppDestination.MANUAL_ENTRY },
-                        )
-                    AppDestination.MANUAL_ENTRY -> ProfileEditorScreen(onBack = { screen = AppDestination.PROFILE })
-                    AppDestination.ASSIST ->
-                        ListenScreen(
-                            onBack = { screen = AppDestination.HOME },
-                            onOpenProfile = { screen = AppDestination.PROFILE },
-                        )
-                    AppDestination.DIN_TEST -> SpeechCheckScreen(onBack = { screen = AppDestination.PROFILE })
-                    AppDestination.SETTINGS -> SettingsScreen()
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DestinationContent(
+    screen: AppDestination,
+    state: AppState,
+    onNavigate: (AppDestination) -> Unit,
+    onSetMediaEq: (Boolean) -> Unit,
+    onSetMediaBoost: (Float) -> Unit,
+) {
+    when (screen) {
+        AppDestination.HOME ->
+            HomeScreen(
+                state = state,
+                onOpenProfile = { onNavigate(AppDestination.PROFILE) },
+                onOpenAssist = { onNavigate(AppDestination.ASSIST) },
+                onSetMediaEq = onSetMediaEq,
+                onSetMediaBoost = onSetMediaBoost,
+            )
+        AppDestination.PROFILE ->
+            ProfileSetupScreen(
+                hasProfile = state.hasProfile,
+                showDinTest = state.dinAvailable,
+                onRunHearingTest = { onNavigate(AppDestination.HEARING_TEST) },
+                onManualEntry = { onNavigate(AppDestination.MANUAL_ENTRY) },
+                onRunDinTest = { onNavigate(AppDestination.DIN_TEST) },
+            )
+        AppDestination.HEARING_TEST ->
+            ToneCheckScreen(
+                onBack = { onNavigate(AppDestination.PROFILE) },
+                onManualEntry = { onNavigate(AppDestination.MANUAL_ENTRY) },
+            )
+        AppDestination.MANUAL_ENTRY -> ProfileEditorScreen(onBack = { onNavigate(AppDestination.PROFILE) })
+        AppDestination.ASSIST -> ListenScreen(onOpenProfile = { onNavigate(AppDestination.PROFILE) })
+        AppDestination.DIN_TEST -> SpeechCheckScreen(onBack = { onNavigate(AppDestination.PROFILE) })
+        AppDestination.SETTINGS -> SettingsScreen()
+    }
+}
+
+@Composable
+private fun SignalGrid() {
+    val lineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+    Canvas(Modifier.fillMaxSize()) {
+        val horizontalStep = 56.dp.toPx()
+        val verticalStep = 72.dp.toPx()
+        var y = 0f
+        while (y <= size.height) {
+            drawLine(
+                lineColor,
+                androidx.compose.ui.geometry
+                    .Offset(0f, y),
+                androidx.compose.ui.geometry
+                    .Offset(size.width, y),
+            )
+            y += horizontalStep
+        }
+        var x = 0f
+        while (x <= size.width) {
+            drawLine(
+                lineColor,
+                androidx.compose.ui.geometry
+                    .Offset(x, 0f),
+                androidx.compose.ui.geometry
+                    .Offset(x, size.height),
+            )
+            x += verticalStep
         }
     }
 }

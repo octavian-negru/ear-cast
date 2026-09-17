@@ -5,16 +5,13 @@ package app.earcast.ui.assist
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +24,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSplitRow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,51 +46,55 @@ internal fun RecordingPanel(
     val scope = rememberCoroutineScope()
     var exporting by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    Card(Modifier.fillMaxWidth().padding(top = 12.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text("Sound comparison recording", style = MaterialTheme.typography.titleSmall)
-            Text(
-                "Record up to 30 seconds of microphone and processed sound on your next start. " +
-                    "Recordings stay on this device until you choose Export.",
-                style = MaterialTheme.typography.bodySmall,
+    StudioPanel(Modifier.fillMaxWidth()) {
+        Text("Sound comparison recording", style = MaterialTheme.typography.titleSmall)
+        Text(
+            "Record up to 30 seconds of microphone and processed sound on your next start. " +
+                "Recordings stay on this device until you choose Export.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Switch(
+                checked = state.armed,
+                onCheckedChange = viewModel::armDiagnostics,
+                enabled = !active && !state.saving && !exporting,
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Switch(
-                    checked = state.armed,
-                    onCheckedChange = viewModel::armDiagnostics,
-                    enabled = !active && !state.saving && !exporting,
-                )
-                Text("Record next session", style = MaterialTheme.typography.bodyMedium)
-            }
-            OutlinedTextField(
-                value = state.notes,
-                onValueChange = viewModel::setDiagnosticNotes,
-                label = { Text("Notes: distance, room, headset firmware") },
-                enabled = !active && !state.saving,
-                maxLines = 3,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(state.message, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
-            Row {
-                TextButton(
-                    enabled = !active && !state.saving && !exporting && state.lastDirectory != null,
-                    onClick = {
-                        val directory = state.lastDirectory ?: return@TextButton
-                        exporting = true
-                        error = null
-                        scope.launch {
-                            error = shareDiagnostic(context, directory)
-                            exporting = false
-                        }
-                    },
-                ) { Text("Export latest") }
-                TextButton(
-                    enabled = !active && !state.saving && !exporting,
-                    onClick = viewModel::deleteDiagnostics,
-                ) { Text("Delete recordings") }
-            }
-            error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            Text("Record next session", style = MaterialTheme.typography.bodyMedium)
         }
+        OutlinedTextField(
+            value = state.notes,
+            onValueChange = viewModel::setDiagnosticNotes,
+            label = { Text("Notes: distance, room, headset firmware") },
+            enabled = !active && !state.saving,
+            maxLines = 3,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(state.message, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+        StudioSplitRow(modifier = Modifier.padding(top = 8.dp)) {
+            StudioButton(
+                label = "Export latest",
+                enabled = !active && !state.saving && !exporting && state.lastDirectory != null,
+                modifier = Modifier.weight(1f),
+                style = StudioButtonStyle.SECONDARY,
+                onClick = export@{
+                    val directory = state.lastDirectory ?: return@export
+                    exporting = true
+                    error = null
+                    scope.launch {
+                        error = shareDiagnostic(context, directory)
+                        exporting = false
+                    }
+                },
+            )
+            StudioButton(
+                label = "Delete recordings",
+                enabled = !active && !state.saving && !exporting,
+                modifier = Modifier.weight(1f),
+                style = StudioButtonStyle.DANGER,
+                onClick = viewModel::deleteDiagnostics,
+            )
+        }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }
 }
 

@@ -3,17 +3,11 @@
 package app.earcast.ui.assist
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +27,11 @@ import app.earcast.core.audio.speech.InputMode
 import app.earcast.core.audio.speech.NoiseStrength
 import app.earcast.core.audio.speech.SpeechPresence
 import app.earcast.core.audio.speech.VoiceBoost
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioChoice
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSplitRow
 
 @Composable
 @Suppress("LongMethod")
@@ -41,83 +40,81 @@ internal fun SoundOptionsPanel(
     enabled: Boolean,
     onChange: (EnhancementOptions) -> Unit,
 ) {
-    Card(Modifier.fillMaxWidth().padding(top = 12.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleSmall)
-            Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
-            EngineChoice(options.speechEngine, enabled) { onChange(options.copy(speechEngine = it)) }
-            Text(
-                stringResource(
-                    when (options.speechEngine) {
-                        EnhancementEngine.RNNOISE -> R.string.assist_rnnoise_description
-                        EnhancementEngine.DPDFNET -> R.string.assist_engine_description
-                        EnhancementEngine.SPEEX -> R.string.assist_speex_description
-                        EnhancementEngine.WIENER -> R.string.assist_wiener_description
-                    },
-                ),
-                style = MaterialTheme.typography.bodySmall,
+    StudioPanel(Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
+        EngineChoice(options.speechEngine, enabled) { onChange(options.copy(speechEngine = it)) }
+        Text(
+            stringResource(
+                when (options.speechEngine) {
+                    EnhancementEngine.RNNOISE -> R.string.assist_rnnoise_description
+                    EnhancementEngine.DPDFNET -> R.string.assist_engine_description
+                    EnhancementEngine.SPEEX -> R.string.assist_speex_description
+                    EnhancementEngine.WIENER -> R.string.assist_wiener_description
+                },
+            ),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        QualityChoice(
+            stringResource(R.string.assist_capture_mode),
+            listOf(stringResource(R.string.assist_capture_natural), stringResource(R.string.assist_capture_call)),
+            options.captureMode.ordinal,
+            enabled,
+        ) { onChange(options.copy(captureMode = InputMode.entries[it])) }
+        val strengths =
+            listOf(
+                stringResource(R.string.assist_quality_off),
+                stringResource(R.string.assist_quality_gentle),
+                stringResource(R.string.assist_quality_strong),
             )
-            QualityChoice(
-                stringResource(R.string.assist_capture_mode),
-                listOf(stringResource(R.string.assist_capture_natural), stringResource(R.string.assist_capture_call)),
-                options.captureMode.ordinal,
-                enabled,
-            ) { onChange(options.copy(captureMode = InputMode.entries[it])) }
-            val strengths =
-                listOf(
-                    stringResource(R.string.assist_quality_off),
-                    stringResource(R.string.assist_quality_gentle),
-                    stringResource(R.string.assist_quality_strong),
-                )
-            QualityChoice(
-                stringResource(R.string.assist_speech_clarity),
-                strengths,
-                options.speechClarity.ordinal,
-                enabled,
-            ) {
-                onChange(options.copy(speechClarity = SpeechPresence.entries[it]))
-            }
-            QualityChoice(
-                stringResource(R.string.assist_voice_comfort),
-                strengths,
-                options.voiceComfort.ordinal,
-                enabled,
-            ) {
-                onChange(options.copy(voiceComfort = BassReduction.entries[it]))
-            }
-            QualityChoice(
-                stringResource(R.string.assist_noise_reduction),
-                strengths,
-                options.noiseReduction.ordinal,
-                enabled,
-            ) {
-                onChange(options.copy(noiseReduction = NoiseStrength.entries[it]))
-            }
-            Text(stringResource(R.string.assist_noise_description), style = MaterialTheme.typography.bodySmall)
-            QualityChoice(
-                stringResource(R.string.assist_quiet_speech),
-                strengths,
-                options.quietSpeech.ordinal,
-                enabled =
-                    enabled &&
-                        options.noiseReduction != NoiseStrength.OFF &&
-                        options.speechEngine == EnhancementEngine.RNNOISE,
-            ) {
-                onChange(options.copy(quietSpeech = VoiceBoost.entries[it]))
-            }
-            Text(
-                stringResource(
-                    if (options.speechEngine == EnhancementEngine.RNNOISE) {
-                        R.string.assist_quiet_speech_description
-                    } else {
-                        R.string.assist_other_engine_level_description
-                    },
-                ),
-                style = MaterialTheme.typography.bodySmall,
-            )
-            if (!enabled) {
-                Text(stringResource(R.string.assist_quality_restart), style = MaterialTheme.typography.bodySmall)
-            }
+        QualityChoice(
+            stringResource(R.string.assist_speech_clarity),
+            strengths,
+            options.speechClarity.ordinal,
+            enabled,
+        ) {
+            onChange(options.copy(speechClarity = SpeechPresence.entries[it]))
+        }
+        QualityChoice(
+            stringResource(R.string.assist_voice_comfort),
+            strengths,
+            options.voiceComfort.ordinal,
+            enabled,
+        ) {
+            onChange(options.copy(voiceComfort = BassReduction.entries[it]))
+        }
+        QualityChoice(
+            stringResource(R.string.assist_noise_reduction),
+            strengths,
+            options.noiseReduction.ordinal,
+            enabled,
+        ) {
+            onChange(options.copy(noiseReduction = NoiseStrength.entries[it]))
+        }
+        Text(stringResource(R.string.assist_noise_description), style = MaterialTheme.typography.bodySmall)
+        QualityChoice(
+            stringResource(R.string.assist_quiet_speech),
+            strengths,
+            options.quietSpeech.ordinal,
+            enabled =
+                enabled &&
+                    options.noiseReduction != NoiseStrength.OFF &&
+                    options.speechEngine == EnhancementEngine.RNNOISE,
+        ) {
+            onChange(options.copy(quietSpeech = VoiceBoost.entries[it]))
+        }
+        Text(
+            stringResource(
+                if (options.speechEngine == EnhancementEngine.RNNOISE) {
+                    R.string.assist_quiet_speech_description
+                } else {
+                    R.string.assist_other_engine_level_description
+                },
+            ),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        if (!enabled) {
+            Text(stringResource(R.string.assist_quality_restart), style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -142,9 +139,13 @@ private fun EngineChoice(
         modifier = Modifier.padding(top = 12.dp),
     )
     Box {
-        OutlinedButton(onClick = { expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
-            Text(labels.getValue(selected))
-        }
+        StudioButton(
+            label = labels.getValue(selected),
+            onClick = { expanded = true },
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth(),
+            style = StudioButtonStyle.SECONDARY,
+        )
         DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
             labels.forEach { (engine, label) ->
                 DropdownMenuItem(text = { Text(label) }, onClick = {
@@ -165,14 +166,15 @@ private fun QualityChoice(
     onChange: (Int) -> Unit,
 ) {
     Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 12.dp))
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+    StudioSplitRow(modifier = Modifier.padding(top = 6.dp)) {
         labels.forEachIndexed { index, label ->
-            SegmentedButton(
+            StudioChoice(
+                label = label,
                 selected = index == selected,
                 enabled = enabled,
                 onClick = { onChange(index) },
-                shape = SegmentedButtonDefaults.itemShape(index, labels.size),
-            ) { Text(label) }
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }

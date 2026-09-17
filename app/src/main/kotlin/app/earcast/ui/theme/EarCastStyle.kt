@@ -77,23 +77,25 @@ private val EarCastTypography =
         base.copy(
             headlineLarge =
                 base.headlineLarge.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontSize = 30.sp,
-                    lineHeight = 36.sp,
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 34.sp,
+                    lineHeight = 39.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.sp,
                 ),
             headlineMedium =
                 base.headlineMedium.copy(
-                    fontSize = 24.sp,
-                    lineHeight = 30.sp,
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 28.sp,
+                    lineHeight = 34.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.sp,
                 ),
             headlineSmall =
                 base.headlineSmall.copy(
-                    fontSize = 20.sp,
-                    lineHeight = 26.sp,
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 22.sp,
+                    lineHeight = 28.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.sp,
                 ),
@@ -103,7 +105,7 @@ private val EarCastTypography =
             bodyLarge = base.bodyLarge.copy(fontSize = 16.sp, lineHeight = 23.sp, letterSpacing = 0.sp),
             bodyMedium = base.bodyMedium.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
             bodySmall = base.bodySmall.copy(fontSize = 12.sp, lineHeight = 17.sp, letterSpacing = 0.sp),
-            labelLarge = base.labelLarge.copy(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold),
+            labelLarge = base.labelLarge.copy(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold),
             labelMedium = base.labelMedium.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold),
         )
     }

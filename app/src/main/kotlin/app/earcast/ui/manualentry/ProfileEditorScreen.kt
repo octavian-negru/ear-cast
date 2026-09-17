@@ -2,14 +2,8 @@
 
 package app.earcast.ui.manualentry
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -21,6 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.ScreenHeader
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioPage
 
 /**
  * Manual audiogram entry with plotted thresholds.
@@ -38,13 +34,7 @@ fun ProfileEditorScreen(
         onDispose { viewModel.stopPreview() }
     }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-    ) {
+    StudioPage {
         ScreenHeader(title = stringResource(R.string.manual_title), onBack = onBack)
         CollapsibleNotice(
             title = stringResource(R.string.manual_notice_title),
@@ -61,14 +51,10 @@ fun ProfileEditorScreen(
             onStopPreview = viewModel::stopPreview,
         )
 
-        Button(
+        StudioButton(
+            label = stringResource(R.string.manual_save),
             onClick = { viewModel.save(onSaved = onBack) },
-            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(top = 16.dp),
-        ) {
-            androidx.compose.material3.Text(
-                stringResource(R.string.manual_save),
-                style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
-            )
-        }
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        )
     }
 }

@@ -22,9 +22,10 @@ import app.earcast.ui.theme.EarCastTheme
 // The exported image must look identical from dark-mode or high-contrast
 // sessions, so every color here is pinned rather than taken from the ambient
 // theme (the light-theme wrapper covers what ProfileChart reads internally).
-private val Ink = Color(0xFF1B1B1B)
-private val InkSoft = Color(0xFF444444)
-private val Brand = Color(0xFF0B5D66)
+private val Ink = Color(0xFF1F292C)
+private val InkSoft = Color(0xFF596368)
+private val Brand = Color(0xFF2C5D63)
+private val Paper = Color(0xFFFFFCF7)
 
 /**
  * Fixed-size, always-light card rendered into the share image: title, date,
@@ -40,7 +41,7 @@ fun ProfileShareCard(
         // Surface (not a background modifier) so LocalContentColor flips to the
         // light scheme's onSurface for everything that doesn't set its own color,
         // e.g. the chart legend.
-        Surface(color = Color.White, modifier = modifier.width(300.dp)) {
+        Surface(color = Paper, modifier = modifier.width(300.dp)) {
             Column(Modifier.padding(20.dp)) {
                 Text(
                     stringResource(R.string.app_name),

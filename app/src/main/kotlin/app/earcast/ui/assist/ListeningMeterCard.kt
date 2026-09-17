@@ -2,10 +2,8 @@
 
 package app.earcast.ui.assist
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,6 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.earcast.R
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioStatus
+import app.earcast.ui.common.StudioTone
 import java.util.Locale
 
 /**
@@ -28,47 +29,46 @@ fun ListeningMeterCard(
     modifier: Modifier = Modifier,
 ) {
     if (!running && exposure.todayPercent == 0) return
-    Card(modifier = modifier.fillMaxWidth().padding(top = 12.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.exposure_title), style = MaterialTheme.typography.titleSmall)
+    StudioPanel(modifier = modifier.fillMaxWidth(), tone = StudioTone.TINT) {
+        if (running) StudioStatus(stringResource(R.string.exposure_live), active = true)
+        Text(stringResource(R.string.exposure_title), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.exposure_desc),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        if (running) {
             Text(
-                stringResource(R.string.exposure_desc),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            if (running) {
-                Text(
-                    stringResource(R.string.exposure_session, formatDuration(exposure.sessionSeconds)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 10.dp),
-                )
-                Text(
-                    stringResource(R.string.exposure_level_now),
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                LinearProgressIndicator(
-                    progress = { exposure.levelFraction },
-                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                )
-            }
-            Text(
-                stringResource(R.string.exposure_today, exposure.todayPercent),
+                stringResource(R.string.exposure_session, formatDuration(exposure.sessionSeconds)),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 10.dp),
             )
+            Text(
+                stringResource(R.string.exposure_level_now),
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(top = 8.dp),
+            )
             LinearProgressIndicator(
-                progress = { (exposure.todayPercent / 100f).coerceIn(0f, 1f) },
+                progress = { exposure.levelFraction },
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             )
-            if (exposure.showHighNote) {
-                Text(
-                    stringResource(R.string.exposure_high_note),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 10.dp),
-                )
-            }
+        }
+        Text(
+            stringResource(R.string.exposure_today, exposure.todayPercent),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        LinearProgressIndicator(
+            progress = { (exposure.todayPercent / 100f).coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        )
+        if (exposure.showHighNote) {
+            Text(
+                stringResource(R.string.exposure_high_note),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 10.dp),
+            )
         }
     }
 }

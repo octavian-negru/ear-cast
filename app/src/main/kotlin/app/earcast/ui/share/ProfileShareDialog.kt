@@ -3,17 +3,13 @@
 package app.earcast.ui.share
 
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import app.earcast.R
 import app.earcast.audiogram.HearingCurve
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSplitRow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -57,15 +57,13 @@ fun ProfileShareDialog(
     var sharing by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Card {
+        StudioPanel(modifier = Modifier.fillMaxWidth()) {
             Column(
-                Modifier
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
+                Modifier.verticalScroll(rememberScrollState()),
             ) {
                 Text(
                     stringResource(R.string.share_preview_title),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                 )
                 Row(Modifier.horizontalScroll(rememberScrollState())) {
                     ProfileShareCard(
@@ -85,14 +83,15 @@ fun ProfileShareDialog(
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 12.dp),
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.share_cancel))
-                    }
-                    Button(
+                StudioSplitRow(modifier = Modifier.padding(top = 16.dp)) {
+                    StudioButton(
+                        label = stringResource(R.string.share_cancel),
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        style = StudioButtonStyle.SECONDARY,
+                    )
+                    StudioButton(
+                        label = stringResource(R.string.share_send),
                         enabled = !sharing,
                         onClick = {
                             sharing = true
@@ -106,9 +105,7 @@ fun ProfileShareDialog(
                             }
                         },
                         modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.share_send))
-                    }
+                    )
                 }
             }
         }

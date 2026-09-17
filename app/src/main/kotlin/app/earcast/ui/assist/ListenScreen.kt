@@ -7,23 +7,17 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,12 +29,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,7 +48,15 @@ import app.earcast.core.audio.dsp.ListeningPreset
 import app.earcast.data.SoundProfile
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
-import app.earcast.ui.common.ScreenHeader
+import app.earcast.ui.common.PageHeading
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioPage
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSectionLabel
+import app.earcast.ui.common.StudioSplitRow
+import app.earcast.ui.common.StudioStatus
+import app.earcast.ui.common.StudioTone
 import app.earcast.ui.common.headphonesConnected
 import app.earcast.ui.demo.SoundPreviewCard
 import kotlinx.coroutines.launch
@@ -68,7 +70,6 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun ListenScreen(
-    onBack: () -> Unit,
     onOpenProfile: () -> Unit,
     viewModel: ListenStateModel = hiltViewModel(),
 ) {
@@ -109,14 +110,8 @@ fun ListenScreen(
         }
     }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-    ) {
-        ScreenHeader(title = stringResource(R.string.assist_title), onBack = onBack)
+    StudioPage {
+        PageHeading(stringResource(R.string.assist_title), stringResource(R.string.listen_subtitle))
         SafetyNote()
 
         if (!state.hasProfile) {
@@ -135,19 +130,19 @@ fun ListenScreen(
 
 @Composable
 private fun EmptyAssistState(onOpenProfile: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.assist_no_profile), style = MaterialTheme.typography.bodyMedium)
-            Button(
-                onClick = onOpenProfile,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 12.dp),
-            ) {
-                Text(stringResource(R.string.profile_card_action), style = MaterialTheme.typography.labelLarge)
-            }
-        }
+    StudioPanel(modifier = Modifier.fillMaxWidth(), tone = StudioTone.WARM) {
+        StudioSectionLabel(stringResource(R.string.home_profile_needed), index = "01")
+        Text(
+            stringResource(R.string.assist_no_profile),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        StudioButton(
+            label = stringResource(R.string.profile_card_action),
+            onClick = onOpenProfile,
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+        )
     }
 }
 
@@ -159,47 +154,21 @@ private fun AssistControls(
     onStart: () -> Unit,
     onStop: () -> Unit,
 ) {
-    Text(
-        when (state.sessionStatus.state) {
-            StreamPhase.CONNECTING -> stringResource(R.string.assist_connecting)
-            StreamPhase.RUNNING -> stringResource(R.string.assist_on)
-            else -> stringResource(R.string.assist_off)
-        },
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(top = 4.dp),
+    AssistConsole(
+        state = state,
+        onGainChange = viewModel::setMasterGain,
+        onStart = onStart,
+        onStop = onStop,
+        speakerWarning = speakerWarning,
     )
 
     SessionAudioStatus(state.sessionStatus)
 
     if (speakerWarning && !state.active) SpeakerWarning()
 
-    if (state.active) {
-        Button(
-            onClick = onStop,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(top = 12.dp),
-        ) { Text(stringResource(R.string.assist_stop_button), style = MaterialTheme.typography.labelLarge) }
-    } else {
-        Button(
-            onClick = onStart,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(top = 12.dp),
-        ) {
-            Text(
-                if (speakerWarning) {
-                    stringResource(R.string.assist_start_anyway)
-                } else {
-                    stringResource(R.string.assist_start)
-                },
-                style = MaterialTheme.typography.labelLarge,
-            )
-        }
-    }
-
     ListeningMeterCard(exposure = state.exposure, running = state.running)
 
-    GainControl(masterGainDb = state.masterGainDb, onChange = viewModel::setMasterGain)
-
+    StudioSectionLabel(stringResource(R.string.assist_signal_path), modifier = Modifier.padding(top = 4.dp))
     MicrophoneSelector(
         source = state.microphoneSource,
         enabled = !state.active,
@@ -235,54 +204,111 @@ private fun AssistControls(
 }
 
 @Composable
+private fun AssistConsole(
+    state: ListenState,
+    speakerWarning: Boolean,
+    onGainChange: (Double) -> Unit,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+) {
+    val active = state.active
+    val status =
+        when (state.sessionStatus.state) {
+            StreamPhase.CONNECTING -> stringResource(R.string.assist_connecting)
+            StreamPhase.RUNNING -> stringResource(R.string.assist_on)
+            else -> stringResource(R.string.assist_off)
+        }
+    StudioPanel(
+        modifier = Modifier.fillMaxWidth(),
+        tone = if (active) StudioTone.DARK else StudioTone.TINT,
+        padding = 18.dp,
+    ) {
+        StudioStatus(label = status, active = active)
+        Text(
+            stringResource(if (active) R.string.assist_console_live else R.string.assist_console_ready),
+            style = MaterialTheme.typography.headlineSmall,
+            color = if (active) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.padding(top = 14.dp),
+        )
+        Text(
+            stringResource(if (active) R.string.assist_console_live_detail else R.string.assist_console_ready_detail),
+            style = MaterialTheme.typography.bodyMedium,
+            color =
+                if (active) {
+                    MaterialTheme.colorScheme.background.copy(alpha = 0.74f)
+                } else {
+                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.74f)
+                },
+            modifier = Modifier.padding(top = 5.dp),
+        )
+        GainControl(
+            masterGainDb = state.masterGainDb,
+            onChange = onGainChange,
+            lightContent = active,
+        )
+        StudioButton(
+            label =
+                if (active) {
+                    stringResource(R.string.assist_stop_button)
+                } else if (speakerWarning) {
+                    stringResource(R.string.assist_start_anyway)
+                } else {
+                    stringResource(R.string.assist_start)
+                },
+            onClick = if (active) onStop else onStart,
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+            style = if (active) StudioButtonStyle.DANGER else StudioButtonStyle.PRIMARY,
+        )
+    }
+}
+
+@Composable
 private fun MicrophoneSelector(
     source: InputSource,
     enabled: Boolean,
     onChange: (InputSource) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.assist_microphone_title), style = MaterialTheme.typography.labelLarge)
-            Text(
-                when (source) {
-                    InputSource.PHONE -> stringResource(R.string.assist_phone_microphone_desc)
-                    InputSource.HEADSET -> stringResource(R.string.assist_headset_microphone_desc)
-                },
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            InputSource.entries.forEach { option ->
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 48.dp)
-                            .selectable(
-                                selected = option == source,
-                                enabled = enabled,
-                                role = Role.RadioButton,
-                                onClick = { onChange(option) },
-                            ),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(selected = option == source, onClick = null, enabled = enabled)
-                    Text(
-                        when (option) {
-                            InputSource.PHONE -> stringResource(R.string.assist_phone_microphone)
-                            InputSource.HEADSET -> stringResource(R.string.assist_headset_microphone)
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                }
-            }
-            if (!enabled) {
+    StudioPanel(modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.assist_microphone_title), style = MaterialTheme.typography.labelLarge)
+        Text(
+            when (source) {
+                InputSource.PHONE -> stringResource(R.string.assist_phone_microphone_desc)
+                InputSource.HEADSET -> stringResource(R.string.assist_headset_microphone_desc)
+            },
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        InputSource.entries.forEach { option ->
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .selectable(
+                            selected = option == source,
+                            enabled = enabled,
+                            role = Role.RadioButton,
+                            onClick = { onChange(option) },
+                        ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SelectionDot(selected = option == source)
                 Text(
-                    stringResource(R.string.assist_microphone_while_running),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp),
+                    when (option) {
+                        InputSource.PHONE -> stringResource(R.string.assist_phone_microphone)
+                        InputSource.HEADSET -> stringResource(R.string.assist_headset_microphone)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
+        }
+        if (!enabled) {
+            Text(
+                stringResource(R.string.assist_microphone_while_running),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 4.dp),
+            )
         }
     }
 }
@@ -293,31 +319,70 @@ private fun PresetSelector(
     running: Boolean,
     onChange: (ListeningPreset) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.preset_title), style = MaterialTheme.typography.labelLarge)
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                ListeningPreset.entries.forEachIndexed { index, entry ->
-                    SegmentedButton(
-                        selected = entry == preset,
-                        onClick = { onChange(entry) },
-                        shape =
-                            SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = ListeningPreset.entries.size,
-                            ),
-                    ) { Text(presetLabel(entry)) }
-                }
-            }
-            if (running) {
-                Text(
-                    stringResource(R.string.preset_while_running),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp),
+    StudioPanel(modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.preset_title), style = MaterialTheme.typography.labelLarge)
+        StudioSplitRow(modifier = Modifier.padding(top = 10.dp)) {
+            ListeningPreset.entries.forEachIndexed { index, entry ->
+                PresetTile(
+                    label = presetLabel(entry),
+                    selected = entry == preset,
+                    onClick = { onChange(entry) },
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
+        if (running) {
+            Text(
+                stringResource(R.string.preset_while_running),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
     }
+}
+
+@Composable
+private fun PresetTile(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val containerColor =
+        if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    Box(
+        modifier =
+            modifier
+                .heightIn(min = 50.dp)
+                .clip(MaterialTheme.shapes.small)
+                .background(containerColor)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
+                .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+                .padding(12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun SelectionDot(selected: Boolean) {
+    val fillColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+    Box(
+        modifier =
+            Modifier
+                .padding(horizontal = 6.dp)
+                .size(18.dp)
+                .clip(CircleShape)
+                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                .padding(4.dp)
+                .clip(CircleShape)
+                .background(fillColor),
+    )
 }
 
 @Composable
@@ -331,22 +396,41 @@ private fun presetLabel(preset: ListeningPreset): String =
 private fun GainControl(
     masterGainDb: Double,
     onChange: (Double) -> Unit,
+    lightContent: Boolean,
 ) {
     val sliderDescription = stringResource(R.string.assist_amplification_slider)
-    Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(
-                stringResource(R.string.assist_amplification, masterGainDb.toInt()),
-                style = MaterialTheme.typography.labelLarge,
-            )
-            Slider(
-                value = masterGainDb.toFloat(),
-                onValueChange = { onChange(it.toDouble()) },
-                valueRange =
-                    AudioLimits.MIN_MASTER_GAIN_DB.toFloat()..AudioLimits.MAX_MASTER_GAIN_CAP_DB.toFloat(),
-                modifier = Modifier.semantics { contentDescription = sliderDescription },
-            )
+    val contentColor =
+        if (lightContent) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onPrimaryContainer
+    val scaleColor =
+        if (lightContent) {
+            MaterialTheme.colorScheme.background.copy(alpha = 0.7f)
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
         }
+    Text(
+        stringResource(R.string.assist_amplification, masterGainDb.toInt()),
+        style = MaterialTheme.typography.titleMedium,
+        color = contentColor,
+        modifier = Modifier.padding(top = 18.dp),
+    )
+    Slider(
+        value = masterGainDb.toFloat(),
+        onValueChange = { onChange(it.toDouble()) },
+        valueRange =
+            AudioLimits.MIN_MASTER_GAIN_DB.toFloat()..AudioLimits.MAX_MASTER_GAIN_CAP_DB.toFloat(),
+        modifier = Modifier.semantics { contentDescription = sliderDescription },
+    )
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween) {
+        Text(
+            stringResource(R.string.assist_gain_quieter),
+            style = MaterialTheme.typography.labelMedium,
+            color = scaleColor,
+        )
+        Text(
+            stringResource(R.string.assist_gain_louder),
+            style = MaterialTheme.typography.labelMedium,
+            color = scaleColor,
+        )
     }
 }
 
@@ -358,55 +442,49 @@ private fun ProfilesCard(
     onSelect: (String) -> Unit,
     onDelete: (String) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.titleSmall)
-            profiles.forEach { profile ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 48.dp)
-                            .selectable(
-                                selected = profile.id == activeProfileId,
-                                role = Role.RadioButton,
-                                onClick = { onSelect(profile.id) },
-                            ),
-                ) {
-                    RadioButton(selected = profile.id == activeProfileId, onClick = null)
-                    Text(
-                        profile.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 8.dp).weight(1f),
-                    )
-                    TextButton(onClick = { onDelete(profile.id) }) {
-                        Text(stringResource(R.string.profile_delete))
-                    }
+    StudioPanel(modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.titleSmall)
+        profiles.forEach { profile ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .selectable(
+                            selected = profile.id == activeProfileId,
+                            role = Role.RadioButton,
+                            onClick = { onSelect(profile.id) },
+                        ),
+            ) {
+                SelectionDot(selected = profile.id == activeProfileId)
+                Text(
+                    profile.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 8.dp).weight(1f),
+                )
+                TextButton(onClick = { onDelete(profile.id) }) {
+                    Text(stringResource(R.string.profile_delete))
                 }
             }
-            if (running) {
-                Text(
-                    stringResource(R.string.profile_switch_while_running),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            }
+        }
+        if (running) {
+            Text(
+                stringResource(R.string.profile_switch_while_running),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }
 
 @Composable
 private fun SpeakerWarning() {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-    ) {
+    StudioPanel(modifier = Modifier.fillMaxWidth(), tone = StudioTone.DANGER) {
         Text(
             stringResource(R.string.assist_speaker_warning),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.padding(16.dp),
         )
     }
 }

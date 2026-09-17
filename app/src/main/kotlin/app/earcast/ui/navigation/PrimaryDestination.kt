@@ -5,11 +5,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -62,6 +66,46 @@ fun navigationBarContent(
                 modifier = Modifier.weight(1f),
             )
         }
+    }
+}
+
+@Composable
+fun primaryNavigationRail(
+    selected: PrimaryDestination,
+    onDestinationSelected: (PrimaryDestination) -> Unit,
+) {
+    Column(
+        modifier =
+            Modifier
+                .width(104.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.surface)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.onBackground),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("EC", color = MaterialTheme.colorScheme.background, style = MaterialTheme.typography.labelLarge)
+        }
+        Spacer(Modifier.weight(1f))
+        PrimaryDestination.entries.forEach { destination ->
+            navigationItem(
+                destination = destination,
+                selected = selected == destination,
+                onClick = { onDestinationSelected(destination) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        Spacer(Modifier.weight(1f))
     }
 }
 

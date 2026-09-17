@@ -3,16 +3,10 @@
 package app.earcast.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -31,19 +25,21 @@ import app.earcast.R
 import app.earcast.ui.AppStateModel
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.PageHeading
+import app.earcast.ui.common.StudioButton
+import app.earcast.ui.common.StudioButtonStyle
+import app.earcast.ui.common.StudioPage
+import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.StudioSectionLabel
+import app.earcast.ui.common.StudioTone
 
 @Composable
 fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
     val state by rootViewModel.uiState.collectAsStateWithLifecycle()
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-    ) {
+    StudioPage {
         PageHeading(stringResource(R.string.settings_title), stringResource(R.string.settings_subtitle))
+        StudioSectionLabel(stringResource(R.string.settings_display_section))
         AppearanceControl(state.highContrast, rootViewModel::setHighContrast)
+        StudioSectionLabel(stringResource(R.string.settings_listening_section), modifier = Modifier.padding(top = 4.dp))
         ComfortCalibration(
             ceiling = state.comfortCeiling,
             onChange = rootViewModel::setComfortCeiling,
@@ -60,7 +56,7 @@ private fun AppearanceControl(
     onChange: (Boolean) -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -76,24 +72,25 @@ private fun ComfortCalibration(
     onPreview: () -> Unit,
 ) {
     val sliderDescription = stringResource(R.string.settings_comfort_slider)
-    Card(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.settings_comfort_title), style = MaterialTheme.typography.titleSmall)
-            Text(
-                stringResource(R.string.settings_comfort_desc),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-            Slider(
-                value = ceiling,
-                onValueChange = onChange,
-                valueRange = 0.1f..0.9f,
-                modifier = Modifier.semantics { contentDescription = sliderDescription },
-            )
-            OutlinedButton(onClick = onPreview, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.settings_comfort_preview))
-            }
-        }
+    StudioPanel(modifier = Modifier.fillMaxWidth(), tone = StudioTone.WARM) {
+        Text(stringResource(R.string.settings_comfort_title), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.settings_comfort_desc),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(vertical = 8.dp),
+        )
+        Slider(
+            value = ceiling,
+            onValueChange = onChange,
+            valueRange = 0.1f..0.9f,
+            modifier = Modifier.semantics { contentDescription = sliderDescription },
+        )
+        StudioButton(
+            label = stringResource(R.string.settings_comfort_preview),
+            onClick = onPreview,
+            modifier = Modifier.fillMaxWidth(),
+            style = StudioButtonStyle.SECONDARY,
+        )
     }
 }
 
@@ -114,7 +111,7 @@ private fun SafetyNotice() {
         title = stringResource(R.string.disclaimer_title),
         body = stringResource(R.string.disclaimer_body),
         modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-        containerColor = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     )
 }
