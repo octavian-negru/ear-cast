@@ -17,7 +17,7 @@ data class MediaBand(
 )
 
 /**
- * Pure planning for the experimental media EQ: samples the fitted per-ear curves
+ * Pure planning for media EQ: samples the fitted per-ear curves
  * at standard audiometric centers, then removes the largest gain across BOTH
  * ears before bounding the adjustment range. This preserves spectral contrast
  * and ear balance without adding gain to already-mastered media. Normalizing

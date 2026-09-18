@@ -41,7 +41,7 @@ interface PreferenceStorage {
 
     suspend fun setListeningSettings(settings: SoundPreferences)
 
-    /** Experimental media EQ (profile applied to other apps' audio) on/off. */
+    /** Media EQ (profile applied to other apps' audio) on/off. */
     fun observeMediaEqEnabled(): Flow<Boolean>
 
     suspend fun setMediaEqEnabled(enabled: Boolean)

@@ -189,6 +189,17 @@ Full check green after each phase; release build verified on the emulator
 (demo play/toggle/stop, live meter, remote-mic headphone gate, DIN hidden).
 Remote-mic hardware items added to DEVICE_TESTING.md.
 
+### Media sound WDRC follow-up (2026-09-19)
+- Replaced the fixed 0–15 dB media preamp with broadband WDRC after the cut-only
+  per-ear EQ. Quiet signals receive the requested gain; compression progressively
+  removes it above −24 dBFS so full-scale input is not overdriven. The linked
+  −2 dBFS limiter remains last.
+- Removed the experimental product label. The underlying global-session effect
+  remains deprecated and device-dependent because Android does not expose other
+  apps' audio-session IDs to an ordinary app; this limitation remains explicit.
+- Added pure regression tests for quiet gain and full-scale unity gain. Hardware
+  listening is still required to validate the OEM effect and Bluetooth path.
+
 ### Phase 3 — AirPods ❌ NOT STARTED
 The reverse-engineered (LibrePods/CAPod) protocol is `UNVERIFIED`. `:airpods-protocol`
 ships interfaces/models only. Needs real BLE/HCI capture on hardware and the

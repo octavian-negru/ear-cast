@@ -63,4 +63,27 @@ class MediaCurvePlannerTest {
         assertEquals(0.0, plan.last().leftGainDb)
         assertTrue(plan.zipWithNext().all { (a, b) -> a.leftGainDb < b.leftGainDb })
     }
+
+    @Test
+    fun `media compression gives quiet signals the requested boost`() {
+        val boostDb = 10.0f
+        val plan = MediaDynamicsPlanner.plan(boostDb)
+        val quietInputDbFs = -40.0f
+
+        assertTrue(quietInputDbFs + boostDb < plan.thresholdDbFs - plan.kneeWidthDb / 2f)
+        assertEquals(-30.0f, quietInputDbFs + boostDb)
+    }
+
+    @Test
+    fun `media compression tapers every allowed boost to unity at full scale`() {
+        listOf(0.0f, 10.0f, AudioLimits.MAX_MEDIA_BOOST_DB).forEach { boostDb ->
+            val plan = MediaDynamicsPlanner.plan(boostDb)
+            val fullScaleOutputDb =
+                plan.thresholdDbFs +
+                    (boostDb - plan.thresholdDbFs) / plan.ratio
+
+            assertEquals(0.0f, fullScaleOutputDb, 0.0001f)
+            assertTrue(plan.ratio >= 1.0f)
+        }
+    }
 }

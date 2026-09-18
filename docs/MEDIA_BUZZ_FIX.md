@@ -1,13 +1,39 @@
 # Media buzz and microphone distortion
 
+## Follow-up: headroom-aware media boost (2026-09-19)
+
+The fixed media preamp still drove mastered audio into sustained limiting at
+settings such as +10 dB. It has been replaced by broadband wide-dynamic-range
+compression (WDRC) after the per-ear EQ. Below −24 dBFS, media receives the full
+selected quiet-sound boost. Above that threshold, a soft-knee compressor tapers
+the gain so a 0 dBFS input reaches 0 dBFS before the final linked limiter:
+
+$$
+R = \frac{B - T}{-T}, \qquad
+y = T + \frac{x + B - T}{R}
+$$
+
+where $B$ is the selected boost, $T=-24$ dBFS, and $x$ and $y$ are input and
+output level. Attack is 5 ms, release is 120 ms, and the knee is 8 dB. The
+existing −2 dBFS limiter remains last for peaks. Boost updates configure the
+safer stage first so moving the slider cannot briefly expose the old high gain.
+
+This prevents the app from demanding impossible headroom from already-loud
+digital audio. It cannot prevent distortion already present in the source,
+Bluetooth codec, device mixer, amplifier, or earbuds. Android only officially
+supports this effect on an audio session owned by the caller; EarCast's
+system-wide session-0 attachment remains deprecated and device-dependent even
+though the feature is no longer labeled experimental. Real-device comparison is
+still required.
+
 ## Follow-up: independent media boost
 
 The cut-only update below made media too quiet for the user, while assist now
 sounds acceptable. Media therefore has a separate **Media boost** slider on
 the Home screen: **0–15 dB, default +6 dB**, persisted independently of assist settings.
 This replaces the fixed −3 dB input attenuation. The relative EQ curve remains
-unchanged; boost runs before the platform limiter, with no post-limiter makeup.
-Already-loud peaks may be limited rather than receiving the full requested gain.
+unchanged. This initial implementation used fixed gain before the platform
+limiter and was superseded by the WDRC update above.
 
 Boost changes update the existing effect after releasing the slider, avoiding
 effect recreation during adjustments. The latest boost is restored after an app

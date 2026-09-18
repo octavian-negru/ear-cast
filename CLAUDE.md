@@ -33,7 +33,7 @@ Phases 0,1,2,4,5 plus consumer phases A,B are **built, unit-tested**. The app is
 | 5 Release build, signing, privacy, F-Droid metadata | ✅ done |
 | A Consumer polish (icons, results chart, translatable strings, regulatory copy, About, fastlane assets) | ✅ done 2026-07-02 |
 | B User-demanded features (live gain, manual audiogram entry, multi-profile history, disconnect auto-stop + speaker warning, QS tile) | ✅ done 2026-07-03 |
-| C Differentiators (per-ear stereo assist, environment presets, experimental media EQ) | ✅ done 2026-07-03 |
+| C Differentiators (per-ear stereo assist, environment presets, media EQ) | ✅ done 2026-07-03; WDRC boost 2026-09-19 |
 | D Shareable results card (first of viral phases D–H: share card, A/B demo, remote mic, loudness meter, digits-in-noise) | ✅ done 2026-07-09 |
 | E A/B "hear the difference" demo (synthesized clip through the real chains, mid-playback toggle) | ✅ done 2026-07-09 |
 | F Remote microphone mode (Live Listen equivalent; guard bypassed + headphones mandatory; also fixed the guard being inert post-WDRC) | ✅ done 2026-07-09 |
@@ -66,8 +66,9 @@ recorded in [docs/PROJECT_LOG.md](docs/PROJECT_LOG.md) (Phase A entry).
 - **Earbud-agnostic first.** Works fully on any headset; AirPods is a best-effort,
   clearly-`UNVERIFIED` enhancement, never a hard dependency.
 - **Assist is per-ear stereo** since Phase C: mono mic in, stereo out, one chain
-  (curve + limiter) per channel. Media EQ is experimental (deprecated
-  global-session effect; may not work on all OEMs).
+  (curve + limiter) per channel. Media EQ uses a WDRC quiet-sound boost followed
+  by a limiter. Its global-session attachment is deprecated and may not work on
+  all OEMs.
 
 ## Module map (see [ARCHITECTURE.md](ARCHITECTURE.md))
 
@@ -127,9 +128,10 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
   on a real phone; fix whatever they surface. This is the launch gate.
 - **Record the DIN digit corpus** (maintainer's voice, CC0 — [docs/DIN.md](docs/DIN.md));
   the listening-in-noise check unlocks itself once the WAVs land in res/raw.
-- **Remaining differentiators**: multi-band WDRC, hardening the experimental
-  media EQ (per-app session capture is the non-deprecated alternative),
-  localization. (Remote mic, A/B demo, listening meter, DIN engine: done 2026-07-09.)
+- **Remaining differentiators**: multi-band WDRC, media-EQ device compatibility,
+  localization. Android only officially supports effects on a player session the
+  app owns; there is no reliable unprivileged system-wide replacement.
+  (Remote mic, A/B demo, listening meter, DIN engine: done 2026-07-09.)
 - **Launch sequence once device tests pass**: IzzyOnDroid → F-Droid (first
   hearing-assist app there) → Show HN (repo link + backstory comment) →
   r/fossdroid → hearingtracker forum → press tips (9to5Google, Android Police).

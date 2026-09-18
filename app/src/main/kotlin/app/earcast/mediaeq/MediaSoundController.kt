@@ -3,6 +3,7 @@ package app.earcast.mediaeq
 import android.annotation.TargetApi
 import android.media.audiofx.DynamicsProcessing
 import android.os.Build
+import app.earcast.core.audio.dsp.MediaDynamicsPlanner
 import app.earcast.core.audio.dsp.MediaEffectHandle
 import app.earcast.core.audio.dsp.MediaEffectSession
 import app.earcast.core.audio.dsp.MediaSoundConfig
@@ -10,9 +11,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * EXPERIMENTAL: applies the user's per-ear sound profile to other apps' audio by
+ * Applies the user's per-ear sound profile to other apps' audio by
  * attaching a [DynamicsProcessing] effect (pre-EQ per channel + the effect's own
- * limiter) to the global output mix (audio session 0).
+ * wide-dynamic-range compressor and limiter) to the global output mix (audio session 0).
  *
  * Honest limitations, surfaced in the UI copy:
  * - Global-session effects are deprecated platform behavior; several OEMs ignore
@@ -20,9 +21,10 @@ import javax.inject.Singleton
  * - The effect lives only as long as the app's process.
  * - Requires API 28+ ([DynamicsProcessing]'s introduction).
  *
- * The planner supplies relative cuts; a separate bounded boost raises media
- * before the limiter. Playback leases prevent applying this global effect on
- * top of the app's own processing.
+ * The planner supplies relative cuts. The bounded boost raises quiet media, then
+ * compression progressively removes that boost as the signal approaches full
+ * scale. Playback leases prevent applying this global effect on top of the app's
+ * own processing.
  */
 @Singleton
 class MediaSoundController
@@ -32,8 +34,19 @@ class MediaSoundController
             MediaEffectSession { configuration ->
                 val effect = buildEffect(configuration)
                 object : MediaEffectHandle {
+                    private var boostDb = configuration.boostDb
+
                     @TargetApi(Build.VERSION_CODES.P)
-                    override fun setBoostDb(db: Float) = effect.setInputGainAllChannelsTo(db)
+                    override fun setBoostDb(db: Float) {
+                        if (db >= boostDb) {
+                            effect.setMbcBandAllChannelsTo(MBC_BAND, compressionBand(db))
+                            effect.setInputGainAllChannelsTo(db)
+                        } else {
+                            effect.setInputGainAllChannelsTo(db)
+                            effect.setMbcBandAllChannelsTo(MBC_BAND, compressionBand(db))
+                        }
+                        boostDb = db
+                    }
 
                     override fun close() {
                         try {
@@ -76,8 +89,8 @@ class MediaSoundController
                         CHANNEL_COUNT,
                         true,
                         bands.size,
-                        false,
-                        0,
+                        true,
+                        MBC_BAND_COUNT,
                         false,
                         0,
                         true,
@@ -100,7 +113,7 @@ class MediaSoundController
                         DynamicsProcessing.EqBand(true, band.cutoffHz.toFloat(), band.rightGainDb.toFloat()),
                     )
                 }
-                // Both media boost and tonal shaping stay before the peak guard.
+                dp.setMbcBandAllChannelsTo(MBC_BAND, compressionBand(configuration.boostDb))
                 dp.setLimiterAllChannelsTo(
                     DynamicsProcessing.Limiter(
                         true,
@@ -121,12 +134,37 @@ class MediaSoundController
             }
         }
 
+        @TargetApi(Build.VERSION_CODES.P)
+        private fun compressionBand(boostDb: Float): DynamicsProcessing.MbcBand {
+            val plan = MediaDynamicsPlanner.plan(boostDb)
+            return DynamicsProcessing.MbcBand(
+                true,
+                MBC_CUTOFF_HZ,
+                plan.attackMs,
+                plan.releaseMs,
+                plan.ratio,
+                plan.thresholdDbFs,
+                plan.kneeWidthDb,
+                MBC_NOISE_GATE_DB,
+                MBC_EXPANDER_RATIO,
+                MBC_PRE_GAIN_DB,
+                MBC_POST_GAIN_DB,
+            )
+        }
+
         private companion object {
             const val GLOBAL_OUTPUT_MIX_SESSION = 0
             const val CHANNEL_COUNT = 2
             const val LEFT_CHANNEL = 0
             const val RIGHT_CHANNEL = 1
             const val FRAME_DURATION_MS = 10.0f
+            const val MBC_BAND_COUNT = 1
+            const val MBC_BAND = 0
+            const val MBC_CUTOFF_HZ = 20_000.0f
+            const val MBC_NOISE_GATE_DB = -80.0f
+            const val MBC_EXPANDER_RATIO = 1.0f
+            const val MBC_PRE_GAIN_DB = 0.0f
+            const val MBC_POST_GAIN_DB = 0.0f
             const val LIMITER_LINK_GROUP = 0
             const val LIMITER_ATTACK_MS = 1.0f
             const val LIMITER_RELEASE_MS = 60.0f

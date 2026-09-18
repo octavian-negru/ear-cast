@@ -50,7 +50,8 @@ personalized amplification profile, and boost quiet speech in real time.
 
 > Screenshots are from the running app on an emulator (the check values shown are
 > from an automated test pass). ▶️ A real demo video is coming after on-device
-> validation. Media sound has since moved to Home, with a 0–15 dB boost control.
+> validation. Media sound has since moved to Home, with a 0–15 dB quiet-sound
+> boost control.
 
 ---
 
@@ -74,8 +75,9 @@ personalized amplification profile, and boost quiet speech in real time.
 - 🎚️ **Environment presets** — standard / conversation / outdoors, plus multiple
   saved profiles you can switch between, and a quick-settings tile for one-tap
   on/off.
-- 🎵 **Experimental media EQ** — apply your sound profile to music and videos from
-  other apps (device support varies).
+- 🎵 **Media sound** — apply your sound profile to music and videos from other
+  apps; wide dynamic-range compression boosts quiet detail without overdriving
+  loud passages (device support varies).
 - 🛡️ **Safety first** — a hard look-ahead output limiter (extensively tested),
   comfort calibration to cap loudness, an always-available instant **Stop**, and
   automatic stop if your headphones disconnect.
@@ -113,8 +115,8 @@ See [setup, compatibility, and testing](docs/HEADSET_MICROPHONE.md).
    **Start assist**. Sound is amplified per ear in real time; adjust the volume
    live, and tap **Stop assist** any time (or use the quick-settings tile).
 6. **Calibrate comfort** (Settings) — preview the maximum loudness and lower it
-   until comfortable; that caps how loud assist mode can ever get. The optional
-   **media EQ** (experimental) and high-contrast theme live here too.
+  until comfortable; that caps how loud assist mode can ever get. Optional
+  **Media sound** controls are on Home; the high-contrast theme is in Settings.
 
 See [docs/SAFETY.md](docs/SAFETY.md), [docs/CALIBRATION.md](docs/CALIBRATION.md),
 and [docs/DEVICE_TESTING.md](docs/DEVICE_TESTING.md) for details.

@@ -13,6 +13,33 @@ data class MediaSoundConfig(
     }
 }
 
+/** WDRC settings that preserve requested gain for quiet media without overdriving loud media. */
+data class MediaCompressionPlan(
+    val thresholdDbFs: Float,
+    val ratio: Float,
+    val attackMs: Float,
+    val releaseMs: Float,
+    val kneeWidthDb: Float,
+)
+
+object MediaDynamicsPlanner {
+    const val THRESHOLD_DB_FS = -24.0f
+    const val ATTACK_MS = 5.0f
+    const val RELEASE_MS = 120.0f
+    const val KNEE_WIDTH_DB = 8.0f
+
+    fun plan(boostDb: Float): MediaCompressionPlan {
+        require(boostDb.isFinite() && boostDb in 0f..AudioLimits.MAX_MEDIA_BOOST_DB)
+        return MediaCompressionPlan(
+            thresholdDbFs = THRESHOLD_DB_FS,
+            ratio = (boostDb - THRESHOLD_DB_FS) / -THRESHOLD_DB_FS,
+            attackMs = ATTACK_MS,
+            releaseMs = RELEASE_MS,
+            kneeWidthDb = KNEE_WIDTH_DB,
+        )
+    }
+}
+
 /** Native effect handle; volume changes update the existing effect without a gap. */
 interface MediaEffectHandle : AutoCloseable {
     fun setBoostDb(db: Float)
