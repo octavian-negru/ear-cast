@@ -190,10 +190,18 @@ Full check green after each phase; release build verified on the emulator
 Remote-mic hardware items added to DEVICE_TESTING.md.
 
 ### Media sound WDRC follow-up (2026-09-19)
-- Replaced the fixed 0–15 dB media preamp with broadband WDRC after the cut-only
-  per-ear EQ. Quiet signals receive the requested gain; compression progressively
-  removes it above −24 dBFS so full-scale input is not overdriven. The linked
-  −2 dBFS limiter remains last.
+- Replaced the fixed media preamp with broadband WDRC after the cut-only per-ear
+  EQ. The Home control now spans 0–25 dB. A soft transition around −30 dBFS input
+  preserves the requested gain for quieter media; compression progressively
+  removes it above that level so full-scale input converges on −2 dBFS without
+  sustained limiting.
+- Moved boost from the global input stage to each compressor band's post-gain,
+  removing the +15 to +25 dB over-range intermediate that could clip on OEM DSPs.
+  Added selectable Balanced linked dynamics and four-band Speech clarity with
+  frequency-dependent timing. Neural media processing is unavailable because an
+  ordinary Android app cannot access another app's decoded PCM stream.
+- Made Media playback permanently visible on Home, tightened Home spacing, and
+  replaced first-run profile creation copy once a profile exists.
 - Removed the experimental product label. The underlying global-session effect
   remains deprecated and device-dependent because Android does not expose other
   apps' audio-session IDs to an ordinary app; this limitation remains explicit.

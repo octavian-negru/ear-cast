@@ -218,6 +218,11 @@
     <string name="media_eq_desc">Balances music and videos using your sound profile. Quiet sound boost automatically backs off during loud passages to prevent buzzing. Pauses during assist, demos and hearing checks. Compatibility varies by phone.</string>
     <string name="media_boost">Quiet sound boost: +%1$d dB</string>
     <string name="media_boost_slider">Quiet sound boost in decibels</string>
+    <string name="media_algorithm">Sound algorithm</string>
+    <string name="media_algorithm_balanced">Balanced</string>
+    <string name="media_algorithm_speech">Speech clarity</string>
+    <string name="media_algorithm_balanced_desc">Smooth, linked dynamics that preserve the original mix.</string>
+    <string name="media_algorithm_speech_desc">Four bands lift speech separately so bass and music do not mask voices.</string>
     <string name="media_eq_unsupported">Not supported on this device or Android version.</string>
     <string name="media_eq_no_profile">Run the hearing check or enter results first.</string>
     <string name="media_eq_failed">Couldn\'t enable on this device.</string>
@@ -247,6 +252,9 @@
     <string name="profile_card_title">Start with your sound</string>
     <string name="profile_card_detail">Create a personal sound profile to shape live listening, music and videos.</string>
     <string name="profile_card_action">Create sound profile</string>
+    <string name="profile_manage_title">Your sound profile</string>
+    <string name="profile_manage_detail">Review your saved profile or update how EarCast shapes sound.</string>
+    <string name="profile_manage_action">Manage profile</string>
     <string name="profile_subtitle">A personal starting point for how you listen.</string>
     <string name="profile_editor_title">Draw your sound profile</string>
     <string name="profile_editor_detail">Enter the values from your audiogram directly on the chart. Set each ear separately.</string>

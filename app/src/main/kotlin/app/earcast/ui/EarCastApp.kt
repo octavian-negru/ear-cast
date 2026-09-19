@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
+import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.ui.assist.ListenScreen
 import app.earcast.ui.dintest.SpeechCheckScreen
 import app.earcast.ui.hearingtest.ToneCheckScreen
@@ -69,6 +70,7 @@ fun EarCastApp(rootViewModel: AppStateModel = hiltViewModel()) {
                         state = root,
                         onSetMediaEq = rootViewModel::setMediaEq,
                         onSetMediaBoost = rootViewModel::setMediaBoost,
+                        onSetMediaProcessingMode = rootViewModel::setMediaProcessingMode,
                     )
             }
         }
@@ -80,6 +82,7 @@ private fun MainNav(
     state: AppState,
     onSetMediaEq: (Boolean) -> Unit,
     onSetMediaBoost: (Float) -> Unit,
+    onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
     var screen by rememberSaveable { mutableStateOf(AppDestination.HOME) }
     BackHandler(enabled = screen != AppDestination.HOME) {
@@ -116,6 +119,7 @@ private fun MainNav(
                             onNavigate = { screen = it },
                             onSetMediaEq = onSetMediaEq,
                             onSetMediaBoost = onSetMediaBoost,
+                            onSetMediaProcessingMode = onSetMediaProcessingMode,
                         )
                     }
                 }
@@ -131,6 +135,7 @@ private fun DestinationContent(
     onNavigate: (AppDestination) -> Unit,
     onSetMediaEq: (Boolean) -> Unit,
     onSetMediaBoost: (Float) -> Unit,
+    onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
     when (screen) {
         AppDestination.HOME ->
@@ -140,6 +145,7 @@ private fun DestinationContent(
                 onOpenAssist = { onNavigate(AppDestination.ASSIST) },
                 onSetMediaEq = onSetMediaEq,
                 onSetMediaBoost = onSetMediaBoost,
+                onSetMediaProcessingMode = onSetMediaProcessingMode,
             )
         AppDestination.PROFILE ->
             ProfileSetupScreen(

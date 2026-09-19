@@ -1,24 +1,38 @@
 # Media buzz and microphone distortion
 
-## Follow-up: headroom-aware media boost (2026-09-19)
+## Follow-up: clip-resistant media boost and clarity modes (2026-09-19)
 
 The fixed media preamp still drove mastered audio into sustained limiting at
-settings such as +10 dB. It has been replaced by broadband wide-dynamic-range
-compression (WDRC) after the per-ear EQ. Below −24 dBFS, media receives the full
-selected quiet-sound boost. Above that threshold, a soft-knee compressor tapers
-the gain so a 0 dBFS input reaches 0 dBFS before the final linked limiter:
+settings such as +10 dB. The global input stage now stays at 0 dB. Boost is
+applied as makeup gain after wide-dynamic-range compression (WDRC), avoiding a
+potentially clipped +15 to +25 dB intermediate signal on OEM implementations.
+A soft transition centered on −30 dBFS input preserves the full selected boost
+for quieter media, then tapers the gain so a 0 dBFS input reaches −2 dBFS at the
+linked limiter threshold:
 
 $$
-R = \frac{B - T}{-T}, \qquad
-y = T + \frac{x + B - T}{R}
+R = \frac{-T}{C - B - T}, \qquad
+y = T + \frac{x - T}{R} + B
 $$
 
-where $B$ is the selected boost, $T=-24$ dBFS, and $x$ and $y$ are input and
-output level. Attack is 5 ms, release is 120 ms, and the knee is 8 dB. The
-existing −2 dBFS limiter remains last for peaks. Boost updates configure the
-safer stage first so moving the slider cannot briefly expose the old high gain.
+where $B$ is post-compression boost, $T=-30$ dBFS, $x$ and $y$ are input and
+output level, and $C=-2$ dBFS. At 0 dB boost the compressor is unity. The ratio
+otherwise makes full-scale input converge on $C$. The 4 dB soft knee and final
+linked limiter remain in place for transient peaks.
 
-This prevents the app from demanding impossible headroom from already-loud
+The Home screen now offers two algorithms. **Balanced** uses one linked dynamics
+band to preserve the mix. **Speech clarity** splits processing at 250 Hz, 1 kHz,
+4 kHz and 20 kHz, so loud bass does not make the compressor pull speech bands
+down with it. Bass uses slower attack/release timing while consonant bands recover
+faster. Changing algorithms rebuilds the native effect because Android fixes the
+band count when the effect is created.
+
+This cannot use RNNoise or DPDFNet on other apps' media: Android does not expose
+their decoded PCM stream to an ordinary app. Those neural engines remain available
+only where EarCast owns the microphone stream. Claiming neural system-wide media
+processing here would be inaccurate.
+
+This reduces the risk of internal clipping and avoids demanding impossible headroom from already-loud
 digital audio. It cannot prevent distortion already present in the source,
 Bluetooth codec, device mixer, amplifier, or earbuds. Android only officially
 supports this effect on an audio session owned by the caller; EarCast's
@@ -30,7 +44,7 @@ still required.
 
 The cut-only update below made media too quiet for the user, while assist now
 sounds acceptable. Media therefore has a separate **Media boost** slider on
-the Home screen: **0–15 dB, default +6 dB**, persisted independently of assist settings.
+the Home screen: **0–25 dB, default +6 dB**, persisted independently of assist settings.
 This replaces the fixed −3 dB input attenuation. The relative EQ curve remains
 unchanged. This initial implementation used fixed gain before the platform
 limiter and was superseded by the WDRC update above.

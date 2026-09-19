@@ -54,7 +54,7 @@ object AudioLimits {
 
     /** Independent media gain, applied before the platform limiter. */
     const val DEFAULT_MEDIA_BOOST_DB: Float = 6.0f
-    const val MAX_MEDIA_BOOST_DB: Float = 15.0f
+    const val MAX_MEDIA_BOOST_DB: Float = 25.0f
 
     /**
      * True when [outputSpl] is within the absolute safety ceiling. The Phase 2

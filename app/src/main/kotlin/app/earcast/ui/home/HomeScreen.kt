@@ -23,13 +23,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.earcast.R
 import app.earcast.common.AudioLimits
+import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.ui.AppState
 import app.earcast.ui.common.ActionCard
 import app.earcast.ui.common.ActionCardEmphasis
 import app.earcast.ui.common.CollapsibleNotice
-import app.earcast.ui.common.DetailSection
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SoundMark
+import app.earcast.ui.common.StudioChoice
 import app.earcast.ui.common.StudioPage
 import app.earcast.ui.common.StudioPanel
 import app.earcast.ui.common.StudioSectionLabel
@@ -43,10 +44,11 @@ fun HomeScreen(
     onOpenAssist: () -> Unit,
     onSetMediaEq: (Boolean) -> Unit,
     onSetMediaBoost: (Float) -> Unit,
+    onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
     val profileStatusLabel =
         if (state.hasProfile) R.string.home_profile_ready else R.string.home_profile_needed
-    StudioPage {
+    StudioPage(verticalSpacing = 8.dp) {
         SoundMark()
         PageHeading(stringResource(R.string.app_name), stringResource(R.string.home_subtitle))
         StudioSplitRow {
@@ -58,7 +60,7 @@ fun HomeScreen(
             StudioStatus(label = stringResource(R.string.home_private_status), active = true)
         }
         HomeActions(state = state, onOpenProfile = onOpenProfile, onOpenAssist = onOpenAssist)
-        MediaPlaybackSection(state, onSetMediaEq, onSetMediaBoost)
+        MediaPlaybackSection(state, onSetMediaEq, onSetMediaBoost, onSetMediaProcessingMode)
         SafetyDisclaimer()
     }
 }
@@ -80,7 +82,9 @@ private fun HomeActions(
     onOpenProfile: () -> Unit,
     onOpenAssist: () -> Unit,
 ) {
-    StudioSectionLabel(stringResource(R.string.home_start_section), modifier = Modifier.padding(top = 6.dp))
+    if (!state.hasProfile) {
+        StudioSectionLabel(stringResource(R.string.home_start_section), modifier = Modifier.padding(top = 6.dp))
+    }
     if (state.hasProfile) {
         ActionCard(
             title = stringResource(R.string.listen_card_title),
@@ -89,9 +93,9 @@ private fun HomeActions(
             onClick = onOpenAssist,
         )
         ActionCard(
-            title = stringResource(R.string.profile_card_title),
-            detail = stringResource(R.string.profile_card_detail),
-            action = stringResource(R.string.profile_card_action),
+            title = stringResource(R.string.profile_manage_title),
+            detail = stringResource(R.string.profile_manage_detail),
+            action = stringResource(R.string.profile_manage_action),
             onClick = onOpenProfile,
             emphasis = ActionCardEmphasis.SECONDARY,
         )
@@ -110,22 +114,61 @@ private fun MediaPlaybackSection(
     state: AppState,
     onSetMediaEq: (Boolean) -> Unit,
     onSetMediaBoost: (Float) -> Unit,
+    onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
-    DetailSection(
-        title = stringResource(R.string.home_media_section),
-        initiallyExpanded = state.mediaEqEnabled || state.mediaEqFailed,
-    ) {
-        StudioPanel(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-            MediaSoundToggle(state, onSetMediaEq)
-            Text(
-                stringResource(R.string.media_eq_desc),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            MediaBoostControl(state, onSetMediaBoost)
-            MediaSoundStatus(state)
-        }
+    StudioSectionLabel(stringResource(R.string.home_media_section))
+    StudioPanel(modifier = Modifier.fillMaxWidth(), padding = 14.dp) {
+        MediaSoundToggle(state, onSetMediaEq)
+        Text(
+            stringResource(R.string.media_eq_desc),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 6.dp),
+        )
+        MediaAlgorithmControl(state, onSetMediaProcessingMode)
+        MediaBoostControl(state, onSetMediaBoost)
+        MediaSoundStatus(state)
     }
+}
+
+@Composable
+private fun MediaAlgorithmControl(
+    state: AppState,
+    onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
+) {
+    val enabled = state.mediaEqEnabled && state.mediaEqSupported && state.hasProfile
+    Text(
+        stringResource(R.string.media_algorithm),
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+    )
+    StudioSplitRow {
+        StudioChoice(
+            label = stringResource(R.string.media_algorithm_balanced),
+            selected = state.mediaProcessingMode == MediaProcessingMode.BALANCED,
+            onClick = { onSetMediaProcessingMode(MediaProcessingMode.BALANCED) },
+            modifier = Modifier.weight(1f),
+            enabled = enabled,
+        )
+        StudioChoice(
+            label = stringResource(R.string.media_algorithm_speech),
+            selected = state.mediaProcessingMode == MediaProcessingMode.SPEECH_CLARITY,
+            onClick = { onSetMediaProcessingMode(MediaProcessingMode.SPEECH_CLARITY) },
+            modifier = Modifier.weight(1f),
+            enabled = enabled,
+        )
+    }
+    Text(
+        stringResource(
+            if (state.mediaProcessingMode == MediaProcessingMode.SPEECH_CLARITY) {
+                R.string.media_algorithm_speech_desc
+            } else {
+                R.string.media_algorithm_balanced_desc
+            },
+        ),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
+    )
 }
 
 @Composable
@@ -157,7 +200,7 @@ private fun MediaBoostControl(
     Text(
         stringResource(R.string.media_boost, boost.toInt()),
         style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier.padding(top = 12.dp),
+        modifier = Modifier.padding(top = 8.dp),
     )
     Slider(
         value = boost,

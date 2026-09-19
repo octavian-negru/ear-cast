@@ -51,6 +51,11 @@ interface PreferenceStorage {
 
     suspend fun setMediaBoostDb(db: Float)
 
+    /** Media dynamics algorithm name; mapped to the DSP enum by the app layer. */
+    fun observeMediaProcessingMode(): Flow<String>
+
+    suspend fun setMediaProcessingMode(name: String)
+
     /**
      * Accumulated relative listening-exposure units for one epoch day (see the
      * ListeningTracker in :audio-engine for the unit definition — deliberately

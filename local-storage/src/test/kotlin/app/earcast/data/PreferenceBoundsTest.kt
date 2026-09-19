@@ -32,13 +32,13 @@ class PreferenceBoundsTest {
             repo.setListeningSettings(listening)
             repo.setMediaEqEnabled(true)
             assertEquals(6f, repo.observeMediaBoostDb().first())
-            repo.setMediaBoostDb(15f)
+            repo.setMediaBoostDb(25f)
             val restored = PreferencesStore(store)
-            assertEquals(15f, restored.observeMediaBoostDb().first())
+            assertEquals(25f, restored.observeMediaBoostDb().first())
             assertEquals(listening, restored.observeListeningSettings().first())
             assertEquals(true, restored.observeMediaEqEnabled().first())
             repo.setMediaEqEnabled(false)
-            assertEquals(15f, repo.observeMediaBoostDb().first())
+            assertEquals(25f, repo.observeMediaBoostDb().first())
         }
 
     @Test
@@ -47,11 +47,21 @@ class PreferenceBoundsTest {
             val store = MemoryPreferences()
             val repo = PreferencesStore(store)
             repo.setMediaBoostDb(100f)
-            assertEquals(15f, repo.observeMediaBoostDb().first())
+            assertEquals(25f, repo.observeMediaBoostDb().first())
             repo.setMediaBoostDb(-10f)
             assertEquals(0f, repo.observeMediaBoostDb().first())
             store.updateData { mutablePreferencesOf(floatPreferencesKey("media_boost_db") to Float.NaN) }
             assertEquals(6f, repo.observeMediaBoostDb().first())
+        }
+
+    @Test
+    fun `media processing mode defaults to balanced and persists`() =
+        runTest {
+            val store = MemoryPreferences()
+            val repo = PreferencesStore(store)
+            assertEquals("BALANCED", repo.observeMediaProcessingMode().first())
+            repo.setMediaProcessingMode("SPEECH_CLARITY")
+            assertEquals("SPEECH_CLARITY", PreferencesStore(store).observeMediaProcessingMode().first())
         }
 
     @Test

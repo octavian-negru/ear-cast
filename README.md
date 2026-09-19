@@ -50,7 +50,7 @@ personalized amplification profile, and boost quiet speech in real time.
 
 > Screenshots are from the running app on an emulator (the check values shown are
 > from an automated test pass). ▶️ A real demo video is coming after on-device
-> validation. Media sound has since moved to Home, with a 0–15 dB quiet-sound
+> validation. Media sound has since moved to Home, with a 0–25 dB quiet-sound
 > boost control.
 
 ---
@@ -76,8 +76,9 @@ personalized amplification profile, and boost quiet speech in real time.
   saved profiles you can switch between, and a quick-settings tile for one-tap
   on/off.
 - 🎵 **Media sound** — apply your sound profile to music and videos from other
-  apps; wide dynamic-range compression boosts quiet detail without overdriving
-  loud passages (device support varies).
+  apps; choose linked Balanced dynamics or four-band Speech clarity, with
+  post-compression quiet boost that avoids an overdriven preamp stage (device
+  support varies).
 - 🛡️ **Safety first** — a hard look-ahead output limiter (extensively tested),
   comfort calibration to cap loudness, an always-available instant **Stop**, and
   automatic stop if your headphones disconnect.

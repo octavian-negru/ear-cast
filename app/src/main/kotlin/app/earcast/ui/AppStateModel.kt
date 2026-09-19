@@ -8,6 +8,7 @@ import app.earcast.common.FrequencyHz
 import app.earcast.core.audio.TestSignalGenerator
 import app.earcast.core.audio.TestSignalPlayer
 import app.earcast.core.audio.dsp.MediaCurvePlanner
+import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.core.audio.dsp.MediaSoundConfig
 import app.earcast.data.PreferenceStorage
 import app.earcast.data.ProfileStorage
@@ -33,6 +34,7 @@ data class AppState(
     val mediaEqSupported: Boolean = false,
     val mediaEqFailed: Boolean = false,
     val mediaBoostDb: Float = AudioLimits.DEFAULT_MEDIA_BOOST_DB,
+    val mediaProcessingMode: MediaProcessingMode = MediaProcessingMode.BALANCED,
     /** True when the digits-in-noise corpus ships in this build (docs/DIN.md). */
     val dinAvailable: Boolean = false,
 )
@@ -53,7 +55,7 @@ class AppStateModel
         private var previewJob: Job? = null
         private val mediaEqFailed = MutableStateFlow(false)
 
-        val uiState: StateFlow<AppState> =
+        private val baseUiState =
             combine(
                 combine(
                     settings.observeConsentAccepted(),
@@ -76,8 +78,22 @@ class AppStateModel
                     mediaEqFailed = failed,
                     dinAvailable = dinAvailable,
                 )
-            }.combine(settings.observeMediaBoostDb()) { state, boost -> state.copy(mediaBoostDb = boost) }
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), AppState())
+            }
+
+        private val uiStateWithBoost =
+            baseUiState.combine(settings.observeMediaBoostDb()) { state, boost -> state.copy(mediaBoostDb = boost) }
+
+        val uiState: StateFlow<AppState> =
+            uiStateWithBoost
+                .combine(
+                    settings.observeMediaProcessingMode(),
+                ) { state, mode ->
+                    state.copy(mediaProcessingMode = MediaProcessingMode.fromName(mode))
+                }.stateIn(
+                    viewModelScope,
+                    SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                    AppState(),
+                )
 
         init {
             // Media EQ follows the persisted toggle and the active profile: applied
@@ -89,10 +105,11 @@ class AppStateModel
                     settings.observeMediaEqEnabled(),
                     profileRepository.observeActiveProfile(),
                     settings.observeMediaBoostDb(),
-                ) { enabled, profile, boost -> Triple(enabled, profile, boost) }
-                    .collect { (enabled, _, boost) ->
+                    settings.observeMediaProcessingMode(),
+                ) { enabled, _, boost, mode -> Triple(enabled, boost, MediaProcessingMode.fromName(mode)) }
+                    .collect { (enabled, boost, mode) ->
                         if (enabled) {
-                            val ok = applyMediaEq(boost)
+                            val ok = applyMediaEq(boost, mode)
                             mediaEqFailed.value = !ok
                             if (!ok) settings.setMediaEqEnabled(false)
                         } else {
@@ -125,9 +142,16 @@ class AppStateModel
             viewModelScope.launch { settings.setMediaBoostDb(db) }
         }
 
-        private suspend fun applyMediaEq(boostDb: Float): Boolean {
+        fun setMediaProcessingMode(mode: MediaProcessingMode) {
+            viewModelScope.launch { settings.setMediaProcessingMode(mode.name) }
+        }
+
+        private suspend fun applyMediaEq(
+            boostDb: Float,
+            mode: MediaProcessingMode,
+        ): Boolean {
             val curves = sessionFactory.activeEarCurves() ?: return false
-            return mediaEq.apply(MediaSoundConfig(MediaCurvePlanner.plan(curves.first, curves.second), boostDb))
+            return mediaEq.apply(MediaSoundConfig(MediaCurvePlanner.plan(curves.first, curves.second), boostDb, mode))
         }
 
         /**

@@ -65,25 +65,56 @@ class MediaCurvePlannerTest {
     }
 
     @Test
-    fun `media compression gives quiet signals the requested boost`() {
-        val boostDb = 10.0f
-        val plan = MediaDynamicsPlanner.plan(boostDb)
+    fun `media compression gives quiet signals the requested boost at every setting`() {
         val quietInputDbFs = -40.0f
 
-        assertTrue(quietInputDbFs + boostDb < plan.thresholdDbFs - plan.kneeWidthDb / 2f)
-        assertEquals(-30.0f, quietInputDbFs + boostDb)
+        listOf(0.0f to -40.0f, 10.0f to -30.0f, AudioLimits.MAX_MEDIA_BOOST_DB to -15.0f)
+            .forEach { (boostDb, expectedOutputDbFs) ->
+                val plan = MediaDynamicsPlanner.plan(boostDb)
+                assertTrue(quietInputDbFs < plan.thresholdDbFs - plan.kneeWidthDb / 2f)
+                assertEquals(expectedOutputDbFs, quietInputDbFs + plan.postGainDb)
+                assertEquals(MediaDynamicsPlanner.QUIET_INPUT_THRESHOLD_DB_FS, plan.thresholdDbFs)
+            }
     }
 
     @Test
-    fun `media compression tapers every allowed boost to unity at full scale`() {
+    fun `media compression tapers every allowed boost to the output ceiling at full scale`() {
         listOf(0.0f, 10.0f, AudioLimits.MAX_MEDIA_BOOST_DB).forEach { boostDb ->
             val plan = MediaDynamicsPlanner.plan(boostDb)
             val fullScaleOutputDb =
                 plan.thresholdDbFs +
-                    (boostDb - plan.thresholdDbFs) / plan.ratio
+                    (0.0f - plan.thresholdDbFs) / plan.ratio +
+                    plan.postGainDb
 
-            assertEquals(0.0f, fullScaleOutputDb, 0.0001f)
+            val expected = if (boostDb == 0.0f) 0.0f else MediaDynamicsPlanner.OUTPUT_CEILING_DB_FS
+            assertEquals(expected, fullScaleOutputDb, 0.0001f)
             assertTrue(plan.ratio >= 1.0f)
         }
+    }
+
+    @Test
+    fun `maximum media boost remains useful at speech-like levels`() {
+        val boostDb = AudioLimits.MAX_MEDIA_BOOST_DB
+        val plan = MediaDynamicsPlanner.plan(boostDb)
+        val inputDbFs = -30.0f
+        val outputDbFs =
+            plan.thresholdDbFs +
+                (inputDbFs - plan.thresholdDbFs) / plan.ratio +
+                plan.postGainDb
+
+        assertEquals(-5.0f, outputDbFs, 0.0001f)
+        assertEquals(boostDb, outputDbFs - inputDbFs, 0.0001f)
+    }
+
+    @Test
+    fun `speech clarity separates dynamics into ordered frequency bands`() {
+        val balanced = MediaDynamicsPlanner.planBands(20.0f, MediaProcessingMode.BALANCED)
+        val speech = MediaDynamicsPlanner.planBands(20.0f, MediaProcessingMode.SPEECH_CLARITY)
+
+        assertEquals(listOf(MediaDynamicsPlanner.TOP_CUTOFF_HZ), balanced.map { it.cutoffHz })
+        assertEquals(listOf(250.0f, 1_000.0f, 4_000.0f, 20_000.0f), speech.map { it.cutoffHz })
+        assertTrue(speech.zipWithNext().all { (lower, upper) -> lower.cutoffHz < upper.cutoffHz })
+        assertTrue(speech.first().compression.releaseMs > speech.last().compression.releaseMs)
+        assertTrue(speech.all { it.compression.postGainDb == 20.0f })
     }
 }

@@ -92,6 +92,21 @@ class MediaEffectSessionTest {
     }
 
     @Test
+    fun `changing processing mode recreates the effect`() {
+        val applied = mutableListOf<MediaProcessingMode>()
+        val session =
+            MediaEffectSession { config ->
+                applied += config.mode
+                effect()
+            }
+
+        assertTrue(session.apply(configuration))
+        assertTrue(session.apply(configuration.copy(mode = MediaProcessingMode.SPEECH_CLARITY)))
+
+        assertEquals(listOf(MediaProcessingMode.BALANCED, MediaProcessingMode.SPEECH_CLARITY), applied)
+    }
+
+    @Test
     fun `failed live update releases the effect and allows retry`() {
         var closed = 0
         val session =

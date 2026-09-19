@@ -35,6 +35,7 @@ private object PreferenceKeys {
     val SPEECH_ENGINE = stringPreferencesKey("speech_engine")
     val MEDIA_EQ_ENABLED = booleanPreferencesKey("media_eq_enabled")
     val MEDIA_BOOST_DB = floatPreferencesKey("media_boost_db")
+    val MEDIA_PROCESSING_MODE = stringPreferencesKey("media_processing_mode")
     val PROFILES = stringPreferencesKey("profiles")
     val ACTIVE_PROFILE_ID = stringPreferencesKey("active_profile_id")
     val EXPOSURE_EPOCH_DAY = longPreferencesKey("exposure_epoch_day")
@@ -138,6 +139,13 @@ class PreferencesStore(
         dataStore.edit { it[PreferenceKeys.MEDIA_BOOST_DB] = db.coerceIn(0f, AudioLimits.MAX_MEDIA_BOOST_DB) }
     }
 
+    override fun observeMediaProcessingMode(): Flow<String> =
+        dataStore.data.map { it[PreferenceKeys.MEDIA_PROCESSING_MODE] ?: DEFAULT_MEDIA_PROCESSING_MODE }
+
+    override suspend fun setMediaProcessingMode(name: String) {
+        dataStore.edit { it[PreferenceKeys.MEDIA_PROCESSING_MODE] = name }
+    }
+
     override fun observeExposureToday(): Flow<DailyListening> =
         dataStore.data.map {
             DailyListening(
@@ -164,6 +172,7 @@ class PreferencesStore(
         const val MIN_CEILING = 0.1f
         const val MAX_CEILING = 0.9f
         const val DEFAULT_PRESET = "STANDARD"
+        const val DEFAULT_MEDIA_PROCESSING_MODE = "BALANCED"
     }
 }
 

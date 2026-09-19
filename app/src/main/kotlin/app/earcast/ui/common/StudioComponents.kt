@@ -55,14 +55,17 @@ enum class StudioButtonStyle {
 }
 
 @Composable
-fun StudioPage(content: @Composable ColumnScope.() -> Unit) {
+fun StudioPage(
+    verticalSpacing: Dp = 12.dp,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(verticalSpacing),
         content = content,
     )
 }

@@ -3,9 +3,11 @@ package app.earcast.mediaeq
 import android.annotation.TargetApi
 import android.media.audiofx.DynamicsProcessing
 import android.os.Build
+import app.earcast.core.audio.dsp.MediaDynamicsBand
 import app.earcast.core.audio.dsp.MediaDynamicsPlanner
 import app.earcast.core.audio.dsp.MediaEffectHandle
 import app.earcast.core.audio.dsp.MediaEffectSession
+import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.core.audio.dsp.MediaSoundConfig
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,10 +23,10 @@ import javax.inject.Singleton
  * - The effect lives only as long as the app's process.
  * - Requires API 28+ ([DynamicsProcessing]'s introduction).
  *
- * The planner supplies relative cuts. The bounded boost raises quiet media, then
- * compression progressively removes that boost as the signal approaches full
- * scale. Playback leases prevent applying this global effect on top of the app's
- * own processing.
+ * The planner supplies relative cuts and either linked broadband or independent
+ * multiband dynamics. Boost is post-compression makeup gain, leaving the effect's
+ * input at unity so high settings do not create an over-range intermediate signal.
+ * Playback leases prevent applying this global effect on top of the app's own processing.
  */
 @Singleton
 class MediaSoundController
@@ -38,13 +40,7 @@ class MediaSoundController
 
                     @TargetApi(Build.VERSION_CODES.P)
                     override fun setBoostDb(db: Float) {
-                        if (db >= boostDb) {
-                            effect.setMbcBandAllChannelsTo(MBC_BAND, compressionBand(db))
-                            effect.setInputGainAllChannelsTo(db)
-                        } else {
-                            effect.setInputGainAllChannelsTo(db)
-                            effect.setMbcBandAllChannelsTo(MBC_BAND, compressionBand(db))
-                        }
+                        configureDynamics(effect, db, configuration.mode)
                         boostDb = db
                     }
 
@@ -82,6 +78,7 @@ class MediaSoundController
         private fun buildEffect(configuration: MediaSoundConfig): DynamicsProcessing {
             check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
             val bands = configuration.bands
+            val dynamicsBands = MediaDynamicsPlanner.planBands(configuration.boostDb, configuration.mode)
             val config =
                 DynamicsProcessing.Config
                     .Builder(
@@ -90,7 +87,7 @@ class MediaSoundController
                         true,
                         bands.size,
                         true,
-                        MBC_BAND_COUNT,
+                        dynamicsBands.size,
                         false,
                         0,
                         true,
@@ -100,7 +97,7 @@ class MediaSoundController
             val dp = DynamicsProcessing(0, GLOBAL_OUTPUT_MIX_SESSION, config)
             var configured = false
             try {
-                dp.setInputGainAllChannelsTo(configuration.boostDb)
+                dp.setInputGainAllChannelsTo(0.0f)
                 bands.forEachIndexed { index, band ->
                     dp.setPreEqBandByChannelIndex(
                         LEFT_CHANNEL,
@@ -113,7 +110,9 @@ class MediaSoundController
                         DynamicsProcessing.EqBand(true, band.cutoffHz.toFloat(), band.rightGainDb.toFloat()),
                     )
                 }
-                dp.setMbcBandAllChannelsTo(MBC_BAND, compressionBand(configuration.boostDb))
+                dynamicsBands.forEachIndexed { index, band ->
+                    dp.setMbcBandAllChannelsTo(index, compressionBand(band))
+                }
                 dp.setLimiterAllChannelsTo(
                     DynamicsProcessing.Limiter(
                         true,
@@ -135,11 +134,22 @@ class MediaSoundController
         }
 
         @TargetApi(Build.VERSION_CODES.P)
-        private fun compressionBand(boostDb: Float): DynamicsProcessing.MbcBand {
-            val plan = MediaDynamicsPlanner.plan(boostDb)
+        private fun configureDynamics(
+            effect: DynamicsProcessing,
+            boostDb: Float,
+            mode: MediaProcessingMode,
+        ) {
+            MediaDynamicsPlanner.planBands(boostDb, mode).forEachIndexed { index, band ->
+                effect.setMbcBandAllChannelsTo(index, compressionBand(band))
+            }
+        }
+
+        @TargetApi(Build.VERSION_CODES.P)
+        private fun compressionBand(band: MediaDynamicsBand): DynamicsProcessing.MbcBand {
+            val plan = band.compression
             return DynamicsProcessing.MbcBand(
                 true,
-                MBC_CUTOFF_HZ,
+                band.cutoffHz,
                 plan.attackMs,
                 plan.releaseMs,
                 plan.ratio,
@@ -148,7 +158,7 @@ class MediaSoundController
                 MBC_NOISE_GATE_DB,
                 MBC_EXPANDER_RATIO,
                 MBC_PRE_GAIN_DB,
-                MBC_POST_GAIN_DB,
+                plan.postGainDb,
             )
         }
 
@@ -158,13 +168,9 @@ class MediaSoundController
             const val LEFT_CHANNEL = 0
             const val RIGHT_CHANNEL = 1
             const val FRAME_DURATION_MS = 10.0f
-            const val MBC_BAND_COUNT = 1
-            const val MBC_BAND = 0
-            const val MBC_CUTOFF_HZ = 20_000.0f
             const val MBC_NOISE_GATE_DB = -80.0f
             const val MBC_EXPANDER_RATIO = 1.0f
             const val MBC_PRE_GAIN_DB = 0.0f
-            const val MBC_POST_GAIN_DB = 0.0f
             const val LIMITER_LINK_GROUP = 0
             const val LIMITER_ATTACK_MS = 1.0f
             const val LIMITER_RELEASE_MS = 60.0f
