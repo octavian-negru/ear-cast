@@ -9,7 +9,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -17,6 +20,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -46,17 +53,18 @@ import app.earcast.core.audio.InputSource
 import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.dsp.ListeningPreset
 import app.earcast.data.SoundProfile
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.BrandBar
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
+import app.earcast.ui.common.EarPage
+import app.earcast.ui.common.InlineChoices
 import app.earcast.ui.common.PageHeading
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioPage
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSectionLabel
-import app.earcast.ui.common.StudioSplitRow
-import app.earcast.ui.common.StudioStatus
-import app.earcast.ui.common.StudioTone
+import app.earcast.ui.common.SectionGroup
+import app.earcast.ui.common.SectionHeader
+import app.earcast.ui.common.SoundOrbit
+import app.earcast.ui.common.SurfaceCard
+import app.earcast.ui.common.SurfaceTone
 import app.earcast.ui.common.headphonesConnected
 import app.earcast.ui.demo.SoundPreviewCard
 import kotlinx.coroutines.launch
@@ -110,9 +118,9 @@ fun ListenScreen(
         }
     }
 
-    StudioPage {
-        PageHeading(stringResource(R.string.assist_title), stringResource(R.string.listen_subtitle))
-        SafetyNote()
+    EarPage {
+        BrandBar(stringResource(R.string.nav_listen))
+        PageHeading(stringResource(R.string.identity_listen_title))
 
         if (!state.hasProfile) {
             EmptyAssistState(onOpenProfile)
@@ -125,20 +133,21 @@ fun ListenScreen(
                 onStop = { LiveAudioService.stop(context) },
             )
         }
+        SafetyNote()
     }
 }
 
 @Composable
 private fun EmptyAssistState(onOpenProfile: () -> Unit) {
-    StudioPanel(modifier = Modifier.fillMaxWidth(), tone = StudioTone.WARM) {
-        StudioSectionLabel(stringResource(R.string.home_profile_needed), index = "01")
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tone = SurfaceTone.WARM) {
+        SectionHeader(stringResource(R.string.home_profile_needed), index = "01")
         Text(
             stringResource(R.string.assist_no_profile),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 10.dp),
         )
-        StudioButton(
+        ActionButton(
             label = stringResource(R.string.profile_card_action),
             onClick = onOpenProfile,
             modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
@@ -154,7 +163,9 @@ private fun AssistControls(
     onStart: () -> Unit,
     onStop: () -> Unit,
 ) {
-    AssistConsole(
+    if (speakerWarning && !state.active) SpeakerWarning()
+
+    ListeningConsole(
         state = state,
         onGainChange = viewModel::setMasterGain,
         onStart = onStart,
@@ -164,16 +175,15 @@ private fun AssistControls(
 
     SessionAudioStatus(state.sessionStatus)
 
-    if (speakerWarning && !state.active) SpeakerWarning()
+    if (state.active) ListeningMeterCard(exposure = state.exposure, running = state.running)
 
-    ListeningMeterCard(exposure = state.exposure, running = state.running)
-
-    StudioSectionLabel(stringResource(R.string.assist_signal_path), modifier = Modifier.padding(top = 4.dp))
-    MicrophoneSelector(
-        source = state.microphoneSource,
-        enabled = !state.active,
-        onChange = viewModel::setMicrophoneSource,
-    )
+    SectionGroup(stringResource(R.string.identity_input_section)) {
+        MicrophoneSelector(
+            source = state.microphoneSource,
+            enabled = !state.active,
+            onChange = viewModel::setMicrophoneSource,
+        )
+    }
 
     PresetSelector(
         preset = state.preset,
@@ -204,7 +214,7 @@ private fun AssistControls(
 }
 
 @Composable
-private fun AssistConsole(
+internal fun ListeningConsole(
     state: ListenState,
     speakerWarning: Boolean,
     onGainChange: (Double) -> Unit,
@@ -212,53 +222,75 @@ private fun AssistConsole(
     onStop: () -> Unit,
 ) {
     val active = state.active
+    val action =
+        stringResource(
+            if (active) {
+                R.string.assist_stop_button
+            } else if (speakerWarning) {
+                R.string.assist_start_anyway
+            } else {
+                R.string.assist_start
+            },
+        )
     val status =
-        when (state.sessionStatus.state) {
-            StreamPhase.CONNECTING -> stringResource(R.string.assist_connecting)
-            StreamPhase.RUNNING -> stringResource(R.string.assist_on)
-            else -> stringResource(R.string.assist_off)
-        }
-    StudioPanel(
-        modifier = Modifier.fillMaxWidth(),
-        tone = if (active) StudioTone.DARK else StudioTone.TINT,
-        padding = 18.dp,
+        stringResource(
+            when (state.sessionStatus.state) {
+                StreamPhase.CONNECTING -> R.string.assist_connecting
+                StreamPhase.RUNNING -> R.string.identity_listen_running
+                else -> R.string.identity_listen_ready
+            },
+        )
+    Column(
+        Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        StudioStatus(label = status, active = active)
+        ListeningPowerControl(active, action, if (active) onStop else onStart)
+        Text(status, style = MaterialTheme.typography.titleLarge)
         Text(
-            stringResource(if (active) R.string.assist_console_live else R.string.assist_console_ready),
-            style = MaterialTheme.typography.headlineSmall,
-            color = if (active) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(top = 14.dp),
-        )
-        Text(
-            stringResource(if (active) R.string.assist_console_live_detail else R.string.assist_console_ready_detail),
+            stringResource(R.string.identity_listen_hint),
             style = MaterialTheme.typography.bodyMedium,
-            color =
-                if (active) {
-                    MaterialTheme.colorScheme.background.copy(alpha = 0.74f)
-                } else {
-                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.74f)
-                },
-            modifier = Modifier.padding(top = 5.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
-        GainControl(
-            masterGainDb = state.masterGainDb,
-            onChange = onGainChange,
-            lightContent = active,
-        )
-        StudioButton(
-            label =
-                if (active) {
-                    stringResource(R.string.assist_stop_button)
-                } else if (speakerWarning) {
-                    stringResource(R.string.assist_start_anyway)
-                } else {
-                    stringResource(R.string.assist_start)
-                },
-            onClick = if (active) onStop else onStart,
-            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
-            style = if (active) StudioButtonStyle.DANGER else StudioButtonStyle.PRIMARY,
-        )
+    }
+    SurfaceCard(Modifier.fillMaxWidth()) {
+        SectionHeader(stringResource(R.string.identity_sound_controls))
+        GainControl(masterGainDb = state.masterGainDb, onChange = onGainChange)
+    }
+}
+
+@Composable
+private fun ListeningPowerControl(
+    active: Boolean,
+    action: String,
+    onClick: () -> Unit,
+) {
+    Box(Modifier.size(184.dp), contentAlignment = Alignment.Center) {
+        SoundOrbit(Modifier.size(184.dp), color = MaterialTheme.colorScheme.primary)
+        Column(
+            Modifier
+                .size(112.dp)
+                .clip(CircleShape)
+                .background(if (active) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground)
+                .clickable(role = Role.Button, onClick = onClick)
+                .semantics { contentDescription = action },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            val color = if (active) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.background
+            Icon(
+                if (active) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+                null,
+                Modifier.size(32.dp),
+                tint = color,
+            )
+            Text(
+                stringResource(if (active) R.string.identity_stop else R.string.identity_start),
+                style = MaterialTheme.typography.labelLarge,
+                color = color,
+            )
+        }
     }
 }
 
@@ -268,7 +300,7 @@ private fun MicrophoneSelector(
     enabled: Boolean,
     onChange: (InputSource) -> Unit,
 ) {
-    StudioPanel(modifier = Modifier.fillMaxWidth()) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.assist_microphone_title), style = MaterialTheme.typography.labelLarge)
         Text(
             when (source) {
@@ -319,9 +351,9 @@ private fun PresetSelector(
     running: Boolean,
     onChange: (ListeningPreset) -> Unit,
 ) {
-    StudioPanel(modifier = Modifier.fillMaxWidth()) {
-        Text(stringResource(R.string.preset_title), style = MaterialTheme.typography.labelLarge)
-        StudioSplitRow(modifier = Modifier.padding(top = 10.dp)) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth()) {
+        SectionHeader(stringResource(R.string.identity_preset_section))
+        InlineChoices(modifier = Modifier.padding(top = 10.dp)) {
             ListeningPreset.entries.forEachIndexed { index, entry ->
                 PresetTile(
                     label = presetLabel(entry),
@@ -396,23 +428,21 @@ private fun presetLabel(preset: ListeningPreset): String =
 private fun GainControl(
     masterGainDb: Double,
     onChange: (Double) -> Unit,
-    lightContent: Boolean,
 ) {
     val sliderDescription = stringResource(R.string.assist_amplification_slider)
-    val contentColor =
-        if (lightContent) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onPrimaryContainer
-    val scaleColor =
-        if (lightContent) {
-            MaterialTheme.colorScheme.background.copy(alpha = 0.7f)
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        }
-    Text(
-        stringResource(R.string.assist_amplification, masterGainDb.toInt()),
-        style = MaterialTheme.typography.titleMedium,
-        color = contentColor,
-        modifier = Modifier.padding(top = 18.dp),
-    )
+    Row(
+        Modifier.fillMaxWidth().padding(top = 20.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("${masterGainDb.toInt()}", style = MaterialTheme.typography.headlineLarge)
+        Text(
+            "dB",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 6.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
     Slider(
         value = masterGainDb.toFloat(),
         onValueChange = { onChange(it.toDouble()) },
@@ -424,12 +454,12 @@ private fun GainControl(
         Text(
             stringResource(R.string.assist_gain_quieter),
             style = MaterialTheme.typography.labelMedium,
-            color = scaleColor,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             stringResource(R.string.assist_gain_louder),
             style = MaterialTheme.typography.labelMedium,
-            color = scaleColor,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -442,7 +472,7 @@ private fun ProfilesCard(
     onSelect: (String) -> Unit,
     onDelete: (String) -> Unit,
 ) {
-    StudioPanel(modifier = Modifier.fillMaxWidth()) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.titleSmall)
         profiles.forEach { profile ->
             Row(
@@ -480,7 +510,7 @@ private fun ProfilesCard(
 
 @Composable
 private fun SpeakerWarning() {
-    StudioPanel(modifier = Modifier.fillMaxWidth(), tone = StudioTone.DANGER) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tone = SurfaceTone.DANGER) {
         Text(
             stringResource(R.string.assist_speaker_warning),
             style = MaterialTheme.typography.bodyMedium,

@@ -3,7 +3,6 @@
 package app.earcast.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +26,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -55,13 +54,7 @@ fun EarCastApp(rootViewModel: AppStateModel = hiltViewModel()) {
 
     EarCastTheme(highContrast = root.highContrast) {
         val colors = MaterialTheme.colorScheme
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(Brush.verticalGradient(listOf(colors.surface, colors.background))),
-        ) {
-            SignalGrid()
+        Surface(modifier = Modifier.fillMaxSize(), color = colors.background) {
             when (root.consentAccepted) {
                 null -> LoadingState()
                 false -> OnboardingScreen(onAccept = rootViewModel::acceptDisclaimer)
@@ -150,6 +143,7 @@ private fun DestinationContent(
         AppDestination.PROFILE ->
             ProfileSetupScreen(
                 hasProfile = state.hasProfile,
+                audiogram = state.audiogram,
                 showDinTest = state.dinAvailable,
                 onRunHearingTest = { onNavigate(AppDestination.HEARING_TEST) },
                 onManualEntry = { onNavigate(AppDestination.MANUAL_ENTRY) },
@@ -164,37 +158,6 @@ private fun DestinationContent(
         AppDestination.ASSIST -> ListenScreen(onOpenProfile = { onNavigate(AppDestination.PROFILE) })
         AppDestination.DIN_TEST -> SpeechCheckScreen(onBack = { onNavigate(AppDestination.PROFILE) })
         AppDestination.SETTINGS -> SettingsScreen()
-    }
-}
-
-@Composable
-private fun SignalGrid() {
-    val lineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
-    Canvas(Modifier.fillMaxSize()) {
-        val horizontalStep = 56.dp.toPx()
-        val verticalStep = 72.dp.toPx()
-        var y = 0f
-        while (y <= size.height) {
-            drawLine(
-                lineColor,
-                androidx.compose.ui.geometry
-                    .Offset(0f, y),
-                androidx.compose.ui.geometry
-                    .Offset(size.width, y),
-            )
-            y += horizontalStep
-        }
-        var x = 0f
-        while (x <= size.width) {
-            drawLine(
-                lineColor,
-                androidx.compose.ui.geometry
-                    .Offset(x, 0f),
-                androidx.compose.ui.geometry
-                    .Offset(x, size.height),
-            )
-            x += verticalStep
-        }
     }
 }
 

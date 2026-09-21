@@ -24,10 +24,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSplitRow
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionStyle
+import app.earcast.ui.common.InlineChoices
+import app.earcast.ui.common.SurfaceCard
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,7 +46,7 @@ internal fun RecordingPanel(
     val scope = rememberCoroutineScope()
     var exporting by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    StudioPanel(Modifier.fillMaxWidth()) {
+    SurfaceCard(Modifier.fillMaxWidth()) {
         Text("Sound comparison recording", style = MaterialTheme.typography.titleSmall)
         Text(
             "Record up to 30 seconds of microphone and processed sound on your next start. " +
@@ -70,12 +70,12 @@ internal fun RecordingPanel(
             modifier = Modifier.fillMaxWidth(),
         )
         Text(state.message, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
-        StudioSplitRow(modifier = Modifier.padding(top = 8.dp)) {
-            StudioButton(
+        InlineChoices(modifier = Modifier.padding(top = 8.dp)) {
+            ActionButton(
                 label = "Export latest",
                 enabled = !active && !state.saving && !exporting && state.lastDirectory != null,
                 modifier = Modifier.weight(1f),
-                style = StudioButtonStyle.SECONDARY,
+                style = ActionStyle.SECONDARY,
                 onClick = export@{
                     val directory = state.lastDirectory ?: return@export
                     exporting = true
@@ -86,11 +86,11 @@ internal fun RecordingPanel(
                     }
                 },
             )
-            StudioButton(
+            ActionButton(
                 label = "Delete recordings",
                 enabled = !active && !state.saving && !exporting,
                 modifier = Modifier.weight(1f),
-                style = StudioButtonStyle.DANGER,
+                style = ActionStyle.DANGER,
                 onClick = viewModel::deleteDiagnostics,
             )
         }

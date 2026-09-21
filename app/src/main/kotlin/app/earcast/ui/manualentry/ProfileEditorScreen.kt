@@ -13,10 +13,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
+import app.earcast.ui.common.ActionButton
 import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.EarPage
+import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.ScreenHeader
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioPage
 
 /**
  * Manual audiogram entry with plotted thresholds.
@@ -34,8 +35,9 @@ fun ProfileEditorScreen(
         onDispose { viewModel.stopPreview() }
     }
 
-    StudioPage {
+    EarPage {
         ScreenHeader(title = stringResource(R.string.manual_title), onBack = onBack)
+        PageHeading(stringResource(R.string.identity_editor_title), stringResource(R.string.identity_editor_detail))
         CollapsibleNotice(
             title = stringResource(R.string.manual_notice_title),
             body = stringResource(R.string.manual_intro),
@@ -51,7 +53,7 @@ fun ProfileEditorScreen(
             onStopPreview = viewModel::stopPreview,
         )
 
-        StudioButton(
+        ActionButton(
             label = stringResource(R.string.manual_save),
             onClick = { viewModel.save(onSaved = onBack) },
             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),

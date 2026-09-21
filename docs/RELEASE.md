@@ -46,7 +46,7 @@ Release builds use R8 (`isMinifyEnabled = true`, `isShrinkResources = true`).
 ## Versioning
 
 Bump `versionCode` (integer, monotonic) and `versionName` (semver, e.g.
-`0.2.0-alpha01`) in `app/build.gradle.kts` for each release. Tag releases in git
+`0.0.1`) in `app/build.gradle.kts` for each release. Tag releases in git
 (`vX.Y.Z`) and attach the APK to a GitHub Release.
 
 ## Distribution channels

@@ -3,6 +3,7 @@
 package app.earcast.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,30 +24,37 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.BuildConfig
 import app.earcast.R
 import app.earcast.ui.AppStateModel
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionStyle
+import app.earcast.ui.common.BrandBar
 import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.PageHeading
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioPage
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSectionLabel
-import app.earcast.ui.common.StudioTone
+import app.earcast.ui.common.SectionGroup
+import app.earcast.ui.common.SurfaceCard
 
 @Composable
 fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
     val state by rootViewModel.uiState.collectAsStateWithLifecycle()
-    StudioPage {
-        PageHeading(stringResource(R.string.settings_title), stringResource(R.string.settings_subtitle))
-        StudioSectionLabel(stringResource(R.string.settings_display_section))
-        AppearanceControl(state.highContrast, rootViewModel::setHighContrast)
-        StudioSectionLabel(stringResource(R.string.settings_listening_section), modifier = Modifier.padding(top = 4.dp))
-        ComfortCalibration(
-            ceiling = state.comfortCeiling,
-            onChange = rootViewModel::setComfortCeiling,
-            onPreview = { rootViewModel.previewComfort(state.comfortCeiling) },
-        )
-        AboutSection()
-        SafetyNotice()
+    EarPage {
+        BrandBar(stringResource(R.string.nav_settings))
+        PageHeading(stringResource(R.string.identity_settings_title), stringResource(R.string.identity_settings_detail))
+        SectionGroup(stringResource(R.string.identity_settings_accessibility), index = "01") {
+            AppearanceControl(state.highContrast, rootViewModel::setHighContrast)
+        }
+        SectionGroup(stringResource(R.string.identity_settings_comfort), index = "02") {
+            ComfortCalibration(state.comfortCeiling, rootViewModel::setComfortCeiling) {
+                rootViewModel.previewComfort(state.comfortCeiling)
+            }
+        }
+        SectionGroup(stringResource(R.string.identity_settings_about), index = "03") {
+            Text(
+                stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            CollapsibleNotice(stringResource(R.string.about_title), stringResource(R.string.about_body))
+            CollapsibleNotice(stringResource(R.string.disclaimer_title), stringResource(R.string.disclaimer_body))
+        }
     }
 }
 
@@ -55,13 +63,21 @@ private fun AppearanceControl(
     highContrast: Boolean,
     onChange: (Boolean) -> Unit,
 ) {
+    val label = stringResource(R.string.settings_high_contrast)
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        Modifier.fillMaxWidth().padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(stringResource(R.string.settings_high_contrast), style = MaterialTheme.typography.bodyMedium)
-        Switch(checked = highContrast, onCheckedChange = onChange)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(label, style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.identity_contrast_detail),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(highContrast, onChange, modifier = Modifier.semantics { contentDescription = label })
     }
 }
 
@@ -71,47 +87,38 @@ private fun ComfortCalibration(
     onChange: (Float) -> Unit,
     onPreview: () -> Unit,
 ) {
-    val sliderDescription = stringResource(R.string.settings_comfort_slider)
-    StudioPanel(modifier = Modifier.fillMaxWidth(), tone = StudioTone.WARM) {
-        Text(stringResource(R.string.settings_comfort_title), style = MaterialTheme.typography.titleSmall)
+    val label = stringResource(R.string.settings_comfort_slider)
+    SurfaceCard(Modifier.fillMaxWidth(), padding = 16.dp) {
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                "${(ceiling * 100).toInt()}%",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                stringResource(R.string.identity_comfort_cap),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
+        }
+        Slider(
+            ceiling,
+            onChange,
+            valueRange = 0.1f..0.9f,
+            modifier = Modifier.semantics { contentDescription = label },
+        )
         Text(
             stringResource(R.string.settings_comfort_desc),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(vertical = 8.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 12.dp),
         )
-        Slider(
-            value = ceiling,
-            onValueChange = onChange,
-            valueRange = 0.1f..0.9f,
-            modifier = Modifier.semantics { contentDescription = sliderDescription },
-        )
-        StudioButton(
-            label = stringResource(R.string.settings_comfort_preview),
-            onClick = onPreview,
-            modifier = Modifier.fillMaxWidth(),
-            style = StudioButtonStyle.SECONDARY,
+        ActionButton(
+            stringResource(R.string.settings_comfort_preview),
+            onPreview,
+            Modifier.fillMaxWidth(),
+            style = ActionStyle.SECONDARY,
         )
     }
-}
-
-@Composable
-private fun AboutSection() {
-    CollapsibleNotice(
-        title = stringResource(R.string.about_title),
-        body =
-            "${stringResource(R.string.about_version, BuildConfig.VERSION_NAME)}\n\n" +
-                stringResource(R.string.about_body),
-        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-    )
-}
-
-@Composable
-private fun SafetyNotice() {
-    CollapsibleNotice(
-        title = stringResource(R.string.disclaimer_title),
-        body = stringResource(R.string.disclaimer_body),
-        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-    )
 }

@@ -27,16 +27,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.audiogram.HearingCurve
 import app.earcast.common.AudioEar
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
+import app.earcast.ui.common.EarPage
+import app.earcast.ui.common.JourneyStep
+import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.ScreenHeader
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioPage
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSectionLabel
-import app.earcast.ui.common.StudioStatus
-import app.earcast.ui.common.StudioTone
+import app.earcast.ui.common.StatusTag
+import app.earcast.ui.common.SurfaceCard
+import app.earcast.ui.common.SurfaceTone
 import app.earcast.ui.demo.SoundPreviewCard
 import app.earcast.ui.share.ProfileShareDialog
 
@@ -56,16 +57,16 @@ fun ToneCheckScreen(
         onDispose { viewModel.mute() }
     }
 
-    StudioPage {
+    EarPage {
         ScreenHeader(title = stringResource(R.string.check_title), onBack = onBack)
-        CalibrationNotice()
 
         when (state.phase) {
             ToneCheckPhase.NOT_STARTED -> NotStarted(onStart = viewModel::start, onManualEntry = onManualEntry)
             ToneCheckPhase.IN_PROGRESS ->
                 InProgress(state = state, viewModel = viewModel)
-            ToneCheckPhase.DONE -> Results(state = state, onRestart = viewModel::start)
+            ToneCheckPhase.DONE -> Results(state = state, onRestart = viewModel::start, onDone = onBack)
         }
+        CalibrationNotice()
     }
 }
 
@@ -83,22 +84,31 @@ private fun NotStarted(
     onStart: () -> Unit,
     onManualEntry: () -> Unit,
 ) {
-    StudioPanel(tone = StudioTone.TINT, modifier = Modifier.fillMaxWidth()) {
-        StudioSectionLabel(stringResource(R.string.check_prepare_title), index = "01")
-        Text(
-            stringResource(R.string.check_intro),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 10.dp, bottom = 18.dp),
+    PageHeading(stringResource(R.string.identity_tone_title))
+    SurfaceCard(modifier = Modifier.fillMaxWidth()) {
+        JourneyStep(
+            "01",
+            stringResource(R.string.identity_prepare_one),
+            stringResource(R.string.identity_prepare_one_detail),
         )
-        BigButton(stringResource(R.string.check_start), onClick = onStart)
-        StudioButton(
-            label = stringResource(R.string.check_manual_entry),
-            onClick = onManualEntry,
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            style = StudioButtonStyle.SECONDARY,
+        JourneyStep(
+            "02",
+            stringResource(R.string.identity_prepare_two),
+            stringResource(R.string.identity_prepare_two_detail),
+        )
+        JourneyStep(
+            "03",
+            stringResource(R.string.identity_prepare_three),
+            stringResource(R.string.identity_prepare_three_detail),
         )
     }
+    ActionButton(stringResource(R.string.check_start), onStart, Modifier.fillMaxWidth())
+    ActionButton(
+        stringResource(R.string.check_manual_entry),
+        onManualEntry,
+        Modifier.fillMaxWidth(),
+        style = ActionStyle.SECONDARY,
+    )
 }
 
 @Composable
@@ -109,9 +119,9 @@ private fun InProgress(
     val questionText =
         if (state.isPlaying) stringResource(R.string.check_playing) else stringResource(R.string.check_question)
     Column {
-        StudioPanel(tone = StudioTone.DARK, modifier = Modifier.fillMaxWidth()) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StudioStatus(
+        SurfaceCard(tone = SurfaceTone.DARK, modifier = Modifier.fillMaxWidth()) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatusTag(
                     stringResource(R.string.check_progress, state.completed + 1, state.total),
                     active = state.isPlaying,
                 )
@@ -138,17 +148,17 @@ private fun InProgress(
         }
 
         BigButton(stringResource(R.string.check_heard), onClick = viewModel::onHeard)
-        StudioButton(
+        ActionButton(
             label = stringResource(R.string.check_not_heard),
             onClick = viewModel::onNotHeard,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            style = StudioButtonStyle.SECONDARY,
+            style = ActionStyle.SECONDARY,
         )
-        StudioButton(
+        ActionButton(
             label = stringResource(R.string.check_replay),
             onClick = viewModel::replay,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            style = StudioButtonStyle.SECONDARY,
+            style = ActionStyle.SECONDARY,
         )
 
         SafetyControls(state = state, viewModel = viewModel)
@@ -161,18 +171,18 @@ private fun SafetyControls(
     viewModel: ToneCheckStateModel,
 ) {
     val sliderDescription = stringResource(R.string.check_volume_cap_slider)
-    StudioPanel(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), tone = StudioTone.WARM) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), tone = SurfaceTone.WARM) {
         Text(stringResource(R.string.check_volume_cap), style = MaterialTheme.typography.labelLarge)
         Slider(
             value = state.masterCap,
             onValueChange = viewModel::setMasterCap,
             modifier = Modifier.semantics { contentDescription = sliderDescription },
         )
-        StudioButton(
+        ActionButton(
             label = stringResource(R.string.check_mute),
             onClick = viewModel::mute,
             modifier = Modifier.fillMaxWidth(),
-            style = StudioButtonStyle.DANGER,
+            style = ActionStyle.DANGER,
         )
     }
 }
@@ -181,10 +191,11 @@ private fun SafetyControls(
 private fun Results(
     state: ToneCheckState,
     onRestart: () -> Unit,
+    onDone: () -> Unit,
 ) {
     var showShare by rememberSaveable { mutableStateOf(false) }
     Column {
-        StudioStatus(stringResource(R.string.check_complete), active = true)
+        StatusTag(stringResource(R.string.check_complete), active = true)
         state.audiogram?.let { ResultsChart(it) }
         DetailSection(title = stringResource(R.string.details_section)) {
             state.audiogram?.let { AudiogramTable(it) }
@@ -196,13 +207,19 @@ private fun Results(
             body = stringResource(R.string.check_results_disclaimer),
             modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
         )
-        BigButton(stringResource(R.string.check_run_again), onClick = onRestart)
+        BigButton(stringResource(R.string.check_done_action), onClick = onDone)
+        ActionButton(
+            label = stringResource(R.string.check_run_again),
+            onClick = onRestart,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            style = ActionStyle.SECONDARY,
+        )
         state.audiogram?.let { audiogram ->
-            StudioButton(
+            ActionButton(
                 label = stringResource(R.string.check_share),
                 onClick = { showShare = true },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                style = StudioButtonStyle.SECONDARY,
+                style = ActionStyle.SECONDARY,
             )
             if (showShare) {
                 ProfileShareDialog(audiogram = audiogram, onDismiss = { showShare = false })
@@ -213,7 +230,7 @@ private fun Results(
 
 @Composable
 private fun ResultsChart(audiogram: HearingCurve) {
-    StudioPanel(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Text(stringResource(R.string.check_chart_title), style = MaterialTheme.typography.titleSmall)
         ProfileChart(audiogram, modifier = Modifier.padding(top = 12.dp))
         Text(
@@ -226,7 +243,7 @@ private fun ResultsChart(audiogram: HearingCurve) {
 
 @Composable
 private fun AudiogramTable(audiogram: HearingCurve) {
-    StudioPanel(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Text(stringResource(R.string.check_table_title), style = MaterialTheme.typography.titleSmall)
         listOf(AudioEar.RIGHT, AudioEar.LEFT).forEach { ear ->
             Text(
@@ -247,7 +264,7 @@ private fun AudiogramTable(audiogram: HearingCurve) {
 
 @Composable
 private fun GainTable(summary: ChannelGainSummary) {
-    StudioPanel(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Text(
             stringResource(R.string.gain_title, earLabel(summary.ear)),
             style = MaterialTheme.typography.titleSmall,
@@ -266,7 +283,7 @@ private fun BigButton(
     label: String,
     onClick: () -> Unit,
 ) {
-    StudioButton(
+    ActionButton(
         label = label,
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),

@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package app.earcast.ui.navigation
 
 import androidx.compose.foundation.background
@@ -12,9 +14,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
@@ -28,43 +30,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.earcast.R
+import app.earcast.ui.common.SoundOrbit
 
-enum class PrimaryDestination {
-    HOME,
-    ASSIST,
-    PROFILE,
-    SETTINGS,
-}
+enum class PrimaryDestination { HOME, PROFILE, ASSIST, SETTINGS }
 
 @Composable
 fun navigationBarContent(
     selected: PrimaryDestination,
     onDestinationSelected: (PrimaryDestination) -> Unit,
 ) {
-    Row(
-        modifier =
+    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp)) {
+        Row(
             Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        PrimaryDestination.entries.forEach { destination ->
-            navigationItem(
-                destination = destination,
-                selected = selected == destination,
-                onClick = { onDestinationSelected(destination) },
-                modifier = Modifier.weight(1f),
-            )
+                .clip(RoundedCornerShape(28.dp))
+                .background(MaterialTheme.colorScheme.onBackground)
+                .selectableGroup()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            PrimaryDestination.entries.forEach { destination ->
+                DockItem(
+                    destination,
+                    selected == destination,
+                    { onDestinationSelected(destination) },
+                    Modifier.weight(1f),
+                )
+            }
         }
     }
 }
@@ -75,34 +73,25 @@ fun primaryNavigationRail(
     onDestinationSelected: (PrimaryDestination) -> Unit,
 ) {
     Column(
-        modifier =
-            Modifier
-                .width(104.dp)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.surface)
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 16.dp),
+        Modifier
+            .width(112.dp)
+            .fillMaxHeight()
+            .padding(12.dp)
+            .clip(RoundedCornerShape(32.dp))
+            .background(MaterialTheme.colorScheme.onBackground)
+            .selectableGroup()
+            .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(
-            modifier =
-                Modifier
-                    .size(42.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.onBackground),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("EC", color = MaterialTheme.colorScheme.background, style = MaterialTheme.typography.labelLarge)
-        }
+        SoundOrbit(Modifier.padding(top = 16.dp).size(44.dp), color = MaterialTheme.colorScheme.background)
         Spacer(Modifier.weight(1f))
         PrimaryDestination.entries.forEach { destination ->
-            navigationItem(
-                destination = destination,
-                selected = selected == destination,
-                onClick = { onDestinationSelected(destination) },
-                modifier = Modifier.fillMaxWidth(),
+            DockItem(
+                destination,
+                selected == destination,
+                { onDestinationSelected(destination) },
+                Modifier.fillMaxWidth(),
             )
         }
         Spacer(Modifier.weight(1f))
@@ -110,61 +99,46 @@ fun primaryNavigationRail(
 }
 
 @Composable
-private fun navigationItem(
+private fun DockItem(
     destination: PrimaryDestination,
     selected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
 ) {
-    val label =
-        when (destination) {
-            PrimaryDestination.HOME -> R.string.nav_home
-            PrimaryDestination.ASSIST -> R.string.nav_listen
-            PrimaryDestination.PROFILE -> R.string.nav_profile_label
-            PrimaryDestination.SETTINGS -> R.string.nav_settings
-        }
-    val icon =
-        when (destination) {
-            PrimaryDestination.HOME -> Icons.Filled.Home
-            PrimaryDestination.ASSIST -> Icons.Filled.Headphones
-            PrimaryDestination.PROFILE -> Icons.Filled.GraphicEq
-            PrimaryDestination.SETTINGS -> Icons.Filled.Settings
-        }
+    val colors = MaterialTheme.colorScheme
+    val foreground = if (selected) colors.onPrimaryContainer else colors.background
     Column(
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(16.dp))
-                .selectable(
-                    selected = selected,
-                    onClick = onClick,
-                    role = Role.Tab,
-                ).semantics {
-                    this.selected = selected
-                    this.role = Role.Tab
-                }.heightIn(min = 64.dp)
-                .padding(vertical = 6.dp),
+        modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (selected) colors.primaryContainer else colors.onBackground)
+            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
+            .heightIn(min = 62.dp)
+            .padding(horizontal = 3.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Box(
-            modifier =
-                Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-                    ).padding(horizontal = 16.dp, vertical = 4.dp),
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(22.dp),
-                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        Icon(destination.icon(), null, Modifier.size(21.dp), tint = foreground)
         Text(
-            stringResource(label),
-            style = MaterialTheme.typography.labelMedium,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            stringResource(destination.label()),
+            style = MaterialTheme.typography.labelSmall,
+            color = foreground,
+            textAlign = TextAlign.Center,
         )
     }
 }
+
+private fun PrimaryDestination.label(): Int =
+    when (this) {
+        PrimaryDestination.HOME -> R.string.nav_home
+        PrimaryDestination.PROFILE -> R.string.nav_profile_label
+        PrimaryDestination.ASSIST -> R.string.nav_listen
+        PrimaryDestination.SETTINGS -> R.string.nav_settings
+    }
+
+private fun PrimaryDestination.icon(): ImageVector =
+    when (this) {
+        PrimaryDestination.HOME -> Icons.Filled.Home
+        PrimaryDestination.PROFILE -> Icons.Filled.GraphicEq
+        PrimaryDestination.ASSIST -> Icons.Filled.Headphones
+        PrimaryDestination.SETTINGS -> Icons.Filled.Settings
+    }

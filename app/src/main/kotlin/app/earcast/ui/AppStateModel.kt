@@ -3,6 +3,7 @@ package app.earcast.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.earcast.assist.LiveSessionBuilder
+import app.earcast.audiogram.HearingCurve
 import app.earcast.common.AudioLimits
 import app.earcast.common.FrequencyHz
 import app.earcast.core.audio.TestSignalGenerator
@@ -30,6 +31,7 @@ data class AppState(
     val highContrast: Boolean = false,
     val comfortCeiling: Float = 0.5f,
     val hasProfile: Boolean = false,
+    val audiogram: HearingCurve? = null,
     val mediaEqEnabled: Boolean = false,
     val mediaEqSupported: Boolean = false,
     val mediaEqFailed: Boolean = false,
@@ -73,6 +75,7 @@ class AppStateModel
                     highContrast = highContrast,
                     comfortCeiling = ceiling,
                     hasProfile = profile?.audiogram?.thresholds?.isNotEmpty() == true,
+                    audiogram = profile?.audiogram,
                     mediaEqEnabled = eqEnabled,
                     mediaEqSupported = mediaEq.isSupported,
                     mediaEqFailed = failed,

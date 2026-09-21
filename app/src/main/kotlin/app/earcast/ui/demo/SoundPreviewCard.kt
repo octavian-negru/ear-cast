@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioPanel
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionStyle
+import app.earcast.ui.common.SurfaceCard
 
 /**
  * "Hear the difference" A/B demo card: plays the sample sound with a live
@@ -34,7 +34,7 @@ fun SoundPreviewCard(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     if (!state.available) return
 
-    StudioPanel(modifier = modifier.fillMaxWidth()) {
+    SurfaceCard(modifier = modifier.fillMaxWidth()) {
         Text(stringResource(R.string.demo_title), style = MaterialTheme.typography.titleSmall)
         Text(
             stringResource(R.string.demo_desc),
@@ -63,7 +63,7 @@ fun SoundPreviewCard(
                     modifier = Modifier.padding(start = 12.dp),
                 )
             }
-            StudioButton(
+            ActionButton(
                 label =
                     if (state.playing) {
                         stringResource(R.string.demo_stop)
@@ -72,7 +72,7 @@ fun SoundPreviewCard(
                     },
                 onClick = viewModel::togglePlayback,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                style = if (state.playing) StudioButtonStyle.DANGER else StudioButtonStyle.PRIMARY,
+                style = if (state.playing) ActionStyle.DANGER else ActionStyle.PRIMARY,
             )
             Text(
                 stringResource(R.string.demo_flat_hint),

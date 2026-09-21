@@ -3,7 +3,12 @@
 package app.earcast.ui.profile
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,95 +16,67 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.earcast.R
-import app.earcast.ui.common.ActionCard
-import app.earcast.ui.common.ActionCardEmphasis
+import app.earcast.audiogram.HearingCurve
+import app.earcast.ui.common.AudiogramCard
+import app.earcast.ui.common.BrandBar
 import app.earcast.ui.common.CollapsibleNotice
-import app.earcast.ui.common.DetailSection
+import app.earcast.ui.common.EarPage
+import app.earcast.ui.common.FeatureRoute
 import app.earcast.ui.common.PageHeading
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioPage
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSectionLabel
-import app.earcast.ui.common.StudioStatus
-import app.earcast.ui.common.StudioTone
+import app.earcast.ui.common.SectionGroup
+import app.earcast.ui.common.SoundOrbit
+import app.earcast.ui.common.SurfaceCard
 
 @Composable
 fun ProfileSetupScreen(
     hasProfile: Boolean,
+    audiogram: HearingCurve? = null,
     showDinTest: Boolean,
     onRunHearingTest: () -> Unit,
     onManualEntry: () -> Unit,
     onRunDinTest: () -> Unit,
 ) {
-    StudioPage {
-        PageHeading(stringResource(R.string.nav_profile), stringResource(R.string.profile_subtitle))
-        ProfileStatus(hasProfile)
-        ProfileRoutes(onRunHearingTest, onManualEntry)
-        if (showDinTest) AdditionalTools(onRunDinTest)
-        ProfileNotice()
-    }
-}
-
-@Composable
-private fun ProfileNotice() {
-    CollapsibleNotice(
-        title = stringResource(R.string.notice_summary),
-        body = stringResource(R.string.disclaimer_body),
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-    )
-}
-
-@Composable
-private fun ProfileStatus(hasProfile: Boolean) {
-    StudioPanel(
-        modifier = Modifier.fillMaxWidth(),
-        tone = if (hasProfile) StudioTone.TINT else StudioTone.WARM,
-    ) {
-        StudioStatus(
-            label = stringResource(if (hasProfile) R.string.home_profile_ready else R.string.home_profile_needed),
-            active = hasProfile,
-        )
-        Text(
-            stringResource(if (hasProfile) R.string.profile_ready else R.string.profile_missing_detail),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 10.dp),
-        )
-    }
-}
-
-@Composable
-private fun ProfileRoutes(
-    onRunHearingTest: () -> Unit,
-    onManualEntry: () -> Unit,
-) {
-    StudioSectionLabel(stringResource(R.string.profile_setup_section), modifier = Modifier.padding(top = 4.dp))
-    ActionCard(
-        title = stringResource(R.string.profile_check_title),
-        detail = stringResource(R.string.profile_check_detail),
-        action = stringResource(R.string.profile_check_action),
-        onClick = onRunHearingTest,
-    )
-    ActionCard(
-        title = stringResource(R.string.profile_editor_title),
-        detail = stringResource(R.string.profile_editor_detail),
-        action = stringResource(R.string.profile_editor_action),
-        onClick = onManualEntry,
-        emphasis = ActionCardEmphasis.SECONDARY,
-    )
-}
-
-@Composable
-private fun AdditionalTools(onRunDinTest: () -> Unit) {
-    DetailSection(title = stringResource(R.string.home_tools_section)) {
-        StudioButton(
-            label = stringResource(R.string.home_din_test),
-            onClick = onRunDinTest,
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-            style = StudioButtonStyle.SECONDARY,
-        )
+    EarPage {
+        BrandBar(stringResource(R.string.identity_profile_label))
+        PageHeading(stringResource(R.string.identity_profile_title), stringResource(R.string.identity_profile_detail))
+        if (hasProfile) {
+            AudiogramCard(audiogram, onManualEntry, stringResource(R.string.profile_editor_action))
+            CollapsibleNotice(
+                stringResource(R.string.identity_read_chart),
+                stringResource(R.string.audiogram_reading_hint),
+            )
+        } else {
+            SoundOrbit(Modifier.fillMaxWidth().height(96.dp))
+            Text(stringResource(R.string.identity_two_ways), style = MaterialTheme.typography.titleLarge)
+        }
+        SectionGroup(stringResource(R.string.identity_profile_routes), index = "01") {
+            SurfaceCard(Modifier.fillMaxWidth()) {
+                FeatureRoute(
+                    number = stringResource(R.string.identity_guided_label),
+                    title = stringResource(R.string.profile_check_title),
+                    detail = stringResource(R.string.profile_check_detail),
+                    icon = Icons.Filled.Headphones,
+                    onClick = onRunHearingTest,
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                FeatureRoute(
+                    number = stringResource(R.string.identity_manual_label),
+                    title = stringResource(R.string.profile_editor_title),
+                    detail = stringResource(R.string.profile_editor_detail),
+                    icon = Icons.Filled.Edit,
+                    onClick = onManualEntry,
+                )
+            }
+        }
+        if (showDinTest) {
+            FeatureRoute(
+                number = stringResource(R.string.home_tools_section),
+                title = stringResource(R.string.home_din_test),
+                detail = stringResource(R.string.identity_speech_detail),
+                icon = Icons.Filled.RecordVoiceOver,
+                onClick = onRunDinTest,
+            )
+        }
+        CollapsibleNotice(stringResource(R.string.notice_summary), stringResource(R.string.disclaimer_body))
     }
 }

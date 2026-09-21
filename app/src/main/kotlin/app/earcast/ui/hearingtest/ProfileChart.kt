@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -29,6 +30,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import app.earcast.R
@@ -76,15 +78,18 @@ fun ProfileChart(
     val leftColor = if (dark) LeftDark else LeftLight
     val gridColor = MaterialTheme.colorScheme.outlineVariant
     val labelStyle =
-        MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+        MaterialTheme.typography.labelSmall.copy(
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontFamily = FontFamily.Monospace,
+        )
     val textMeasurer = rememberTextMeasurer()
 
     val frequencies =
         (audiogram.frequenciesFor(AudioEar.RIGHT) + audiogram.frequenciesFor(AudioEar.LEFT))
             .map { it.value }
+            .plus(listOf(250.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0))
             .distinct()
             .sorted()
-    if (frequencies.size < 2) return
 
     val series =
         listOf(
@@ -92,6 +97,16 @@ fun ProfileChart(
             ChartSeries(AudioEar.LEFT, leftColor, earPoints(audiogram, AudioEar.LEFT)),
         )
 
+    val rightLabel = stringResource(R.string.chart_legend_right)
+    val leftLabel = stringResource(R.string.chart_legend_left)
+    val valuesDescription =
+        series.joinToString(". ") { series ->
+            val ear = if (series.ear == AudioEar.RIGHT) rightLabel else leftLabel
+            ear + ": " +
+                series.points.joinToString { (frequency, level) ->
+                    "${frequency.toInt()} Hz, ${level.toInt()} dB HL"
+                }
+        }
     Column(modifier = modifier) {
         Canvas(
             modifier =
@@ -104,10 +119,10 @@ fun ProfileChart(
                         } else {
                             Modifier.pointerInput(frequencies, onPointChange) {
                                 detectTapGestures { point ->
-                                    val plotLeft = 32.dp.toPx()
-                                    val plotRight = size.width - 12.dp.toPx()
-                                    val plotTop = 8.dp.toPx()
-                                    val plotBottom = size.height - 20.dp.toPx()
+                                    val plotLeft = 40.dp.toPx()
+                                    val plotRight = size.width - 24.dp.toPx()
+                                    val plotTop = 16.dp.toPx()
+                                    val plotBottom = size.height - 32.dp.toPx()
                                     val hitLeft = maxOf(0f, plotLeft - 28.dp.toPx())
                                     val hitRight = minOf(size.width.toFloat(), plotRight + 28.dp.toPx())
                                     val hitTop = maxOf(0f, plotTop - 24.dp.toPx())
@@ -126,7 +141,7 @@ fun ProfileChart(
                                 }
                             }
                         },
-                    ).semantics { contentDescription = description },
+                    ).semantics { contentDescription = "$description. $valuesDescription" },
         ) {
             drawChart(series, frequencies, gridColor, textMeasurer, labelStyle, editable = onPointChange != null)
         }
@@ -142,16 +157,25 @@ private fun DrawScope.drawChart(
     labelStyle: TextStyle,
     editable: Boolean,
 ) {
-    val left = 32.dp.toPx()
-    val right = size.width - 12.dp.toPx()
-    val top = 8.dp.toPx()
-    val bottom = size.height - 20.dp.toPx()
+    val left = 40.dp.toPx()
+    val right = size.width - 24.dp.toPx()
+    val top = 16.dp.toPx()
+    val bottom = size.height - 32.dp.toPx()
     val logLo = log2(frequencies.first())
     val logHi = log2(frequencies.last())
 
     fun xOf(freq: Double): Float = left + ((log2(freq) - logLo) / (logHi - logLo)).toFloat() * (right - left)
 
     fun yOf(dbHl: Double): Float = top + ((dbHl - DB_MIN) / (DB_MAX - DB_MIN)).toFloat() * (bottom - top)
+
+    // Alternating ruled bands keep the plot legible without implying clinical categories.
+    for (level in 0..60 step 40) {
+        drawRect(
+            color = gridColor.copy(alpha = 0.16f),
+            topLeft = Offset(left, yOf(level.toDouble())),
+            size = Size(right - left, yOf(level + 20.0) - yOf(level.toDouble())),
+        )
+    }
 
     // Recessive grid with dB labels down the left and pitch labels along the bottom.
     val gridStep = if (editable) 10 else DB_GRID_STEP

@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A quiet signal aperture: a single listening point opening into a waveform. -->
+<!-- EarCast open-ring mark, contained within the adaptive icon safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#FFF7E8"
-        android:pathData="M33,54 a8,8 0 1,1 0,-16 a8,8 0 1,1 0,16 z" />
-    <path
-        android:strokeColor="#F1B65B"
-        android:strokeWidth="6"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="@android:color/transparent"
-        android:pathData="M47,54 L56,54 L64,34 L73,74 L82,54" />
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FFB598"
+        android:strokeWidth="2.4" android:strokeLineCap="round"
+        android:pathData="M64.14,32.25 A24,24 0,1 0,75.75 64.14" />
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FFB598"
+        android:strokeWidth="2.4" android:strokeLineCap="round"
+        android:pathData="M64.73,38.68 A18.7,18.7 0,1 0,69.32 64.73" />
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FFB598"
+        android:strokeWidth="2.4" android:strokeLineCap="round"
+        android:pathData="M63.48,44.52 A13.4,13.4 0,1 0,63.48 63.48" />
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FFB598"
+        android:strokeWidth="2.4" android:strokeLineCap="round"
+        android:pathData="M60.64,49.35 A8.1,8.1 0,1 0,58.65 60.64" />
 </vector>
-

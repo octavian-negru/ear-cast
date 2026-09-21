@@ -28,10 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import app.earcast.R
 import app.earcast.audiogram.HearingCurve
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSplitRow
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionStyle
+import app.earcast.ui.common.InlineChoices
+import app.earcast.ui.common.SurfaceCard
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -57,7 +57,7 @@ fun ProfileShareDialog(
     var sharing by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
-        StudioPanel(modifier = Modifier.fillMaxWidth()) {
+        SurfaceCard(modifier = Modifier.fillMaxWidth()) {
             Column(
                 Modifier.verticalScroll(rememberScrollState()),
             ) {
@@ -83,14 +83,14 @@ fun ProfileShareDialog(
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 12.dp),
                 )
-                StudioSplitRow(modifier = Modifier.padding(top = 16.dp)) {
-                    StudioButton(
+                InlineChoices(modifier = Modifier.padding(top = 16.dp)) {
+                    ActionButton(
                         label = stringResource(R.string.share_cancel),
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f),
-                        style = StudioButtonStyle.SECONDARY,
+                        style = ActionStyle.SECONDARY,
                     )
-                    StudioButton(
+                    ActionButton(
                         label = stringResource(R.string.share_send),
                         enabled = !sharing,
                         onClick = {

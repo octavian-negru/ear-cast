@@ -5,7 +5,10 @@ package app.earcast.ui.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -25,17 +28,21 @@ import app.earcast.R
 import app.earcast.common.AudioLimits
 import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.ui.AppState
-import app.earcast.ui.common.ActionCard
-import app.earcast.ui.common.ActionCardEmphasis
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.AdaptiveSplit
+import app.earcast.ui.common.AudiogramCard
+import app.earcast.ui.common.BrandBar
+import app.earcast.ui.common.ChoiceChip
 import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.DetailSection
+import app.earcast.ui.common.EarPage
+import app.earcast.ui.common.FeatureRoute
+import app.earcast.ui.common.InlineChoices
 import app.earcast.ui.common.PageHeading
-import app.earcast.ui.common.SoundMark
-import app.earcast.ui.common.StudioChoice
-import app.earcast.ui.common.StudioPage
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSectionLabel
-import app.earcast.ui.common.StudioSplitRow
-import app.earcast.ui.common.StudioStatus
+import app.earcast.ui.common.SectionGroup
+import app.earcast.ui.common.SoundOrbit
+import app.earcast.ui.common.SurfaceCard
+import app.earcast.ui.common.SurfaceTone
 
 @Composable
 fun HomeScreen(
@@ -46,22 +53,59 @@ fun HomeScreen(
     onSetMediaBoost: (Float) -> Unit,
     onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
-    val profileStatusLabel =
-        if (state.hasProfile) R.string.home_profile_ready else R.string.home_profile_needed
-    StudioPage(verticalSpacing = 8.dp) {
-        SoundMark()
-        PageHeading(stringResource(R.string.app_name), stringResource(R.string.home_subtitle))
-        StudioSplitRow {
-            StudioStatus(
-                label = stringResource(profileStatusLabel),
-                active = state.hasProfile,
-                modifier = Modifier.weight(1f),
-            )
-            StudioStatus(label = stringResource(R.string.home_private_status), active = true)
-        }
-        HomeActions(state = state, onOpenProfile = onOpenProfile, onOpenAssist = onOpenAssist)
-        MediaPlaybackSection(state, onSetMediaEq, onSetMediaBoost, onSetMediaProcessingMode)
+    EarPage {
+        BrandBar(trailing = stringResource(R.string.identity_private))
+        PageHeading(stringResource(R.string.identity_home_title))
+        AdaptiveSplit(
+            primary = {
+                if (state.hasProfile) {
+                    AudiogramCard(audiogram = state.audiogram, onEdit = onOpenProfile)
+                } else {
+                    WelcomeInstrument(onOpenProfile)
+                }
+            },
+            secondary = {
+                SectionGroup(stringResource(R.string.identity_listen_section), index = "02") {
+                    FeatureRoute(
+                        number = stringResource(R.string.identity_live_label),
+                        title = stringResource(R.string.identity_live_title),
+                        detail = stringResource(R.string.identity_live_detail),
+                        icon = Icons.Filled.Headphones,
+                        onClick = onOpenAssist,
+                    )
+                    MediaPlaybackSection(state, onSetMediaEq, onSetMediaBoost, onSetMediaProcessingMode)
+                }
+            },
+        )
         SafetyDisclaimer()
+    }
+}
+
+@Composable
+private fun WelcomeInstrument(onOpenProfile: () -> Unit) {
+    SurfaceCard(tone = SurfaceTone.TINT, modifier = Modifier.fillMaxWidth(), padding = 18.dp) {
+        SoundOrbit(Modifier.fillMaxWidth().height(100.dp))
+        Text(
+            stringResource(R.string.identity_first_step),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        Text(
+            stringResource(R.string.identity_start_title),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            stringResource(R.string.identity_start_detail),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+        )
+        ActionButton(
+            stringResource(R.string.profile_card_action),
+            onClick = onOpenProfile,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -71,42 +115,8 @@ private fun SafetyDisclaimer() {
         title = stringResource(R.string.disclaimer_title),
         body = stringResource(R.string.disclaimer_body),
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     )
-}
-
-@Composable
-private fun HomeActions(
-    state: AppState,
-    onOpenProfile: () -> Unit,
-    onOpenAssist: () -> Unit,
-) {
-    if (!state.hasProfile) {
-        StudioSectionLabel(stringResource(R.string.home_start_section), modifier = Modifier.padding(top = 6.dp))
-    }
-    if (state.hasProfile) {
-        ActionCard(
-            title = stringResource(R.string.listen_card_title),
-            detail = stringResource(R.string.listen_card_detail),
-            action = stringResource(R.string.listen_card_action),
-            onClick = onOpenAssist,
-        )
-        ActionCard(
-            title = stringResource(R.string.profile_manage_title),
-            detail = stringResource(R.string.profile_manage_detail),
-            action = stringResource(R.string.profile_manage_action),
-            onClick = onOpenProfile,
-            emphasis = ActionCardEmphasis.SECONDARY,
-        )
-    } else {
-        ActionCard(
-            title = stringResource(R.string.profile_card_title),
-            detail = stringResource(R.string.profile_card_detail),
-            action = stringResource(R.string.profile_card_action),
-            onClick = onOpenProfile,
-        )
-    }
 }
 
 @Composable
@@ -116,16 +126,24 @@ private fun MediaPlaybackSection(
     onSetMediaBoost: (Float) -> Unit,
     onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
-    StudioSectionLabel(stringResource(R.string.home_media_section))
-    StudioPanel(modifier = Modifier.fillMaxWidth(), padding = 14.dp) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tone = SurfaceTone.WARM, padding = 16.dp) {
+        Text(
+            stringResource(R.string.identity_media_label),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         MediaSoundToggle(state, onSetMediaEq)
         Text(
             stringResource(R.string.media_eq_desc),
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(top = 6.dp),
         )
-        MediaAlgorithmControl(state, onSetMediaProcessingMode)
-        MediaBoostControl(state, onSetMediaBoost)
+        if (state.mediaEqEnabled && state.mediaEqSupported && state.hasProfile) {
+            DetailSection(title = stringResource(R.string.media_adjust_sound)) {
+                MediaAlgorithmControl(state, onSetMediaProcessingMode)
+                MediaBoostControl(state, onSetMediaBoost)
+            }
+        }
         MediaSoundStatus(state)
     }
 }
@@ -141,15 +159,15 @@ private fun MediaAlgorithmControl(
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
     )
-    StudioSplitRow {
-        StudioChoice(
+    InlineChoices {
+        ChoiceChip(
             label = stringResource(R.string.media_algorithm_balanced),
             selected = state.mediaProcessingMode == MediaProcessingMode.BALANCED,
             onClick = { onSetMediaProcessingMode(MediaProcessingMode.BALANCED) },
             modifier = Modifier.weight(1f),
             enabled = enabled,
         )
-        StudioChoice(
+        ChoiceChip(
             label = stringResource(R.string.media_algorithm_speech),
             selected = state.mediaProcessingMode == MediaProcessingMode.SPEECH_CLARITY,
             onClick = { onSetMediaProcessingMode(MediaProcessingMode.SPEECH_CLARITY) },
@@ -176,16 +194,22 @@ private fun MediaSoundToggle(
     state: AppState,
     onSetMediaEq: (Boolean) -> Unit,
 ) {
+    val toggleDescription = stringResource(R.string.media_eq_title)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(stringResource(R.string.media_eq_title), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.media_eq_title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.weight(1f),
+        )
         Switch(
             checked = state.mediaEqEnabled,
             onCheckedChange = onSetMediaEq,
             enabled = state.mediaEqSupported && state.hasProfile,
+            modifier = Modifier.semantics { contentDescription = toggleDescription },
         )
     }
 }

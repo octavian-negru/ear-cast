@@ -48,7 +48,7 @@ android {
                 .get()
                 .toInt()
         versionCode = 2
-        versionName = "0.2.0-alpha01"
+        versionName = "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

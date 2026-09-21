@@ -21,15 +21,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.audiogram.SpeechProtocol
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.CollapsibleNotice
+import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.ScreenHeader
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioPage
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSectionLabel
-import app.earcast.ui.common.StudioStatus
-import app.earcast.ui.common.StudioTone
+import app.earcast.ui.common.SectionHeader
+import app.earcast.ui.common.StatusTag
+import app.earcast.ui.common.SurfaceCard
+import app.earcast.ui.common.SurfaceTone
 
 /**
  * Listening-in-noise check: spoken digits in adaptive background noise. The
@@ -47,7 +47,7 @@ fun SpeechCheckScreen(
         onDispose { viewModel.mute() }
     }
 
-    StudioPage {
+    EarPage {
         ScreenHeader(title = stringResource(R.string.din_title), onBack = onBack)
         NoticeCard()
 
@@ -70,15 +70,15 @@ private fun NoticeCard() {
 
 @Composable
 private fun NotStarted(onStart: () -> Unit) {
-    StudioPanel(tone = StudioTone.TINT, modifier = Modifier.fillMaxWidth()) {
-        StudioSectionLabel(stringResource(R.string.din_prepare_title), index = "01")
+    SurfaceCard(tone = SurfaceTone.TINT, modifier = Modifier.fillMaxWidth()) {
+        SectionHeader(stringResource(R.string.din_prepare_title), index = "01")
         Text(
             stringResource(R.string.din_intro),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 10.dp, bottom = 18.dp),
         )
-        StudioButton(
+        ActionButton(
             label = stringResource(R.string.din_start),
             onClick = onStart,
             modifier = Modifier.fillMaxWidth(),
@@ -92,8 +92,8 @@ private fun InProgress(
     viewModel: SpeechCheckStateModel,
 ) {
     Column {
-        StudioPanel(tone = StudioTone.DARK, modifier = Modifier.fillMaxWidth()) {
-            StudioStatus(
+        SurfaceCard(tone = SurfaceTone.DARK, modifier = Modifier.fillMaxWidth()) {
+            StatusTag(
                 stringResource(R.string.din_progress, state.tripletNumber, state.totalTriplets),
                 active = state.isPlaying,
             )
@@ -116,14 +116,14 @@ private fun InProgress(
         Keypad(enabled = !state.isPlaying, onDigit = viewModel::tapDigit)
 
         Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StudioButton(
+            ActionButton(
                 label = stringResource(R.string.din_backspace),
                 onClick = viewModel::backspace,
                 enabled = state.entered.isNotEmpty(),
                 modifier = Modifier.weight(1f),
-                style = StudioButtonStyle.SECONDARY,
+                style = ActionStyle.SECONDARY,
             )
-            StudioButton(
+            ActionButton(
                 label = stringResource(R.string.din_submit),
                 onClick = viewModel::submit,
                 enabled = state.entered.size == SpeechProtocol.TRIPLET_SIZE && !state.isPlaying,
@@ -131,11 +131,11 @@ private fun InProgress(
             )
         }
 
-        StudioButton(
+        ActionButton(
             label = stringResource(R.string.check_mute),
             onClick = viewModel::mute,
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-            style = StudioButtonStyle.DANGER,
+            style = ActionStyle.DANGER,
         )
     }
 }
@@ -165,12 +165,12 @@ private fun Keypad(
         rows.forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { digit ->
-                    StudioButton(
+                    ActionButton(
                         label = digit.toString(),
                         onClick = { onDigit(digit) },
                         enabled = enabled,
                         modifier = Modifier.weight(1f),
-                        style = StudioButtonStyle.SECONDARY,
+                        style = ActionStyle.SECONDARY,
                     )
                 }
             }
@@ -180,8 +180,8 @@ private fun Keypad(
 
 @Composable
 private fun Results(state: SpeechCheckState) {
-    StudioPanel(tone = StudioTone.TINT, modifier = Modifier.fillMaxWidth()) {
-        StudioStatus(stringResource(R.string.din_complete), active = true)
+    SurfaceCard(tone = SurfaceTone.TINT, modifier = Modifier.fillMaxWidth()) {
+        StatusTag(stringResource(R.string.din_complete), active = true)
         if (state.pinnedAtEdge) {
             Text(
                 stringResource(R.string.din_result_pinned),

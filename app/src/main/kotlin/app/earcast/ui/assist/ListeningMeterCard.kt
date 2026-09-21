@@ -12,9 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.earcast.R
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioStatus
-import app.earcast.ui.common.StudioTone
+import app.earcast.ui.common.StatusTag
+import app.earcast.ui.common.SurfaceCard
+import app.earcast.ui.common.SurfaceTone
 import java.util.Locale
 
 /**
@@ -29,8 +29,8 @@ fun ListeningMeterCard(
     modifier: Modifier = Modifier,
 ) {
     if (!running && exposure.todayPercent == 0) return
-    StudioPanel(modifier = modifier.fillMaxWidth(), tone = StudioTone.TINT) {
-        if (running) StudioStatus(stringResource(R.string.exposure_live), active = true)
+    SurfaceCard(modifier = modifier.fillMaxWidth(), tone = SurfaceTone.TINT) {
+        if (running) StatusTag(stringResource(R.string.exposure_live), active = true)
         Text(stringResource(R.string.exposure_title), style = MaterialTheme.typography.titleSmall)
         Text(
             stringResource(R.string.exposure_desc),

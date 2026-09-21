@@ -27,11 +27,11 @@ import app.earcast.core.audio.speech.InputMode
 import app.earcast.core.audio.speech.NoiseStrength
 import app.earcast.core.audio.speech.SpeechPresence
 import app.earcast.core.audio.speech.VoiceBoost
-import app.earcast.ui.common.StudioButton
-import app.earcast.ui.common.StudioButtonStyle
-import app.earcast.ui.common.StudioChoice
-import app.earcast.ui.common.StudioPanel
-import app.earcast.ui.common.StudioSplitRow
+import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionStyle
+import app.earcast.ui.common.ChoiceChip
+import app.earcast.ui.common.InlineChoices
+import app.earcast.ui.common.SurfaceCard
 
 @Composable
 @Suppress("LongMethod")
@@ -40,7 +40,7 @@ internal fun SoundOptionsPanel(
     enabled: Boolean,
     onChange: (EnhancementOptions) -> Unit,
 ) {
-    StudioPanel(Modifier.fillMaxWidth()) {
+    SurfaceCard(Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleSmall)
         Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
         EngineChoice(options.speechEngine, enabled) { onChange(options.copy(speechEngine = it)) }
@@ -139,12 +139,12 @@ private fun EngineChoice(
         modifier = Modifier.padding(top = 12.dp),
     )
     Box {
-        StudioButton(
+        ActionButton(
             label = labels.getValue(selected),
             onClick = { expanded = true },
             enabled = enabled,
             modifier = Modifier.fillMaxWidth(),
-            style = StudioButtonStyle.SECONDARY,
+            style = ActionStyle.SECONDARY,
         )
         DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
             labels.forEach { (engine, label) ->
@@ -166,9 +166,9 @@ private fun QualityChoice(
     onChange: (Int) -> Unit,
 ) {
     Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 12.dp))
-    StudioSplitRow(modifier = Modifier.padding(top = 6.dp)) {
+    InlineChoices(modifier = Modifier.padding(top = 6.dp)) {
         labels.forEachIndexed { index, label ->
-            StudioChoice(
+            ChoiceChip(
                 label = label,
                 selected = index == selected,
                 enabled = enabled,
