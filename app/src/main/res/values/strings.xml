@@ -337,4 +337,23 @@
     <string name="identity_stop">Stop</string>
     <string name="identity_contrast_detail">Use stronger contrast for text, buttons and controls.</string>
     <string name="identity_comfort_cap">TEST VOLUME LIMIT</string>
+    <string name="pro_label">EARCAST PRO</string>
+    <string name="pro_title">One purchase.\nEvery feature.</string>
+    <string name="pro_description">Unlock the complete EarCast experience. No subscription, no ads, no EarCast account.</string>
+    <string name="pro_profile_title">Your hearing, mapped</string>
+    <string name="pro_profile_detail">Guided tone checks, audiogram entry, saved profiles and sharing.</string>
+    <string name="pro_listen_title">Live listening, personalized</string>
+    <string name="pro_listen_detail">Microphone listening, sound controls, noise reduction and recordings.</string>
+    <string name="pro_media_title">Music and videos, adjusted</string>
+    <string name="pro_media_detail">Apply your hearing profile to media sound on compatible phones.</string>
+    <string name="pro_offline">Buy once and use all features offline after activation. Internet and Google Play are needed to buy or restore.</string>
+    <string name="pro_buy">Unlock Pro · %1$s once</string>
+    <string name="pro_price_unavailable">Price unavailable</string>
+    <string name="pro_checking">Checking Google Play…</string>
+    <string name="pro_restore">Restore purchase / retry</string>
+    <string name="pro_account">Your purchase belongs to your Google Play account. Use the same account to restore after reinstalling.</string>
+    <string name="pro_pending">Payment is pending. Pro unlocks once Google Play confirms completion.</string>
+    <string name="pro_no_purchase">No completed Pro purchase was found for the current Google Play account.</string>
+    <string name="pro_store_error">Google Play could not complete the check. Check your connection and retry. Existing offline access is kept.</string>
+    <string name="pro_not_configured">Purchases are not available in this build yet. Please check for an update from Google Play.</string>
 </resources>

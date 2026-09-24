@@ -1,9 +1,11 @@
 package app.earcast.ui
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.earcast.assist.LiveSessionBuilder
 import app.earcast.audiogram.HearingCurve
+import app.earcast.billing.ProBilling
 import app.earcast.common.AudioLimits
 import app.earcast.common.FrequencyHz
 import app.earcast.core.audio.TestSignalGenerator
@@ -41,6 +43,8 @@ data class AppState(
     val dinAvailable: Boolean = false,
 )
 
+// Root wiring includes billing so persisted media effects cannot bypass Pro access.
+@Suppress("LongParameterList")
 @HiltViewModel
 class AppStateModel
     @Inject
@@ -52,7 +56,14 @@ class AppStateModel
         private val toneGenerator: TestSignalGenerator,
         private val tonePlayer: TestSignalPlayer,
         digitCorpus: SpokenDigitLibrary,
+        private val proBilling: ProBilling,
     ) : ViewModel() {
+        val proState = proBilling.state
+
+        fun buyPro(activity: Activity) = proBilling.buy(activity)
+
+        fun restorePro() = proBilling.refresh()
+
         private val dinAvailable = digitCorpus.isAvailable()
         private var previewJob: Job? = null
         private val mediaEqFailed = MutableStateFlow(false)
@@ -109,16 +120,18 @@ class AppStateModel
                     profileRepository.observeActiveProfile(),
                     settings.observeMediaBoostDb(),
                     settings.observeMediaProcessingMode(),
-                ) { enabled, _, boost, mode -> Triple(enabled, boost, MediaProcessingMode.fromName(mode)) }
-                    .collect { (enabled, boost, mode) ->
-                        if (enabled) {
-                            val ok = applyMediaEq(boost, mode)
-                            mediaEqFailed.value = !ok
-                            if (!ok) settings.setMediaEqEnabled(false)
-                        } else {
-                            mediaEq.release()
-                        }
+                    proBilling.state,
+                ) { enabled, _, boost, mode, pro ->
+                    Triple(enabled && pro.owned, boost, MediaProcessingMode.fromName(mode))
+                }.collect { (enabled, boost, mode) ->
+                    if (enabled) {
+                        val ok = applyMediaEq(boost, mode)
+                        mediaEqFailed.value = !ok
+                        if (!ok) settings.setMediaEqEnabled(false)
+                    } else {
+                        mediaEq.release()
                     }
+                }
             }
         }
 

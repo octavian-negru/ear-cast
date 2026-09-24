@@ -49,6 +49,10 @@ android {
                 .toInt()
         versionCode = 2
         versionName = "0.0.1"
+        // Public Play licensing key, supplied by the release environment (not a secret).
+        val billingKey = providers.gradleProperty("earcastPlayPublicKey").orElse("").get()
+        require(billingKey.matches(Regex("[A-Za-z0-9+/=]*"))) { "Play public key must be base64" }
+        buildConfigField("String", "PLAY_PUBLIC_KEY", "\"$billingKey\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -89,6 +93,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.play.billing)
     implementation(project(":foundation"))
     implementation(project(":sound-profile"))
     implementation(project(":audio-engine"))

@@ -83,7 +83,7 @@ personalized amplification profile, and boost quiet speech in real time.
   comfort calibration to cap loudness, an always-available instant **Stop**, and
   automatic stop if your headphones disconnect.
 - ♿ **Accessibility-first** — large controls, high-contrast theme, scalable text.
-- 🔒 **Private by design** — no accounts, no analytics, no ads, no network access.
+- 🔒 **Private by design** — no EarCast accounts, analytics, or ads. Google Play handles Pro purchases.
   Audio is processed on the phone, streamed only to/from your connected headset,
   and never recorded or uploaded.
 - 🎧 **Any earbuds** — wired or Bluetooth; AirPods support is a future enhancement.
@@ -126,15 +126,14 @@ and [docs/DEVICE_TESTING.md](docs/DEVICE_TESTING.md) for details.
 
 ## Privacy
 
-Privacy is **platform-enforced, not just promised**: EarCast declares **no
-`INTERNET` permission**, so it physically cannot make network calls. Your hearing
-data and profile stay on the device. Microphone audio is processed in real time
-and streamed locally between the phone and your connected headset; it is
-**never recorded or uploaded**.
+Audio processing and hearing profiles remain on-device. Google Play Billing
+handles Pro purchases, ownership checks, and restoration; EarCast has no backend.
+Microphone audio is never uploaded by EarCast. Optional recordings are stored
+locally only when enabled.
 
-- **No accounts, no ads, no analytics, no trackers, no network.**
-- Dependencies are AndroidX / Compose / Hilt / Kotlin only — no Google Play
-  Services, Firebase, or ad/analytics SDKs.
+- **No EarCast accounts, ads, analytics, or trackers.**
+- A signed purchase receipt is stored locally and excluded from app backup.
+- Google Play processes purchase information under its policies.
 
 Verify it yourself from the APK:
 
@@ -206,3 +205,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 > EarCast is an independent project, not affiliated with or endorsed by Apple.
 > "AirPods" is a trademark of Apple Inc., used only to describe hardware compatibility.
+
+## EarCast Pro
+
+One-time Pro unlocks all features. Launch price recommendation: EUR 9.99; the
+checkout price is supplied by Google Play. See [store setup and verification](docs/MONETIZATION.md).
