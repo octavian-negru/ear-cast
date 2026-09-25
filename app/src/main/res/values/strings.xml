@@ -230,7 +230,7 @@
     <!-- About -->
     <string name="about_title">About</string>
     <string name="about_version">Version %1$s</string>
-    <string name="about_body">No accounts, no ads, no trackers — the app never asks for internet access, so nothing you do can leave your phone.</string>
+    <string name="about_body">EarCast processes audio on your device. No EarCast account is needed. All features are free; Google Play handles optional Pro purchases. Recordings stay on your device unless you choose to export them.</string>
     <string name="nav_home">Home</string>
     <string name="nav_listen">Listen</string>
     <string name="nav_profile_label">Audiogram</string>
@@ -338,24 +338,24 @@
     <string name="identity_contrast_detail">Use stronger contrast for text, buttons and controls.</string>
     <string name="identity_comfort_cap">OUTPUT LIMIT</string>
     <string name="pro_label">EARCAST PRO</string>
-    <string name="pro_title">One purchase.\nEvery feature.</string>
-    <string name="pro_description">Unlock the complete EarCast experience. No subscription, no ads, no EarCast account.</string>
+    <string name="pro_title">Support EarCast</string>
+    <string name="pro_description">Every feature is available for free. Pro is an optional one-time purchase to support EarCast.</string>
     <string name="pro_profile_title">Your hearing, mapped</string>
     <string name="pro_profile_detail">Guided tone checks, audiogram entry, saved profiles and sharing.</string>
     <string name="pro_listen_title">Live listening, personalized</string>
     <string name="pro_listen_detail">Microphone listening, sound controls, noise reduction and recordings.</string>
     <string name="pro_media_title">Music and videos, adjusted</string>
     <string name="pro_media_detail">Apply your hearing profile to media sound on compatible phones.</string>
-    <string name="pro_offline">Buy once and use all features offline after activation. Internet and Google Play are needed to buy or restore.</string>
-    <string name="pro_buy">Unlock Pro · %1$s once</string>
+    <string name="pro_offline">Free mode works offline. Google Play and an internet connection are only needed to buy or restore Pro.</string>
+    <string name="pro_buy">Support with Pro · %1$s once</string>
     <string name="pro_price_unavailable">Price unavailable</string>
     <string name="pro_checking">Checking Google Play…</string>
     <string name="pro_restore">Restore purchase / retry</string>
     <string name="pro_account">Your purchase belongs to your Google Play account. Use the same account to restore after reinstalling.</string>
     <string name="pro_pending">Payment is pending. Pro unlocks once Google Play confirms completion.</string>
     <string name="pro_no_purchase">No completed Pro purchase was found for the current Google Play account.</string>
-    <string name="pro_store_error">Google Play could not complete the check. Check your connection and retry. Existing offline access is kept.</string>
-    <string name="pro_not_configured">Purchases are not available in this build yet. Please check for an update from Google Play.</string>
+    <string name="pro_store_error">Google Play could not complete the check. You can continue using EarCast for free and retry later.</string>
+    <string name="pro_not_configured">Purchases are not available in this build. All features remain available for free.</string>
     <string name="terms_title">Terms and conditions</string>
     <string name="terms_version">Version 1 · September 25, 2026</string>
     <string name="terms_purpose_title">Purpose and limitations</string>
@@ -376,4 +376,10 @@
     <string name="terms_close">Close</string>
     <string name="safety_source">Safe listening guidance: World Health Organization</string>
     <string name="safety_source_url" translatable="false">https://www.who.int/news-room/questions-and-answers/item/deafness-and-hearing-loss-safe-listening</string>
+    <string name="free_mode_title">Free mode</string>
+    <string name="pro_continue_free">Continue for free</string>
+    <string name="pro_free_features">Tone checks, sound profiles, live listening and compatible media adjustments are included for everyone.</string>
+    <string name="pro_upgrade">Support EarCast with Pro</string>
+    <string name="pro_manage">Manage Pro purchase</string>
+    <string name="pro_owned">Pro active · Thank you for supporting EarCast</string>
 </resources>

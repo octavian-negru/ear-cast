@@ -2,9 +2,11 @@
 
 ## Product and price
 
-Launch recommendation: **EUR 9.99 once**, for all features, no subscription or ads.
+Pro is an **optional one-time support purchase**. All existing features are free.
+There is no ad SDK in this build; advertising integration is pending provider-specific approval.
 Google Play supplies the actual localized price; never hardcode a checkout price.
-The app gates all functional screens after onboarding until Pro is owned.
+After safety consent, the app opens Home directly, even without Google Play or a purchase.
+Pro is available from Settings and always offers a way back to free use.
 Device-dependent features (notably global media EQ) retain their compatibility limits.
 
 Market review, 2026-09-24:
@@ -44,8 +46,9 @@ pricing, publishing, and real purchase tests have not been performed by this cod
 - Store the signed receipt in the app's no-backup directory; validate it on process start.
 - Keep existing access on store/network failure. A successful purchase query without
   Pro clears cached access (including refunded/revoked purchases once Play reflects them).
-- Guard both the app UI and live-audio service/quick tile, and gate persisted media EQ.
-  Stop existing live audio and release media effects when ownership is removed.
+- Audio access is independent of Pro ownership. The live-audio service, Quick Settings
+  tile and saved media EQ still require current safety consent. Losing ownership does
+  not interrupt listening.
 - Offline refunds cannot be learned until Play can refresh ownership. Local verification
   raises the cost of casual edits but does not make local premium features unpatchable.
 - Restoration uses the Google Play account. **This does not enforce a single physical
@@ -54,16 +57,20 @@ pricing, publishing, and real purchase tests have not been performed by this cod
 
 ## Purchase test matrix
 
-- Fresh install: only onboarding and Pro purchase screen; price comes from Play.
-- Success: acknowledge and unlock every screen; Pro survives process restart offline.
-- Cancellation: remain locked, with no entitlement created.
-- Pending: remain locked; approval unlocks on callback/foreground refresh; decline stays locked.
-- Restore/reinstall with same account: unlock without charging again.
-- Unrelated product / malformed receipt / wrong signature: never unlock.
+- Fresh install: onboarding, then Home with all features available for free.
+- Missing or loading billing state: Home remains accessible.
+- Optional Pro screen: Continue for free and Android Back both return to Settings.
+- Success: acknowledge and show Pro status; the receipt survives process restart offline.
+- Cancellation: keep free access, with no entitlement created.
+- Pending: keep free access; approval grants Pro status on callback/foreground refresh.
+- Restore/reinstall with same account: restore Pro without charging again.
+- Unrelated product / malformed receipt / wrong signature: never grant Pro status.
 - Offline or failed query: preserve a previously valid receipt; never treat failure as revocation.
-- Refund then successful query: lock UI, stop active listening and release media EQ.
-- Quick tile/service start without Pro: do not start microphone processing.
-- Missing key/product/Play Store: explain unavailability; restore/retry remains available.
+- Refund then successful query: clear Pro status; free features and active audio continue.
+- Quick tile/service start without Pro: allow listening after safety consent and normal
+  microphone/profile prerequisites.
+- Missing key/product/Play Store: explain purchase unavailability; free use and restore/retry
+  remain available.
 
 See [Google's billing integration guide](https://developer.android.com/google/play/billing/integrate)
 and [billing security guidance](https://developer.android.com/google/play/billing/security).

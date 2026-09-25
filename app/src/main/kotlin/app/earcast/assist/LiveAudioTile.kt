@@ -10,7 +10,6 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.core.content.ContextCompat
 import app.earcast.MainActivity
-import app.earcast.billing.ProBilling
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,8 +32,6 @@ class LiveAudioTile : TileService() {
 
     @Inject
     lateinit var sessionFactory: LiveSessionBuilder
-
-    @Inject lateinit var proBilling: ProBilling
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var listenJob: Job? = null
@@ -59,7 +56,7 @@ class LiveAudioTile : TileService() {
         val micGranted =
             ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
                 PackageManager.PERMISSION_GRANTED
-        if (!micGranted || !proBilling.state.value.owned) {
+        if (!micGranted) {
             openApp()
             return
         }

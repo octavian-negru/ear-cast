@@ -6,7 +6,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,7 +44,6 @@ import app.earcast.ui.navigation.PrimaryDestination
 import app.earcast.ui.navigation.navigationBarContent
 import app.earcast.ui.navigation.primaryNavigationRail
 import app.earcast.ui.onboarding.OnboardingScreen
-import app.earcast.ui.pro.ProScreen
 import app.earcast.ui.profile.ProfileSetupScreen
 import app.earcast.ui.settings.SettingsScreen
 import app.earcast.ui.theme.EarCastTheme
@@ -56,8 +53,6 @@ private enum class AppDestination { HOME, PROFILE, HEARING_TEST, MANUAL_ENTRY, A
 @Composable
 fun EarCastApp(rootViewModel: AppStateModel = hiltViewModel()) {
     val root by rootViewModel.uiState.collectAsStateWithLifecycle()
-    val pro by rootViewModel.proState.collectAsStateWithLifecycle()
-    val activity = LocalContext.current.findActivity()
 
     EarCastTheme(highContrast = root.highContrast) {
         val colors = MaterialTheme.colorScheme
@@ -66,18 +61,12 @@ fun EarCastApp(rootViewModel: AppStateModel = hiltViewModel()) {
                 null -> LoadingState()
                 false -> OnboardingScreen(onAccept = rootViewModel::acceptDisclaimer)
                 true ->
-                    if (!pro.loaded) {
-                        LoadingState()
-                    } else if (!pro.owned) {
-                        ProScreen(pro, { activity?.let(rootViewModel::buyPro) }, rootViewModel::restorePro)
-                    } else {
-                        MainNav(
-                            state = root,
-                            onSetMediaEq = rootViewModel::setMediaEq,
-                            onSetMediaBoost = rootViewModel::setMediaBoost,
-                            onSetMediaProcessingMode = rootViewModel::setMediaProcessingMode,
-                        )
-                    }
+                    MainNav(
+                        state = root,
+                        onSetMediaEq = rootViewModel::setMediaEq,
+                        onSetMediaBoost = rootViewModel::setMediaBoost,
+                        onSetMediaProcessingMode = rootViewModel::setMediaProcessingMode,
+                    )
             }
         }
     }
@@ -220,7 +209,7 @@ private fun PrimaryDestination.toAppDestination(): AppDestination =
         PrimaryDestination.SETTINGS -> AppDestination.SETTINGS
     }
 
-private fun Context.findActivity(): Activity? =
+internal fun Context.findActivity(): Activity? =
     when (this) {
         is Activity -> this
         is ContextWrapper -> baseContext.findActivity()

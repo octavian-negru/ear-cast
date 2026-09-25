@@ -18,7 +18,6 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import app.earcast.MainActivity
 import app.earcast.R
-import app.earcast.billing.ProBilling
 import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.dsp.ListeningTracker
 import app.earcast.data.PreferenceStorage
@@ -53,9 +52,6 @@ class LiveAudioService : Service() {
     @Inject
     lateinit var settingsRepository: PreferenceStorage
 
-    @Inject lateinit var proBilling: ProBilling
-
-    private var entitlementJob: Job? = null
     private var consentJob: Job? = null
 
     private var wakeLock: PowerManager.WakeLock? = null
@@ -98,16 +94,6 @@ class LiveAudioService : Service() {
             return START_NOT_STICKY
         }
         startForegroundNotification()
-        if (!proBilling.state.value.owned) {
-            stopSelf()
-            return START_NOT_STICKY
-        }
-        if (entitlementJob?.isActive != true) {
-            entitlementJob =
-                serviceScope.launch {
-                    proBilling.state.collect { if (it.loaded && !it.owned) stopSelf() }
-                }
-        }
         if (consentJob?.isActive != true) {
             consentJob =
                 serviceScope.launch(Dispatchers.Main.immediate) {

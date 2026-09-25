@@ -43,7 +43,7 @@ data class AppState(
     val dinAvailable: Boolean = false,
 )
 
-// Root wiring includes billing so persisted media effects cannot bypass Pro access.
+// Billing controls the optional ad-free upgrade; audio access requires safety consent.
 @Suppress("LongParameterList")
 @HiltViewModel
 class AppStateModel
@@ -124,9 +124,8 @@ class AppStateModel
                     profileRepository.observeActiveProfile(),
                     settings.observeMediaBoostDb(),
                     settings.observeMediaProcessingMode(),
-                    proBilling.state,
-                ) { enabled, _, boost, mode, pro ->
-                    Triple(enabled && pro.owned, boost, MediaProcessingMode.fromName(mode))
+                ) { enabled, _, boost, mode ->
+                    Triple(enabled, boost, MediaProcessingMode.fromName(mode))
                 }.collect { (enabled, boost, mode) ->
                     if (enabled) {
                         val ok = applyMediaEq(boost, mode)

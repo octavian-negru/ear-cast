@@ -3,7 +3,6 @@
 package app.earcast.ui.pro
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +15,6 @@ import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.BrandBar
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.EarPage
-import app.earcast.ui.common.JourneyStep
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SurfaceCard
 
@@ -25,23 +23,31 @@ fun ProScreen(
     state: ProState,
     onBuy: () -> Unit,
     onRestore: () -> Unit,
+    onContinue: () -> Unit,
 ) {
-    EarPage(modifier = Modifier.safeDrawingPadding()) {
+    EarPage {
         BrandBar(stringResource(R.string.pro_label))
         PageHeading(stringResource(R.string.pro_title), stringResource(R.string.pro_description))
         SurfaceCard(Modifier.fillMaxWidth()) {
-            JourneyStep("01", stringResource(R.string.pro_profile_title), stringResource(R.string.pro_profile_detail))
-            JourneyStep("02", stringResource(R.string.pro_listen_title), stringResource(R.string.pro_listen_detail))
-            JourneyStep("03", stringResource(R.string.pro_media_title), stringResource(R.string.pro_media_detail))
+            Text(stringResource(R.string.pro_free_features), style = MaterialTheme.typography.bodyMedium)
         }
-        Text(stringResource(R.string.pro_offline), style = MaterialTheme.typography.bodyMedium)
+        ActionButton(
+            label = stringResource(if (state.owned) R.string.back else R.string.pro_continue_free),
+            onClick = onContinue,
+            modifier = Modifier.fillMaxWidth(),
+            style = ActionStyle.SECONDARY,
+        )
+        Text(
+            stringResource(if (state.owned) R.string.pro_owned else R.string.pro_offline),
+            style = MaterialTheme.typography.bodyMedium,
+        )
         ActionButton(
             label =
                 state.price?.let { stringResource(R.string.pro_buy, it) }
                     ?: stringResource(R.string.pro_price_unavailable),
             onClick = onBuy,
             modifier = Modifier.fillMaxWidth(),
-            enabled = state.price != null && !state.busy,
+            enabled = !state.owned && state.price != null && !state.busy,
         )
         ActionButton(
             label = stringResource(if (state.busy) R.string.pro_checking else R.string.pro_restore),
