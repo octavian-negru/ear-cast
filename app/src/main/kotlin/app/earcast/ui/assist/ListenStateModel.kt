@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.earcast.assist.LiveAudioController
 import app.earcast.assist.LiveSessionBuilder
+import app.earcast.assist.forEntitlement
 import app.earcast.assist.toOptions
 import app.earcast.assist.toSettings
+import app.earcast.billing.ProBilling
 import app.earcast.common.AudioLimits
 import app.earcast.core.audio.InputSource
 import app.earcast.core.audio.StreamPhase
@@ -48,6 +50,7 @@ data class ListenState(
     val exposure: ListeningStats = ListeningStats(),
     val sessionStatus: StreamStatus = StreamStatus(),
     val listeningOptions: EnhancementOptions = EnhancementOptions(),
+    val proOwned: Boolean = false,
 ) {
     val active: Boolean get() = sessionStatus.state == StreamPhase.CONNECTING || running
 
@@ -71,6 +74,7 @@ class ListenStateModel
         private val profileRepository: ProfileStorage,
         private val settingsRepository: PreferenceStorage,
         private val sessionFactory: LiveSessionBuilder,
+        private val proBilling: ProBilling,
     ) : ViewModel() {
         val diagnostics = controller.diagnostics
 
@@ -132,6 +136,11 @@ class ListenStateModel
                     state.copy(microphoneSource = InputSource.fromName(microphoneName))
                 }.combine(settingsRepository.observeListeningSettings()) { state, settings ->
                     state.copy(listeningOptions = settings.toOptions())
+                }.combine(proBilling.state) { state, pro ->
+                    state.copy(
+                        proOwned = pro.owned,
+                        listeningOptions = state.listeningOptions.forEntitlement(pro.owned),
+                    )
                 }.combine(controller.sessionStatus) { state, status -> state.copy(sessionStatus = status) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ListenState())
 
@@ -178,7 +187,10 @@ class ListenStateModel
         }
 
         fun setListeningOptions(options: EnhancementOptions) {
-            viewModelScope.launch { settingsRepository.setListeningSettings(options.toSettings()) }
+            viewModelScope.launch {
+                val allowedOptions = options.forEntitlement(proBilling.state.value.owned)
+                settingsRepository.setListeningSettings(allowedOptions.toSettings())
+            }
         }
 
         /** Prepare the controller config from the active profile. Returns true if ready. */

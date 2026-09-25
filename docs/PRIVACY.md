@@ -2,7 +2,8 @@
 
 _Last updated: 2026-09-25_
 
-EarCast is designed to collect as little as possible — effectively nothing.
+EarCast processes your audio and sound profiles on your device. Optional Google Play purchases
+and automatic free-mode test advertising in debug builds use Google services.
 
 ## What EarCast does with your data
 
@@ -20,13 +21,26 @@ EarCast is designed to collect as little as possible — effectively nothing.
   transaction data under its policies. EarCast stores a signed purchase receipt
   locally, excluded from app backup. Audio and audiograms are not sent to Google
   as part of billing.
-- **No EarCast accounts, analytics, ads, or trackers.** EarCast does not run its own
-  backend. Purchase and restoration operations require access to Google Play.
+- **Test ads in free mode (debug builds only):** Google AdMob test banners appear
+  automatically on Home and Settings for free users. There is no optional ad
+  switch. Pro removes banners. Requests use Google’s limited-ads mode with cookie
+  consent set to zero and the non-personalized request flag. Advertising-ID
+  permissions are excluded from the debug manifest. This does not mean that no
+  data is processed: Google may still process network/device information,
+  interactions and diagnostics. EarCast does not send microphone audio,
+  recordings or sound profiles to the ad SDK. Previous optional ad choices are
+  not converted into cookie or personalization consent. Release builds do not
+  contain the ad SDK.
+- **No EarCast accounts or backend.** Purchase and restoration operations require
+  access to Google Play.
 
 ## Permissions
 
 - **BILLING / INTERNET** — added by the Google Play Billing library for purchasing,
-  checking ownership, and restoring Pro. EarCast does not upload hearing data.
+  checking ownership, and restoring Pro. Debug test ads also use internet access.
+  EarCast does not upload hearing data.
+- **ACCESS_NETWORK_STATE** — included by the ad SDK in debug builds for network
+  status. Advertising-ID permissions are explicitly removed.
 
 - **RECORD_AUDIO** — required for assist mode (live amplification). Used only while
   assist mode is on.
@@ -39,9 +53,13 @@ EarCast is designed to collect as little as possible — effectively nothing.
 
 ## Data sharing
 
-Apart from Google Play purchase processing described above, live audio is sent only
+Apart from the Google purchase and test-ad processing described above, live audio is sent only
 between the phone and your connected listening device. If you explicitly share
 your results chart, Android sends it to the app you choose.
+
+See [Google Mobile Ads data disclosure](https://developers.google.com/admob/android/privacy/play-data-disclosure)
+[Limited-ads setting](https://developers.google.com/admob/android/global-settings#consent_for_cookies)
+and [Google privacy policy](https://policies.google.com/privacy).
 
 ## Children
 

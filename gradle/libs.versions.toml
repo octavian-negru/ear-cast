@@ -40,6 +40,7 @@ detekt = "1.23.7"
 ktlint = "12.1.2"
 
 [libraries]
+google-mobile-ads = { group = "com.google.android.gms", name = "play-services-ads", version = "24.9.0" }
 play-billing = { group = "com.android.billingclient", name = "billing", version = "8.3.0" }
 # AndroidX core / lifecycle
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

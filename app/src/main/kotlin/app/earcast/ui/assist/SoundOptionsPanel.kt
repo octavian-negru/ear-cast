@@ -37,13 +37,14 @@ import app.earcast.ui.common.SurfaceCard
 @Suppress("LongMethod")
 internal fun SoundOptionsPanel(
     options: EnhancementOptions,
+    proOwned: Boolean,
     enabled: Boolean,
     onChange: (EnhancementOptions) -> Unit,
 ) {
     SurfaceCard(Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleSmall)
         Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
-        EngineChoice(options.speechEngine, enabled) { onChange(options.copy(speechEngine = it)) }
+        EngineChoice(options.speechEngine, enabled, proOwned) { onChange(options.copy(speechEngine = it)) }
         Text(
             stringResource(
                 when (options.speechEngine) {
@@ -96,6 +97,7 @@ internal fun SoundOptionsPanel(
             stringResource(R.string.assist_quiet_speech),
             strengths,
             options.quietSpeech.ordinal,
+            optionEnabled = { proOwned || it != VoiceBoost.STRONG.ordinal },
             enabled =
                 enabled &&
                     options.noiseReduction != NoiseStrength.OFF &&
@@ -113,6 +115,9 @@ internal fun SoundOptionsPanel(
             ),
             style = MaterialTheme.typography.bodySmall,
         )
+        if (!proOwned) {
+            Text(stringResource(R.string.assist_pro_options_hint), style = MaterialTheme.typography.bodySmall)
+        }
         if (!enabled) {
             Text(stringResource(R.string.assist_quality_restart), style = MaterialTheme.typography.bodySmall)
         }
@@ -123,6 +128,7 @@ internal fun SoundOptionsPanel(
 private fun EngineChoice(
     selected: EnhancementEngine,
     enabled: Boolean,
+    proOwned: Boolean,
     onChange: (EnhancementEngine) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -148,10 +154,14 @@ private fun EngineChoice(
         )
         DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
             labels.forEach { (engine, label) ->
-                DropdownMenuItem(text = { Text(label) }, onClick = {
-                    expanded = false
-                    onChange(engine)
-                })
+                DropdownMenuItem(
+                    text = { Text(if (engine == EnhancementEngine.DPDFNET && !proOwned) "$label · Pro" else label) },
+                    enabled = proOwned || engine != EnhancementEngine.DPDFNET,
+                    onClick = {
+                        expanded = false
+                        onChange(engine)
+                    },
+                )
             }
         }
     }
@@ -163,6 +173,7 @@ private fun QualityChoice(
     labels: List<String>,
     selected: Int,
     enabled: Boolean,
+    optionEnabled: (Int) -> Boolean = { true },
     onChange: (Int) -> Unit,
 ) {
     Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 12.dp))
@@ -171,7 +182,7 @@ private fun QualityChoice(
             ChoiceChip(
                 label = label,
                 selected = index == selected,
-                enabled = enabled,
+                enabled = enabled && optionEnabled(index),
                 onClick = { onChange(index) },
                 modifier = Modifier.weight(1f),
             )

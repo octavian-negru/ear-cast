@@ -83,7 +83,8 @@ personalized amplification profile, and boost quiet speech in real time.
   comfort calibration to cap loudness, an always-available instant **Stop**, and
   automatic stop if your headphones disconnect.
 - ♿ **Accessibility-first** — large controls, high-contrast theme, scalable text.
-- 🔒 **Private by design** — no EarCast accounts, analytics, or ads. Google Play handles Pro purchases.
+- 🔒 **Private by design** — no EarCast accounts or audio uploads. Google Play handles Pro purchases.
+  Debug builds show test banners automatically for free users; Pro removes them. Release builds omit the ad SDK.
   Audio is processed on the phone, streamed only to/from your connected headset,
   and never recorded or uploaded.
 - 🎧 **Any earbuds** — wired or Bluetooth; AirPods support is a future enhancement.
@@ -131,7 +132,7 @@ handles Pro purchases, ownership checks, and restoration; EarCast has no backend
 Microphone audio is never uploaded by EarCast. Optional recordings are stored
 locally only when enabled.
 
-- **No EarCast accounts, ads, analytics, or trackers.**
+- **No EarCast accounts.** Debug builds show Google AdMob test ads for free users; release builds omit the ad SDK.
 - A signed purchase receipt is stored locally and excluded from app backup.
 - Google Play processes purchase information under its policies.
 
@@ -208,5 +209,6 @@ See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## EarCast Pro
 
-One-time Pro unlocks all features. Launch price recommendation: EUR 9.99; the
-checkout price is supplied by Google Play. See [store setup and verification](docs/MONETIZATION.md).
+Core listening is free. One-time Pro unlocks DPDFNet8 and Strong quiet-speech boost
+and removes test banners in debug builds. Launch price recommendation: EUR 9.99;
+the checkout price is supplied by Google Play. See [store setup and verification](docs/MONETIZATION.md).

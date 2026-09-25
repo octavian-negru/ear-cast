@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.core.audio.dsp.MediaProcessingMode
+import app.earcast.ui.ads.TestAdsSection
 import app.earcast.ui.assist.ListenScreen
 import app.earcast.ui.dintest.SpeechCheckScreen
 import app.earcast.ui.hearingtest.ToneCheckScreen
@@ -141,6 +142,7 @@ private fun DestinationContent(
                 onSetMediaEq = onSetMediaEq,
                 onSetMediaBoost = onSetMediaBoost,
                 onSetMediaProcessingMode = onSetMediaProcessingMode,
+                adContent = { TestAdsSection() },
             )
         AppDestination.PROFILE ->
             ProfileSetupScreen(

@@ -94,6 +94,7 @@ android {
 
 dependencies {
     implementation(libs.play.billing)
+    debugImplementation(libs.google.mobile.ads)
     implementation(project(":foundation"))
     implementation(project(":sound-profile"))
     implementation(project(":audio-engine"))

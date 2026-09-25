@@ -120,6 +120,9 @@ class LiveAudioController
         @Volatile
         private var chain: StereoListeningChain? = null
 
+        @Volatile
+        private var activePremiumProcessing = false
+
         private val _running = MutableStateFlow(false)
         val running: StateFlow<Boolean> = _running.asStateFlow()
 
@@ -141,6 +144,11 @@ class LiveAudioController
         }
 
         fun hasConfig(): Boolean = config != null
+
+        fun usesPremiumProcessing(): Boolean {
+            val configuredPremium = config?.listeningOptions?.requiresPro() == true
+            return activePremiumProcessing || configuredPremium
+        }
 
         fun armDiagnostics(armed: Boolean) {
             if (!_running.value &&
@@ -219,6 +227,7 @@ class LiveAudioController
         fun startEngine() {
             val c = config ?: return
             if (engine.isRunning || _sessionStatus.value.state == StreamPhase.CONNECTING) return
+            activePremiumProcessing = c.listeningOptions.requiresPro()
             val recordRequested = _diagnostics.value.armed
             _diagnostics.value = _diagnostics.value.copy(armed = false)
             outputMeter.drain() // discard anything left from a previous session
@@ -357,6 +366,7 @@ class LiveAudioController
         fun stopEngine() {
             engine.stop()
             chain = null
+            activePremiumProcessing = false
             _running.value = false
             _exposure.value = ListeningSnapshot()
         }

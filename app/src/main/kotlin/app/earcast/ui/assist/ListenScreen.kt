@@ -192,6 +192,7 @@ private fun AssistControls(
     DetailSection(title = stringResource(R.string.assist_more_options)) {
         SoundOptionsPanel(
             options = state.listeningOptions,
+            proOwned = state.proOwned,
             enabled = !state.active,
             onChange = viewModel::setListeningOptions,
         )

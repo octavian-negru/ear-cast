@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.BuildConfig
 import app.earcast.R
 import app.earcast.ui.AppStateModel
+import app.earcast.ui.ads.TestAdsSection
 import app.earcast.ui.common.ActionButton
 import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.BrandBar
@@ -94,6 +95,7 @@ fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
             CollapsibleNotice(stringResource(R.string.about_title), stringResource(R.string.about_body))
             TextButton(onClick = { showTerms = true }) { Text(stringResource(R.string.terms_title)) }
         }
+        TestAdsSection(showPrivacyInformation = true)
     }
 }
 

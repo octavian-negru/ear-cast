@@ -19,6 +19,26 @@ import org.junit.jupiter.api.Test
 
 class ConsentTest {
     @Test
+    fun `legacy ad choices neither accept new terms nor become privacy consent`() =
+        runTest {
+            val data = ConsentPreferences()
+            for (oldChoice in listOf(false, true)) {
+                data.updateData {
+                    mutablePreferencesOf(
+                        booleanPreferencesKey("test_ads_allowed_v1") to oldChoice,
+                        booleanPreferencesKey("consent_accepted") to true,
+                        intPreferencesKey("consent_terms_version") to 2,
+                    )
+                }
+                val store = PreferencesStore(data)
+                assertFalse(store.observeConsentAccepted().first())
+                store.setConsentAccepted(true)
+                assertTrue(store.observeConsentAccepted().first())
+                assertEquals(oldChoice, data.data.first()[booleanPreferencesKey("test_ads_allowed_v1")])
+            }
+        }
+
+    @Test
     fun `new installs and legacy acknowledgment require explicit terms acceptance`() =
         runTest {
             val data = ConsentPreferences()
@@ -35,7 +55,7 @@ class ConsentTest {
             val before = System.currentTimeMillis()
             PreferencesStore(data).setConsentAccepted(true)
             val saved = data.data.first()
-            assertEquals(1, saved[intPreferencesKey("consent_terms_version")])
+            assertEquals(3, saved[intPreferencesKey("consent_terms_version")])
             val acceptedAt = saved[longPreferencesKey("consent_accepted_at")]
             assertTrue(acceptedAt != null && acceptedAt in before..System.currentTimeMillis())
             assertTrue(PreferencesStore(data).observeConsentAccepted().first())
@@ -45,7 +65,7 @@ class ConsentTest {
     fun `a different terms version requires renewed acceptance`() =
         runTest {
             val data = ConsentPreferences()
-            for (version in listOf(0, 2)) {
+            for (version in listOf(0, 1, 2, 4)) {
                 data.updateData {
                     mutablePreferencesOf(
                         booleanPreferencesKey("consent_accepted") to true,
