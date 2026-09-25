@@ -29,6 +29,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -55,6 +56,7 @@ class LiveAudioService : Service() {
     @Inject lateinit var proBilling: ProBilling
 
     private var entitlementJob: Job? = null
+    private var consentJob: Job? = null
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -106,6 +108,18 @@ class LiveAudioService : Service() {
                     proBilling.state.collect { if (it.loaded && !it.owned) stopSelf() }
                 }
         }
+        if (consentJob?.isActive != true) {
+            consentJob =
+                serviceScope.launch(Dispatchers.Main.immediate) {
+                    settingsRepository.observeConsentAccepted().distinctUntilChanged().collect { accepted ->
+                        if (accepted) startListening() else stopSelf()
+                    }
+                }
+        }
+        return START_STICKY
+    }
+
+    private fun startListening() {
         // Assist can keep running with the screen off, including when the phone
         // microphone is being used as a remote listening microphone.
         acquireWakeLock()
@@ -121,7 +135,6 @@ class LiveAudioService : Service() {
                 }
         }
         startExposureSampling()
-        return START_STICKY
     }
 
     override fun onDestroy() {

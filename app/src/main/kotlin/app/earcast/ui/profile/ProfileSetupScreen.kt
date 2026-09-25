@@ -3,7 +3,6 @@
 package app.earcast.ui.profile
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Headphones
@@ -14,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import app.earcast.R
 import app.earcast.audiogram.HearingCurve
 import app.earcast.ui.common.AudiogramCard
@@ -24,7 +22,6 @@ import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.FeatureRoute
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SectionGroup
-import app.earcast.ui.common.SoundOrbit
 import app.earcast.ui.common.SurfaceCard
 
 @Composable
@@ -46,7 +43,6 @@ fun ProfileSetupScreen(
                 stringResource(R.string.audiogram_reading_hint),
             )
         } else {
-            SoundOrbit(Modifier.fillMaxWidth().height(96.dp))
             Text(stringResource(R.string.identity_two_ways), style = MaterialTheme.typography.titleLarge)
         }
         SectionGroup(stringResource(R.string.identity_profile_routes), index = "01") {

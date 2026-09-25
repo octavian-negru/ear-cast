@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -57,7 +56,7 @@ enum class ActionStyle {
 
 @Composable
 fun EarPage(
-    verticalSpacing: Dp = 14.dp,
+    verticalSpacing: Dp = 12.dp,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -66,7 +65,7 @@ fun EarPage(
             modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 18.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(verticalSpacing),
         content = content,
     )
@@ -76,7 +75,7 @@ fun EarPage(
 fun SurfaceCard(
     modifier: Modifier = Modifier,
     tone: SurfaceTone = SurfaceTone.PLAIN,
-    padding: Dp = 16.dp,
+    padding: Dp = 14.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -92,7 +91,7 @@ fun SurfaceCard(
         when (tone) {
             SurfaceTone.DARK -> Color.Transparent
             SurfaceTone.DANGER -> colors.error.copy(alpha = 0.28f)
-            else -> Color.Transparent
+            else -> colors.outlineVariant.copy(alpha = 0.6f)
         }
     Column(
         modifier =
@@ -129,13 +128,13 @@ fun ActionButton(
         }
     Button(
         onClick = onClick,
-        modifier = modifier.heightIn(min = 56.dp),
+        modifier = modifier.heightIn(min = 48.dp),
         enabled = enabled,
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(containerColor = background, contentColor = foreground),
         contentPadding =
             androidx.compose.foundation.layout
-                .PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                .PaddingValues(horizontal = 16.dp, vertical = 10.dp),
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
         Spacer(Modifier.width(12.dp))
@@ -173,9 +172,9 @@ fun StatusTag(
     Row(
         modifier =
             modifier
-                .clip(CircleShape)
+                .clip(MaterialTheme.shapes.extraSmall)
                 .background(containerColor)
-                .padding(horizontal = 10.dp, vertical = 6.dp),
+                .padding(horizontal = 8.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -21,6 +21,7 @@ import app.earcast.ui.common.EarPage
 import app.earcast.ui.home.HomeScreen
 import app.earcast.ui.navigation.PrimaryDestination
 import app.earcast.ui.navigation.navigationBarContent
+import app.earcast.ui.onboarding.OnboardingScreen
 import app.earcast.ui.theme.EarCastTheme
 
 // Fictional data is confined to IDE previews. Production screens use the active saved profile.
@@ -95,5 +96,22 @@ private fun HomePreview(
                 navigationBarContent(PrimaryDestination.HOME) {}
             }
         }
+    }
+}
+
+@Preview(name = "Consent · phone", widthDp = 390, heightDp = 844)
+@Preview(name = "Consent · large text", widthDp = 360, heightDp = 800, fontScale = 1.5f)
+@Composable
+private fun ConsentPreview() {
+    EarCastTheme(darkTheme = false) {
+        Surface(color = MaterialTheme.colorScheme.background) { OnboardingScreen {} }
+    }
+}
+
+@Preview(name = "Consent · dark", widthDp = 390, heightDp = 844)
+@Composable
+private fun DarkConsentPreview() {
+    EarCastTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) { OnboardingScreen {} }
     }
 }

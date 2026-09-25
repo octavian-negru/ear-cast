@@ -162,7 +162,7 @@ fun CollapsibleNotice(
                     .fillMaxWidth()
                     .clickable(role = Role.Button) { expanded = !expanded }
                     .semantics { stateDescription = state }
-                    .padding(vertical = 8.dp),
+                    .heightIn(min = 48.dp),
         ) {
             Box(
                 Modifier

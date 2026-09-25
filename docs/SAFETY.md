@@ -56,3 +56,15 @@ headroom and keep generous margin.
 EarCast is **not a medical device**, not a certified hearing aid, and not a
 substitute for a professional hearing exam. It does not diagnose or treat anything.
 This disclaimer appears in the README, in onboarding, and before any test starts.
+
+## Terms and consent
+
+Before using EarCast, users explicitly acknowledge its non-medical purpose and
+accept the [terms and safe-use guidance](TERMS.md) using two unchecked boxes.
+The accepted terms version and time are stored locally. Legacy disclaimer
+acknowledgment does not satisfy the current terms. Increment the stored terms
+version alongside the in-app terms when renewed consent is needed.
+
+The onboarding gate, saved media effect, Quick Settings session preparation and
+live audio service all require current consent. Terms and loud/harsh-sound
+guidance remain available in Settings.

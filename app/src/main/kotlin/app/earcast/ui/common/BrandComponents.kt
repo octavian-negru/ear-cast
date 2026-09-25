@@ -91,7 +91,7 @@ fun FeatureRoute(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(
                 Modifier
-                    .size(48.dp)
+                    .size(36.dp)
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center,
@@ -100,7 +100,7 @@ fun FeatureRoute(
             }
             Column(Modifier.weight(1f)) {
                 Text(number, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                Text(title, style = MaterialTheme.typography.titleLarge)
+                Text(title, style = MaterialTheme.typography.titleMedium)
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
         }
@@ -120,7 +120,7 @@ fun JourneyStep(
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
     ) {
         Text(number, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -144,11 +144,11 @@ fun AdaptiveSplit(
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
         if (maxWidth >= 640.dp) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Column(Modifier.weight(1.15f), verticalArrangement = Arrangement.spacedBy(14.dp)) { primary() }
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(14.dp)) { secondary() }
+                Column(Modifier.weight(1.15f), verticalArrangement = Arrangement.spacedBy(12.dp)) { primary() }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) { secondary() }
             }
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 primary()
                 secondary()
             }

@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.earcast.audiogram.HearingCurve
@@ -23,6 +24,8 @@ import java.util.UUID
  */
 private object PreferenceKeys {
     val CONSENT = booleanPreferencesKey("consent_accepted")
+    val CONSENT_VERSION = intPreferencesKey("consent_terms_version")
+    val CONSENT_ACCEPTED_AT = longPreferencesKey("consent_accepted_at")
     val HIGH_CONTRAST = booleanPreferencesKey("high_contrast")
     val COMFORT_CEILING = floatPreferencesKey("comfort_ceiling")
     val ASSIST_PRESET = stringPreferencesKey("assist_preset")
@@ -53,10 +56,22 @@ private const val LEGACY_PROFILE_ID = "active"
 class PreferencesStore(
     private val dataStore: DataStore<Preferences>,
 ) : PreferenceStorage {
-    override fun observeConsentAccepted(): Flow<Boolean> = dataStore.data.map { it[PreferenceKeys.CONSENT] ?: false }
+    override fun observeConsentAccepted(): Flow<Boolean> =
+        dataStore.data.map {
+            it[PreferenceKeys.CONSENT] == true && it[PreferenceKeys.CONSENT_VERSION] == CURRENT_TERMS_VERSION
+        }
 
     override suspend fun setConsentAccepted(accepted: Boolean) {
-        dataStore.edit { it[PreferenceKeys.CONSENT] = accepted }
+        dataStore.edit {
+            it[PreferenceKeys.CONSENT] = accepted
+            if (accepted) {
+                it[PreferenceKeys.CONSENT_VERSION] = CURRENT_TERMS_VERSION
+                it[PreferenceKeys.CONSENT_ACCEPTED_AT] = System.currentTimeMillis()
+            } else {
+                it.remove(PreferenceKeys.CONSENT_VERSION)
+                it.remove(PreferenceKeys.CONSENT_ACCEPTED_AT)
+            }
+        }
     }
 
     override fun observeHighContrast(): Flow<Boolean> = dataStore.data.map { it[PreferenceKeys.HIGH_CONTRAST] ?: false }
@@ -167,6 +182,9 @@ class PreferencesStore(
     }
 
     private companion object {
+        // Bump when the in-app terms change so existing users review them again.
+        const val CURRENT_TERMS_VERSION = 1
+
         // Conservative default until the user calibrates; bounded for safety.
         const val DEFAULT_COMFORT_CEILING = 0.5f
         const val MIN_CEILING = 0.1f

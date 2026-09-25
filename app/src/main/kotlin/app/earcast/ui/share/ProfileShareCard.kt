@@ -22,10 +22,10 @@ import app.earcast.ui.theme.EarCastTheme
 // The exported image must look identical from dark-mode or high-contrast
 // sessions, so every color here is pinned rather than taken from the ambient
 // theme (the light-theme wrapper covers what ProfileChart reads internally).
-private val Ink = Color(0xFF242620)
-private val InkSoft = Color(0xFF68685E)
-private val Brand = Color(0xFFAF3D1B)
-private val Paper = Color(0xFFFFFCF6)
+private val Ink = Color(0xFF1B2432)
+private val InkSoft = Color(0xFF505F73)
+private val Brand = Color(0xFF245CC1)
+private val Paper = Color(0xFFFFFFFF)
 
 /**
  * Fixed-size, always-light card rendered into the share image: title, date,

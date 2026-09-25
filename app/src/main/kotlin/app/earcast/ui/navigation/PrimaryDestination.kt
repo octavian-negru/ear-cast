@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Headphones
@@ -45,12 +44,12 @@ fun navigationBarContent(
     selected: PrimaryDestination,
     onDestinationSelected: (PrimaryDestination) -> Unit,
 ) {
-    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp)) {
+    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 6.dp)) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(28.dp))
-                .background(MaterialTheme.colorScheme.onBackground)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.surface)
                 .selectableGroup()
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -77,14 +76,14 @@ fun primaryNavigationRail(
             .width(112.dp)
             .fillMaxHeight()
             .padding(12.dp)
-            .clip(RoundedCornerShape(32.dp))
-            .background(MaterialTheme.colorScheme.onBackground)
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surface)
             .selectableGroup()
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        SoundOrbit(Modifier.padding(top = 16.dp).size(44.dp), color = MaterialTheme.colorScheme.background)
+        SoundOrbit(Modifier.padding(top = 16.dp).size(44.dp), color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.weight(1f))
         PrimaryDestination.entries.forEach { destination ->
             DockItem(
@@ -106,16 +105,16 @@ private fun DockItem(
     modifier: Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
-    val foreground = if (selected) colors.onPrimaryContainer else colors.background
+    val foreground = if (selected) colors.onPrimaryContainer else colors.onSurfaceVariant
     Column(
         modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(if (selected) colors.primaryContainer else colors.onBackground)
+            .clip(MaterialTheme.shapes.small)
+            .background(if (selected) colors.primaryContainer else colors.surface)
             .selectable(selected = selected, role = Role.Tab, onClick = onClick)
-            .heightIn(min = 62.dp)
-            .padding(horizontal = 3.dp, vertical = 10.dp),
+            .heightIn(min = 52.dp)
+            .padding(horizontal = 3.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Icon(destination.icon(), null, Modifier.size(21.dp), tint = foreground)
         Text(

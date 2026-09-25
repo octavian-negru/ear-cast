@@ -9,7 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -54,6 +52,7 @@ import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.dsp.ListeningPreset
 import app.earcast.data.SoundProfile
 import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.BrandBar
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
@@ -62,7 +61,6 @@ import app.earcast.ui.common.InlineChoices
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SectionGroup
 import app.earcast.ui.common.SectionHeader
-import app.earcast.ui.common.SoundOrbit
 import app.earcast.ui.common.SurfaceCard
 import app.earcast.ui.common.SurfaceTone
 import app.earcast.ui.common.headphonesConnected
@@ -266,32 +264,13 @@ private fun ListeningPowerControl(
     action: String,
     onClick: () -> Unit,
 ) {
-    Box(Modifier.size(184.dp), contentAlignment = Alignment.Center) {
-        SoundOrbit(Modifier.size(184.dp), color = MaterialTheme.colorScheme.primary)
-        Column(
-            Modifier
-                .size(112.dp)
-                .clip(CircleShape)
-                .background(if (active) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground)
-                .clickable(role = Role.Button, onClick = onClick)
-                .semantics { contentDescription = action },
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            val color = if (active) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.background
-            Icon(
-                if (active) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-                null,
-                Modifier.size(32.dp),
-                tint = color,
-            )
-            Text(
-                stringResource(if (active) R.string.identity_stop else R.string.identity_start),
-                style = MaterialTheme.typography.labelLarge,
-                color = color,
-            )
-        }
-    }
+    ActionButton(
+        label = action,
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        style = if (active) ActionStyle.DANGER else ActionStyle.PRIMARY,
+        icon = if (active) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+    )
 }
 
 @Composable
@@ -354,7 +333,7 @@ private fun PresetSelector(
     SurfaceCard(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(stringResource(R.string.identity_preset_section))
         InlineChoices(modifier = Modifier.padding(top = 10.dp)) {
-            ListeningPreset.entries.forEachIndexed { index, entry ->
+            ListeningPreset.entries.forEach { entry ->
                 PresetTile(
                     label = presetLabel(entry),
                     selected = entry == preset,
@@ -431,7 +410,7 @@ private fun GainControl(
 ) {
     val sliderDescription = stringResource(R.string.assist_amplification_slider)
     Row(
-        Modifier.fillMaxWidth().padding(top = 20.dp),
+        Modifier.fillMaxWidth().padding(top = 8.dp),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

@@ -5,7 +5,6 @@ package app.earcast.ui.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Headphones
@@ -40,7 +39,6 @@ import app.earcast.ui.common.FeatureRoute
 import app.earcast.ui.common.InlineChoices
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SectionGroup
-import app.earcast.ui.common.SoundOrbit
 import app.earcast.ui.common.SurfaceCard
 import app.earcast.ui.common.SurfaceTone
 
@@ -65,7 +63,7 @@ fun HomeScreen(
                 }
             },
             secondary = {
-                SectionGroup(stringResource(R.string.identity_listen_section), index = "02") {
+                SectionGroup(stringResource(R.string.identity_listen_section)) {
                     FeatureRoute(
                         number = stringResource(R.string.identity_live_label),
                         title = stringResource(R.string.identity_live_title),
@@ -83,13 +81,11 @@ fun HomeScreen(
 
 @Composable
 private fun WelcomeInstrument(onOpenProfile: () -> Unit) {
-    SurfaceCard(tone = SurfaceTone.TINT, modifier = Modifier.fillMaxWidth(), padding = 18.dp) {
-        SoundOrbit(Modifier.fillMaxWidth().height(100.dp))
+    SurfaceCard(tone = SurfaceTone.TINT, modifier = Modifier.fillMaxWidth(), padding = 14.dp) {
         Text(
             stringResource(R.string.identity_first_step),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 12.dp),
         )
         Text(
             stringResource(R.string.identity_start_title),
@@ -126,7 +122,7 @@ private fun MediaPlaybackSection(
     onSetMediaBoost: (Float) -> Unit,
     onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
-    SurfaceCard(modifier = Modifier.fillMaxWidth(), tone = SurfaceTone.WARM, padding = 16.dp) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tone = SurfaceTone.PLAIN, padding = 16.dp) {
         Text(
             stringResource(R.string.identity_media_label),
             style = MaterialTheme.typography.labelMedium,

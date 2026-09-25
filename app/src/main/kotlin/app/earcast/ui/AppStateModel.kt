@@ -76,7 +76,9 @@ class AppStateModel
                     settings.observeComfortCeiling(),
                 ) { consent, highContrast, ceiling -> Triple(consent, highContrast, ceiling) },
                 combine(
-                    settings.observeMediaEqEnabled(),
+                    settings.observeMediaEqEnabled().combine(settings.observeConsentAccepted()) { enabled, consent ->
+                        enabled && consent
+                    },
                     profileRepository.observeActiveProfile(),
                     mediaEqFailed,
                 ) { eqEnabled, profile, failed -> Triple(eqEnabled, profile, failed) },
@@ -116,7 +118,9 @@ class AppStateModel
             // the failure is surfaced.
             viewModelScope.launch {
                 combine(
-                    settings.observeMediaEqEnabled(),
+                    settings.observeMediaEqEnabled().combine(settings.observeConsentAccepted()) { enabled, consent ->
+                        enabled && consent
+                    },
                     profileRepository.observeActiveProfile(),
                     settings.observeMediaBoostDb(),
                     settings.observeMediaProcessingMode(),

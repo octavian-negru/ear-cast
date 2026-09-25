@@ -11,8 +11,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,28 +36,36 @@ import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SectionGroup
 import app.earcast.ui.common.SurfaceCard
+import app.earcast.ui.onboarding.SafetySourceLink
+import app.earcast.ui.onboarding.TermsDialog
 
 @Composable
 fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
     val state by rootViewModel.uiState.collectAsStateWithLifecycle()
+    var showTerms by rememberSaveable { mutableStateOf(false) }
+    if (showTerms) TermsDialog(onDismiss = { showTerms = false })
     EarPage {
         BrandBar(stringResource(R.string.nav_settings))
         PageHeading(stringResource(R.string.identity_settings_title), stringResource(R.string.identity_settings_detail))
-        SectionGroup(stringResource(R.string.identity_settings_accessibility), index = "01") {
+        SectionGroup(stringResource(R.string.identity_settings_accessibility)) {
             AppearanceControl(state.highContrast, rootViewModel::setHighContrast)
         }
-        SectionGroup(stringResource(R.string.identity_settings_comfort), index = "02") {
+        SectionGroup(stringResource(R.string.identity_settings_comfort)) {
             ComfortCalibration(state.comfortCeiling, rootViewModel::setComfortCeiling) {
                 rootViewModel.previewComfort(state.comfortCeiling)
             }
         }
-        SectionGroup(stringResource(R.string.identity_settings_about), index = "03") {
+        SectionGroup(stringResource(R.string.listening_safety_title)) {
+            Text(stringResource(R.string.listening_safety_body), style = MaterialTheme.typography.bodyMedium)
+            SafetySourceLink()
+        }
+        SectionGroup(stringResource(R.string.identity_settings_about)) {
             Text(
                 stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.titleLarge,
             )
             CollapsibleNotice(stringResource(R.string.about_title), stringResource(R.string.about_body))
-            CollapsibleNotice(stringResource(R.string.disclaimer_title), stringResource(R.string.disclaimer_body))
+            TextButton(onClick = { showTerms = true }) { Text(stringResource(R.string.terms_title)) }
         }
     }
 }

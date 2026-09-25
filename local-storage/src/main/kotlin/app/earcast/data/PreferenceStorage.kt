@@ -2,9 +2,9 @@ package app.earcast.data
 
 import kotlinx.coroutines.flow.Flow
 
-/** App-level settings and the one-time disclaimer consent flag. */
+/** App-level settings and the versioned terms consent. */
 interface PreferenceStorage {
-    /** True once the user has acknowledged the safety/legal disclaimer. */
+    /** True only when the user has explicitly accepted the current terms and safety guidance. */
     fun observeConsentAccepted(): Flow<Boolean>
 
     suspend fun setConsentAccepted(accepted: Boolean)

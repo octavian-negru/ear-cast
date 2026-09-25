@@ -1,6 +1,6 @@
 # Privacy Policy
 
-_Last updated: 2026-09-24_
+_Last updated: 2026-09-25_
 
 EarCast is designed to collect as little as possible — effectively nothing.
 
@@ -13,6 +13,8 @@ EarCast is designed to collect as little as possible — effectively nothing.
   momentarily in memory while being processed and is then discarded.
 - **Hearing screening results & profile:** Your audiogram and settings are stored
   **only on your device** (local app storage). They are never uploaded.
+- **Terms acceptance:** The accepted terms version and acceptance time are stored
+  only on your device. They are used to ask for renewed consent when the terms change.
 - **Purchases:** Google Play Billing handles the one-time Pro payment, ownership
   queries, and restoration through your Google Play account. Google processes
   transaction data under its policies. EarCast stores a signed purchase receipt
