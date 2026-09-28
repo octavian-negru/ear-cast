@@ -7,6 +7,7 @@ interface FrameFilter : AutoCloseable {
     /** Algorithm delay excluding InputEnhancement's frame adapter; null if not established. */
     val algorithmDelaySamples: Int? get() = null
 
+    /** Process in place synchronously; the caller reuses the array after this call. */
     fun process(frame: FloatArray)
 }
 

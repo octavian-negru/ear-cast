@@ -14,6 +14,7 @@ import app.earcast.audiogram.HearingCurve
 import app.earcast.audiogram.HearingCurveCodec
 import app.earcast.common.AudioLimits
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
@@ -52,12 +53,15 @@ private object PreferenceKeys {
 
 private const val LEGACY_PROFILE_ID = "active"
 
+/** Unrelated preference writes must not retrigger UI or audio configuration work. */
+private fun <T> DataStore<Preferences>.observe(get: (Preferences) -> T): Flow<T> = data.map(get).distinctUntilChanged()
+
 /** [PreferenceStorage] backed by Preferences DataStore. */
 class PreferencesStore(
     private val dataStore: DataStore<Preferences>,
 ) : PreferenceStorage {
     override fun observeConsentAccepted(): Flow<Boolean> =
-        dataStore.data.map {
+        dataStore.observe {
             it[PreferenceKeys.CONSENT] == true && it[PreferenceKeys.CONSENT_VERSION] == CURRENT_TERMS_VERSION
         }
 
@@ -74,14 +78,14 @@ class PreferencesStore(
         }
     }
 
-    override fun observeHighContrast(): Flow<Boolean> = dataStore.data.map { it[PreferenceKeys.HIGH_CONTRAST] ?: false }
+    override fun observeHighContrast(): Flow<Boolean> = dataStore.observe { it[PreferenceKeys.HIGH_CONTRAST] ?: false }
 
     override suspend fun setHighContrast(enabled: Boolean) {
         dataStore.edit { it[PreferenceKeys.HIGH_CONTRAST] = enabled }
     }
 
     override fun observeComfortCeiling(): Flow<Float> =
-        dataStore.data.map {
+        dataStore.observe {
             (it[PreferenceKeys.COMFORT_CEILING] ?: DEFAULT_COMFORT_CEILING).coerceIn(MIN_CEILING, MAX_CEILING)
         }
 
@@ -92,7 +96,7 @@ class PreferencesStore(
     }
 
     override fun observeAssistPreset(): Flow<String> =
-        dataStore.data.map {
+        dataStore.observe {
             it[PreferenceKeys.ASSIST_PRESET] ?: DEFAULT_PRESET
         }
 
@@ -101,7 +105,7 @@ class PreferencesStore(
     }
 
     override fun observeMicrophoneSource(): Flow<String> =
-        dataStore.data.map {
+        dataStore.observe {
             it[PreferenceKeys.MICROPHONE_SOURCE] ?: "PHONE"
         }
 
@@ -110,7 +114,7 @@ class PreferencesStore(
     }
 
     override fun observeListeningSettings(): Flow<SoundPreferences> =
-        dataStore.data.map {
+        dataStore.observe {
             val defaults = SoundPreferences()
             SoundPreferences(
                 noiseReduction = it[PreferenceKeys.NOISE_REDUCTION] ?: defaults.noiseReduction,
@@ -134,7 +138,7 @@ class PreferencesStore(
     }
 
     override fun observeMediaEqEnabled(): Flow<Boolean> =
-        dataStore.data.map {
+        dataStore.observe {
             it[PreferenceKeys.MEDIA_EQ_ENABLED] ?: false
         }
 
@@ -143,7 +147,7 @@ class PreferencesStore(
     }
 
     override fun observeMediaBoostDb(): Flow<Float> =
-        dataStore.data.map { preferences ->
+        dataStore.observe { preferences ->
             val saved = preferences[PreferenceKeys.MEDIA_BOOST_DB]
             saved?.takeIf { it.isFinite() }?.coerceIn(0f, AudioLimits.MAX_MEDIA_BOOST_DB)
                 ?: AudioLimits.DEFAULT_MEDIA_BOOST_DB
@@ -155,14 +159,14 @@ class PreferencesStore(
     }
 
     override fun observeMediaProcessingMode(): Flow<String> =
-        dataStore.data.map { it[PreferenceKeys.MEDIA_PROCESSING_MODE] ?: DEFAULT_MEDIA_PROCESSING_MODE }
+        dataStore.observe { it[PreferenceKeys.MEDIA_PROCESSING_MODE] ?: DEFAULT_MEDIA_PROCESSING_MODE }
 
     override suspend fun setMediaProcessingMode(name: String) {
         dataStore.edit { it[PreferenceKeys.MEDIA_PROCESSING_MODE] = name }
     }
 
     override fun observeExposureToday(): Flow<DailyListening> =
-        dataStore.data.map {
+        dataStore.observe {
             DailyListening(
                 epochDay = it[PreferenceKeys.EXPOSURE_EPOCH_DAY] ?: 0L,
                 units = it[PreferenceKeys.EXPOSURE_UNITS] ?: 0.0,
@@ -261,9 +265,27 @@ class ProfilesStore(
         return profiles.firstOrNull { it.id == activeId } ?: profiles.firstOrNull()
     }
 
-    override fun observeProfiles(): Flow<List<SoundProfile>> = dataStore.data.map { it.profileList() }
+    // Compare encoded values before decoding: exposure and settings writes share
+    // this DataStore but do not change the audiograms.
+    private fun Preferences.hasSameProfilesAs(other: Preferences): Boolean =
+        this[PreferenceKeys.PROFILES] == other[PreferenceKeys.PROFILES] &&
+            this[PreferenceKeys.PROFILE_AUDIOGRAM] == other[PreferenceKeys.PROFILE_AUDIOGRAM] &&
+            this[PreferenceKeys.PROFILE_NAME] == other[PreferenceKeys.PROFILE_NAME] &&
+            this[PreferenceKeys.PROFILE_MASTER_CAP] == other[PreferenceKeys.PROFILE_MASTER_CAP]
 
-    override fun observeActiveProfile(): Flow<SoundProfile?> = dataStore.data.map { it.activeProfile() }
+    override fun observeProfiles(): Flow<List<SoundProfile>> =
+        dataStore.data
+            .distinctUntilChanged { previous, current -> previous.hasSameProfilesAs(current) }
+            .map { it.profileList() }
+            .distinctUntilChanged()
+
+    override fun observeActiveProfile(): Flow<SoundProfile?> =
+        dataStore.data
+            .distinctUntilChanged { previous, current ->
+                previous.hasSameProfilesAs(current) &&
+                    previous[PreferenceKeys.ACTIVE_PROFILE_ID] == current[PreferenceKeys.ACTIVE_PROFILE_ID]
+            }.map { it.activeProfile() }
+            .distinctUntilChanged()
 
     /** Upserts [profile] at the front (newest first) and makes it active. */
     override suspend fun save(profile: SoundProfile) {

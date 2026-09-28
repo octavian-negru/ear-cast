@@ -10,9 +10,13 @@ import app.earcast.audiogram.HearingPoint
 import app.earcast.common.AudioEar
 import app.earcast.common.FrequencyHz
 import app.earcast.common.HearingDb
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -81,6 +85,51 @@ class ProfilesStoreTest {
             repo.delete("b")
             assertNull(repo.observeActiveProfile().first())
             assertTrue(repo.observeProfiles().first().isEmpty())
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `observers ignore unrelated writes but deliver profile selection and content changes`() =
+        runTest {
+            val store = MemoryDataStore()
+            val profiles = ProfilesStore(store)
+            val settings = PreferencesStore(store)
+            val first = profile("a", "First")
+            val second = profile("b", "Second")
+            profiles.save(first)
+            profiles.save(second)
+            val lists = mutableListOf<List<SoundProfile>>()
+            val active = mutableListOf<SoundProfile?>()
+            val boosts = mutableListOf<Float>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                profiles.observeProfiles().toList(lists)
+            }
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                profiles.observeActiveProfile().toList(active)
+            }
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                settings.observeMediaBoostDb().toList(boosts)
+            }
+
+            settings.addExposureUnits(1.0, epochDay = 20_000)
+            settings.setHighContrast(true)
+            assertEquals(listOf(listOf(second, first)), lists)
+            assertEquals(listOf(second), active)
+            assertEquals(listOf(6f), boosts)
+
+            profiles.setActive(first.id)
+            assertEquals(1, lists.size)
+            assertEquals(listOf(second, first), active)
+
+            val edited = first.copy(name = "Edited", audiogram = HearingCurve.EMPTY)
+            profiles.save(edited)
+            assertEquals(listOf(edited, second), lists.last())
+            assertEquals(listOf(second, first, edited), active)
+            assertEquals(listOf(6f), boosts)
+            settings.setMediaBoostDb(12f)
+            assertEquals(listOf(6f, 12f), boosts)
+            assertEquals(2, lists.size)
+            assertEquals(3, active.size)
         }
 
     @Test

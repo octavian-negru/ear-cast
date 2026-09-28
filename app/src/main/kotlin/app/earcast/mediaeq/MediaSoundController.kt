@@ -36,12 +36,9 @@ class MediaSoundController
             MediaEffectSession { configuration ->
                 val effect = buildEffect(configuration)
                 object : MediaEffectHandle {
-                    private var boostDb = configuration.boostDb
-
                     @TargetApi(Build.VERSION_CODES.P)
                     override fun setBoostDb(db: Float) {
                         configureDynamics(effect, db, configuration.mode)
-                        boostDb = db
                     }
 
                     override fun close() {

@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -68,73 +70,79 @@ class AppStateModel
         private var previewJob: Job? = null
         private val mediaEqFailed = MutableStateFlow(false)
 
+        private data class MediaSettings(
+            val enabled: Boolean,
+            val boostDb: Float,
+            val mode: MediaProcessingMode,
+        )
+
+        private val mediaSettings =
+            combine(
+                settings.observeMediaEqEnabled(),
+                settings.observeConsentAccepted(),
+                settings.observeMediaBoostDb(),
+                settings.observeMediaProcessingMode(),
+            ) { enabled, consent, boost, mode ->
+                MediaSettings(enabled && consent, boost, MediaProcessingMode.fromName(mode))
+            }.distinctUntilChanged()
+
         private val baseUiState =
             combine(
-                combine(
-                    settings.observeConsentAccepted(),
-                    settings.observeHighContrast(),
-                    settings.observeComfortCeiling(),
-                ) { consent, highContrast, ceiling -> Triple(consent, highContrast, ceiling) },
-                combine(
-                    settings.observeMediaEqEnabled().combine(settings.observeConsentAccepted()) { enabled, consent ->
-                        enabled && consent
-                    },
-                    profileRepository.observeActiveProfile(),
-                    mediaEqFailed,
-                ) { eqEnabled, profile, failed -> Triple(eqEnabled, profile, failed) },
-            ) { (consent, highContrast, ceiling), (eqEnabled, profile, failed) ->
+                settings.observeConsentAccepted(),
+                settings.observeHighContrast(),
+                settings.observeComfortCeiling(),
+                profileRepository.observeActiveProfile(),
+                mediaEqFailed,
+            ) { consent, highContrast, ceiling, profile, failed ->
                 AppState(
                     consentAccepted = consent,
                     highContrast = highContrast,
                     comfortCeiling = ceiling,
                     hasProfile = profile?.audiogram?.thresholds?.isNotEmpty() == true,
                     audiogram = profile?.audiogram,
-                    mediaEqEnabled = eqEnabled,
                     mediaEqSupported = mediaEq.isSupported,
                     mediaEqFailed = failed,
                     dinAvailable = dinAvailable,
                 )
             }
 
-        private val uiStateWithBoost =
-            baseUiState.combine(settings.observeMediaBoostDb()) { state, boost -> state.copy(mediaBoostDb = boost) }
-
         val uiState: StateFlow<AppState> =
-            uiStateWithBoost
-                .combine(
-                    settings.observeMediaProcessingMode(),
-                ) { state, mode ->
-                    state.copy(mediaProcessingMode = MediaProcessingMode.fromName(mode))
+            baseUiState
+                .combine(mediaSettings) { state, media ->
+                    state.copy(
+                        mediaEqEnabled = media.enabled,
+                        mediaBoostDb = media.boostDb,
+                        mediaProcessingMode = media.mode,
+                    )
                 }.stateIn(
                     viewModelScope,
                     SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
                     AppState(),
                 )
 
+        // Fit only when the profile changes, not on every boost-slider update.
+        // Use the emitted profile so configuration comes from the same snapshot.
+        private val mediaBands =
+            profileRepository.observeActiveProfile().map { profile ->
+                profile?.let(sessionFactory::earCurves)?.let { (left, right) -> MediaCurvePlanner.plan(left, right) }
+            }
+
         init {
-            // Media EQ follows the persisted toggle and the active profile: applied
-            // (or re-applied with fresh curves) when on, released when off. On a
-            // device that rejects the global effect, the toggle snaps back off and
-            // the failure is surfaced.
+            // Reuse the native effect for boost-only changes. A rejected effect
+            // switches the persisted toggle off and reports failure to the UI.
             viewModelScope.launch {
-                combine(
-                    settings.observeMediaEqEnabled().combine(settings.observeConsentAccepted()) { enabled, consent ->
-                        enabled && consent
-                    },
-                    profileRepository.observeActiveProfile(),
-                    settings.observeMediaBoostDb(),
-                    settings.observeMediaProcessingMode(),
-                ) { enabled, _, boost, mode ->
-                    Triple(enabled, boost, MediaProcessingMode.fromName(mode))
-                }.collect { (enabled, boost, mode) ->
-                    if (enabled) {
-                        val ok = applyMediaEq(boost, mode)
-                        mediaEqFailed.value = !ok
-                        if (!ok) settings.setMediaEqEnabled(false)
-                    } else {
-                        mediaEq.release()
+                combine(mediaSettings, mediaBands) { media, bands -> media to bands }
+                    .distinctUntilChanged()
+                    .collect { (media, bands) ->
+                        if (media.enabled) {
+                            val applied =
+                                bands != null && mediaEq.apply(MediaSoundConfig(bands, media.boostDb, media.mode))
+                            mediaEqFailed.value = !applied
+                            if (!applied) settings.setMediaEqEnabled(false)
+                        } else {
+                            mediaEq.release()
+                        }
                     }
-                }
             }
         }
 
@@ -163,14 +171,6 @@ class AppStateModel
 
         fun setMediaProcessingMode(mode: MediaProcessingMode) {
             viewModelScope.launch { settings.setMediaProcessingMode(mode.name) }
-        }
-
-        private suspend fun applyMediaEq(
-            boostDb: Float,
-            mode: MediaProcessingMode,
-        ): Boolean {
-            val curves = sessionFactory.activeEarCurves() ?: return false
-            return mediaEq.apply(MediaSoundConfig(MediaCurvePlanner.plan(curves.first, curves.second), boostDb, mode))
         }
 
         /**

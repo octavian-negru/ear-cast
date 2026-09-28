@@ -35,7 +35,7 @@ class FeedbackSuppressor(
     fun process(buffer: FloatArray) {
         if (buffer.size <= maxLag) return
 
-        val howling = tonality(buffer) >= tonalityThreshold && rms(buffer) >= activationRms
+        val howling = detectsFeedback(buffer)
         val target = if (howling) minGain else 1.0f
         val rate = if (howling) attackPerBlock else releasePerBlock
         val startGain = currentGain
@@ -53,10 +53,18 @@ class FeedbackSuppressor(
         currentGain = 1.0f
     }
 
-    /** Peak normalized autocorrelation across the feedback lag range (0..~1). */
-    private fun tonality(buffer: FloatArray): Double {
+    private fun detectsFeedback(buffer: FloatArray): Boolean {
         var energy = 0.0
-        for (s in buffer) energy += s.toDouble() * s
+        for (sample in buffer) energy += sample.toDouble() * sample
+        // Quiet blocks cannot trigger the guard. Avoid their much costlier lag scan.
+        return sqrt(energy / buffer.size) >= activationRms && tonality(buffer, energy) >= tonalityThreshold
+    }
+
+    /** Scan only until a lag establishes feedback; the exact peak is not needed. */
+    private fun tonality(
+        buffer: FloatArray,
+        energy: Double,
+    ): Double {
         if (energy <= 1e-12) return 0.0
 
         var best = 0.0
@@ -68,15 +76,10 @@ class FeedbackSuppressor(
             }
             val normalized = corr / energy
             if (normalized > best) best = normalized
+            if (best >= tonalityThreshold) return best
             lag++
         }
         return best
-    }
-
-    private fun rms(buffer: FloatArray): Double {
-        var sum = 0.0
-        for (s in buffer) sum += s.toDouble() * s
-        return sqrt(sum / buffer.size)
     }
 
     private companion object {

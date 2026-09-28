@@ -25,8 +25,8 @@ class InputEnhancement(
         } else {
             BiquadFilter.lowShelf(450.0, -options.voiceComfort.reductionDb, sampleRateHz)
         }
-    private val inputFrame = FloatArray(denoiser?.frameSize ?: 0)
-    private val outputFrame = FloatArray(inputFrame.size)
+    private var inputFrame = FloatArray(denoiser?.frameSize ?: 0)
+    private var outputFrame = FloatArray(inputFrame.size)
     private var position = 0
     private var closed = false
 
@@ -38,7 +38,8 @@ class InputEnhancement(
         check(!closed)
         require(buffer.size % 2 == 0)
         for (i in buffer.indices step 2) {
-            val input = buffer[i].takeIf { it.isFinite() } ?: 0f
+            val sample = buffer[i]
+            val input = if (sample.isFinite()) sample else 0f
             val cleaned = denoise(input)
             val low = bass?.processSample(cleaned.toDouble()) ?: cleaned.toDouble()
             // Speech presence belongs after WDRC in each downstream ear chain.
@@ -56,7 +57,10 @@ class InputEnhancement(
         position++
         if (position == inputFrame.size) {
             processor.process(inputFrame)
-            inputFrame.copyInto(outputFrame)
+            // The previous output is fully consumed; reuse it for the next input.
+            val consumedFrame = outputFrame
+            outputFrame = inputFrame
+            inputFrame = consumedFrame
             position = 0
         }
         return output

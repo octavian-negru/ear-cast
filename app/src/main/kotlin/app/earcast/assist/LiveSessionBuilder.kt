@@ -71,7 +71,8 @@ class LiveSessionBuilder
             return earCurves(profile)
         }
 
-        private fun earCurves(profile: SoundProfile): Pair<FrequencyGainCurve, FrequencyGainCurve>? {
+        /** Fit the supplied snapshot without reading storage again. */
+        fun earCurves(profile: SoundProfile): Pair<FrequencyGainCurve, FrequencyGainCurve>? {
             val rightFit = earCurve(profile, AudioEar.RIGHT)
             val leftFit = earCurve(profile, AudioEar.LEFT)
             val right = rightFit ?: leftFit ?: return null
