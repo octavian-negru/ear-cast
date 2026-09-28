@@ -1,213 +1,103 @@
 # EarCast
 
-**Hearing assistance for Android — no root, any earbuds.**
+EarCast uses your audiogram to shape the sound you hear through headphones.
+Create a hearing profile, adjust each ear on the chart, and use it for live
+microphone listening or supported media playback on Android.
 
-Apple ships a hearing screening and a hearing-aid mode on AirPods Pro 2/3 — but
-locks them to iPhone/iPad/Mac. EarCast brings hearing assistance to
-**Android**, working with **any** earbuds: screen your hearing, build a
-personalized amplification profile, and boost quiet speech in real time.
+The app runs on Android 8.0 and newer. Audio processing happens on the phone;
+root access and an EarCast account are not required.
 
-> Complement to [LibrePods](https://github.com/kavishdevar/librepods): LibrePods
-> drives AirPods' own hearing-aid mode (root required); EarCast does its own
-> on-device processing — **no root, any earbuds.**
+## Start with your audiogram
 
----
+The **Audiogram** tab brings together the hearing check and profile editor.
+You can take the guided tone check or enter values from an existing audiogram.
+The editor lets you select an ear, change points on the chart, and adjust a
+selected frequency with the level slider. Tone previews have a separate stop
+control.
 
-## ⚠️ Important: this is not a medical device
+Your saved chart appears on Home and in Audiogram, with separate markers for
+left and right ears. Keep multiple profiles, select the one to use for listening,
+and preview a results image before sharing it through Android.
 
-> **EarCast is a sound-amplification and hearing-assistance tool. It is NOT a
-> medical device, NOT a certified hearing aid, and NOT a substitute for a
-> professional hearing exam.** It does not diagnose or treat any condition. If you
-> have concerns about your hearing, see an audiologist or doctor. Keep the volume
-> comfortable and stop if anything is too loud.
+Screening with ordinary headphones is uncalibrated. Its displayed thresholds
+are estimates, not a clinical measurement. EarCast is not a medical device or a
+replacement for a professional hearing assessment.
 
----
+## Listen with your profile
 
-## Screenshots
+1. Connect your headphones and accept the first-run safety terms.
+2. Open **Audiogram** and save a profile from a tone check or manual entry.
+3. In **Settings**, set a comfortable output ceiling.
+4. Open **Listen**, choose a microphone and listening options, and start assist.
+5. Adjust the listening volume as needed. Stop from the listening controls or
+   the foreground notification; a quick-settings tile also controls the session.
 
-<table>
-  <tr>
-    <td><img src="docs/images/home.png" width="230" alt="Home screen"></td>
-    <td><img src="docs/images/check.png" width="230" alt="Pure-tone hearing check"></td>
-    <td><img src="docs/images/results.png" width="230" alt="Hearing check results chart"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Home</b></td>
-    <td align="center"><b>Hearing check</b><br/>heard / not-heard, with volume cap + stop</td>
-    <td align="center"><b>Results</b><br/>per-ear chart + suggested amplification</td>
-  </tr>
-  <tr>
-    <td><img src="docs/images/manual-entry.png" width="230" alt="Manual entry of professional results"></td>
-    <td><img src="docs/images/assist.png" width="230" alt="Hearing assist with presets and profiles"></td>
-    <td><img src="docs/images/settings.png" width="230" alt="Settings with comfort calibration and media EQ"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Manual entry</b><br/>type in results from a professional test</td>
-    <td align="center"><b>Hearing assist</b><br/>live volume, presets, saved profiles</td>
-    <td align="center"><b>Settings</b><br/>comfort calibration, media EQ, high contrast</td>
-  </tr>
-</table>
+The phone microphone can pick up a nearby speaker or TV while you listen through
+headphones. A supported headset microphone captures sound at the headset instead.
+Wired, USB and Bluetooth routes depend on the connected hardware. Classic
+Bluetooth call audio is mono and can reduce bandwidth; output-only Bluetooth
+devices do not provide a microphone. See the
+[microphone routing guide](docs/HEADSET_MICROPHONE.md).
 
-> Screenshots are from the running app on an emulator (the check values shown are
-> from an automated test pass). ▶️ A real demo video is coming after on-device
-> validation. Media sound has since moved to Home, with a 0–25 dB quiet-sound
-> boost control.
+Each ear has its own fitted equalization and compression. Listening options
+include environment presets, speech emphasis, feedback suppression, and a
+choice of RNNoise, DPDFNet8, SpeexDSP or experimental Adaptive Wiener noise
+reduction. Only one noise-reduction engine runs at a time. RNNoise also supports
+quiet-speech boost. The output limiters remain active regardless of the selected
+engine.
 
----
+**Media sound**, on Home, applies the profile to supported music and video
+playback through Android audio effects. It offers Balanced and Speech clarity
+processing plus a quiet-sound boost. Availability varies by device and player.
 
-## Features
+Keep volume comfortable and stop if listening feels unpleasant. The digital
+output ceiling does not measure sound pressure at your eardrum. Read the
+[safety notes](docs/SAFETY.md) and [calibration guide](docs/CALIBRATION.md).
 
-- 🎧 **Pure-tone hearing check** — adaptive (Hughson–Westlake) staircase, per ear,
-  per frequency, shown as a per-ear chart — or **enter results from a professional
-  hearing test manually**.
-- 📤 **Shareable results** — export your results chart as a clean image via a
-  preview-first dialog, so you always see exactly what you're sharing before it
-  leaves the app.
-- 🔊 **Real-time hearing assist, per ear** — each ear gets its own fitted gain
-  curve (stereo), with wide dynamic-range compression, a feedback/howl guard, and
-  **live volume control while it runs**.
-- 🎤 **Phone or headset microphone** — choose the input in Hearing assist;
-  place the phone next to a TV or across the table to use it as a remote mic.
-- 🎭 **Hear the difference** — play a sample sound and flip between the original
-  and the version shaped through your profile, mid-playback.
-- ⏱️ **Listening meter** — a relative gauge of how loud and how long assist has
-  been running, with a gentle reminder to take a break.
-- 🎚️ **Environment presets** — standard / conversation / outdoors, plus multiple
-  saved profiles you can switch between, and a quick-settings tile for one-tap
-  on/off.
-- 🎵 **Media sound** — apply your sound profile to music and videos from other
-  apps; choose linked Balanced dynamics or four-band Speech clarity, with
-  post-compression quiet boost that avoids an overdriven preamp stage (device
-  support varies).
-- 🛡️ **Safety first** — a hard look-ahead output limiter (extensively tested),
-  comfort calibration to cap loudness, an always-available instant **Stop**, and
-  automatic stop if your headphones disconnect.
-- ♿ **Accessibility-first** — large controls, high-contrast theme, scalable text.
-- 🔒 **Private by design** — no EarCast accounts or audio uploads. Google Play handles Pro purchases.
-  Debug builds show test banners automatically for free users; Pro removes them. Release builds omit the ad SDK.
-  Audio is processed on the phone, streamed only to/from your connected headset,
-  and never saved as a recording or uploaded by EarCast.
-- 🎧 **Any earbuds** — wired or Bluetooth; AirPods support is a future enhancement.
+## Local data and purchases
 
----
+EarCast keeps audiograms and preferences on the device. Live microphone samples
+are processed in memory for playback; the app does not record or upload them.
+Sharing an audiogram is an explicit action with a preview.
 
-## How to use
+Core listening is free. Google Play handles the one-time Pro purchase, including
+ownership checks and restoration. Pro enables DPDFNet8 and Strong quiet-speech
+boost. Debug builds can show test ads to free users; release builds omit the ad
+SDK. Purchase evidence is stored locally and excluded from app backup.
 
-**Microphone input:** In Hearing assist, choose **Phone microphone** to place the
-phone near a TV, speaker, or person across the table and stream that sound to your
-headphones. Choose **Headset microphone** to capture sound at your headset and
-play it back through the same headset. Wired/USB microphones and Bluetooth
-two-way call audio are supported through Android's routing APIs; output-only
-Bluetooth devices cannot supply microphone audio. Classic Bluetooth uses mono
-call audio. Device compatibility and latency need hardware validation.
-See [setup, compatibility, and testing](docs/HEADSET_MICROPHONE.md).
+Details: [privacy](docs/PRIVACY.md) · [Pro configuration](docs/MONETIZATION.md).
 
-1. **Install** — install the APK supplied through the private release process.
-2. **Read & accept** the safety disclaimer on first launch.
-3. **Take the hearing check** — put on a headset in a quiet room, tap
-   **Hearing check → Start**. After each tone, tap **Yes, I heard it** or
-   **No, I didn't**. The volume cap and **Stop / mute** are always on screen.
-   Already have results from a professional test? Use **Enter results manually**
-   instead.
-4. **Review your results** — a per-ear chart plus the suggested amplification
-   (half-gain rule). Each check is saved as a dated profile, so you can keep a
-   history and switch between profiles.
-5. **Turn on Hearing assist** — grant microphone access, choose the **Phone
-   microphone** or **Headset microphone**, pick an environment preset, and tap
-   **Start assist**. Sound is amplified per ear in real time; adjust the volume
-   live, and tap **Stop assist** any time (or use the quick-settings tile).
-6. **Calibrate comfort** (Settings) — preview the maximum loudness and lower it
-  until comfortable; that caps how loud assist mode can ever get. Optional
-  **Media sound** controls are on Home; the high-contrast theme is in Settings.
+## Build and evaluate
 
-See [docs/SAFETY.md](docs/SAFETY.md), [docs/CALIBRATION.md](docs/CALIBRATION.md),
-and [docs/DEVICE_TESTING.md](docs/DEVICE_TESTING.md) for details.
-
----
-
-## Privacy
-
-Audio processing and hearing profiles remain on-device. Google Play Billing
-handles Pro purchases, ownership checks, and restoration; EarCast has no backend.
-Microphone audio is processed in memory and is never saved or uploaded by EarCast.
-
-- **No EarCast accounts.** Debug builds show Google AdMob test ads for free users; release builds omit the ad SDK.
-- A signed purchase receipt is stored locally and excluded from app backup.
-- Google Play processes purchase information under its policies.
-
-Verify it yourself from the APK:
+Use JDK 17 and Android SDK 36. Set `sdk.dir` in `local.properties` or provide
+`ANDROID_HOME` for your SDK installation.
 
 ```bash
-aapt dump permissions EarCast-<version>.apk
+./gradlew assembleDebug
+./gradlew ktlintCheck detekt test testDebugUnitTest
 ```
 
-The app permissions include `RECORD_AUDIO` (the mic for assist mode),
-`FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MICROPHONE` (to keep assist running with
-a visible notification), `POST_NOTIFICATIONS`, and `MODIFY_AUDIO_SETTINGS` (required
-by Android for audio routing and the optional media EQ effect), and `WAKE_LOCK`
-(screen-off listening). Google Play Billing also contributes BILLING, INTERNET and ACCESS_NETWORK_STATE permissions; verify the merged release manifest. See [docs/PRIVACY.md](docs/PRIVACY.md).
+The repository includes Kotlin checks for profile fitting, processing and route
+behavior, plus a native/Python [audio quality workbench](audio-quality/README.md).
+The workbench describes how to compare speech engines with prepared recordings.
+Automated checks do not establish clinical accuracy or real-world speech
+intelligibility. Device routing, latency and listening quality still need
+[hardware validation](docs/DEVICE_TESTING.md).
 
----
+For release packaging and store preparation, use the
+[release instructions](docs/RELEASE.md) and
+[Google Play checklist](docs/GOOGLE_PLAY.md).
 
-## Build from source
+## Find your way through the code
 
-**Requirements:** JDK 17, Android SDK (API 36, build-tools 35.0.0). Point the build
-at your SDK via `local.properties` (`sdk.dir=...`) or `ANDROID_HOME`.
+The [implementation guide](ARCHITECTURE.md) follows an audiogram from editing and
+storage into a listening session, then describes the capture and playback paths.
+The five Gradle modules are `app`, `sound-profile`, `audio-engine`,
+`local-storage` and `foundation`. Offline evaluation tools live in `audio-quality`.
 
-```bash
-./gradlew ktlintCheck detekt test testDebugUnitTest   # lint + unit tests
-./gradlew assembleDebug                                # debug APK
-```
+EarCast is distributed under [GPL-3.0](LICENSE). Bundled libraries and models
+retain their license notices in their respective directories.
 
-Run these checks before release. Release/signing steps are in
-[docs/RELEASE.md](docs/RELEASE.md).
-
----
-
-## Project status — what's verified vs. not
-
-Early **alpha**: the full software pipeline (screen → profile → real-time assist)
-is built and unit-tested, but **not yet validated on real hardware.**
-
-| Area | Status |
-|---|---|
-| HearingCurve screening engine (staircase, fitting) | ✅ pure-Kotlin, unit-tested |
-| Real-time assist DSP (EQ + WDRC + feedback guard + limiter) | ✅ unit-tested; limiter safety suite is the release gate |
-| Android audio engine + foreground assist service | ✅ builds — **needs on-device validation** |
-| Onboarding, persistence, assist UI, accessibility | ✅ |
-| Comfort calibration + output ceiling | ✅ (true dB SPL calibration needs a meter) |
-| Google Play publication | Pending signing, public policy/contact, Console setup and device validation — [release checklist](docs/GOOGLE_PLAY.md) |
-| AirPods Pro 2/3 detection / transparency routing | ❓ **UNVERIFIED** — [docs/PROTOCOL.md](docs/PROTOCOL.md) |
-
-**On AirPods:** the protocol is reverse-engineered, not public; we build on
-[LibrePods](https://github.com/kavishdevar/librepods)/CAPod. It may not be fully
-controllable from Android without root/firmware access — which is why EarCast
-works fully on **any** earbuds first.
-
----
-
-## Architecture
-
-Clean multi-module Kotlin (Compose/Material 3, MVVM, Hilt, coroutines). DSP and
-safety logic live in pure-Kotlin modules so they're unit-tested with no emulator.
-See [ARCHITECTURE.md](ARCHITECTURE.md).
-
-`:app` · `:foundation` (units + safety constants) · `:sound-profile` (screening
-+ fitting) · `:audio-engine` (DSP + limiter) · `:airpods-protocol` (UNVERIFIED) ·
-`:local-storage` (persistence).
-
----
-
-## Credits
-
-- [LibrePods](https://github.com/kavishdevar/librepods) and CAPod for the AirPods
-  reverse-engineering groundwork.
-
-> EarCast is an independent project, not affiliated with or endorsed by Apple.
-> "AirPods" is a trademark of Apple Inc., used only to describe hardware compatibility.
-
-## EarCast Pro
-
-Core listening is free. One-time Pro unlocks DPDFNet8 and Strong quiet-speech boost
-and removes test banners in debug builds. Launch price recommendation: EUR 9.99;
-the checkout price is supplied by Google Play. See [store setup and verification](docs/MONETIZATION.md).
+LibrePods and CAPod informed earlier AirPods protocol research, retained in the
+[protocol notes](docs/PROTOCOL.md). EarCast is independent of Apple; AirPods is an
+Apple trademark.

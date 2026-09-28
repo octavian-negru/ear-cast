@@ -1,114 +1,125 @@
-# Architecture
+# Inside EarCast
 
-EarCast is a multi-module Kotlin/Android app following MVVM + clean layering.
-The guiding principle: **the safety-critical and signal-processing logic lives in
-Kotlin/JVM DSP classes and a native speech-processing library, decoupled from
-Android audio/BLE I/O, so the algorithms can be tested without a device or emulator.**
+EarCast connects an editable audiogram to two listening features: microphone
+assist and media playback effects. This guide describes the code currently
+included by [settings.gradle.kts](settings.gradle.kts), with entry points for
+following each operation.
 
-## Modules and dependency direction
+## A chart becomes a saved profile
 
-```
-                 ┌─────────────┐
-                 │     :app     │  Compose UI · Hilt · navigation · onboarding
-                 └──────┬──────┘
-        ┌───────┬───────┼────────┬─────────────┐
-        ▼       ▼       ▼        ▼             ▼
- :sound-profile :audio-engine :airpods-protocol :local-storage
-        │       │       │        │             │
-        └───────┴───────┴────────┴─────────────┘
-                        ▼
-                  :foundation   units · SAFETY constants
-```
+The Compose navigation has four destinations: Home, Audiogram, Listen and
+Settings. `ProfileSetupScreen` offers a guided tone check and manual entry.
+`AudiogramCard` displays the selected profile on Home and the Audiogram screen.
 
-- `:app` depends on the cores; **no core depends back on `:app`.**
-- Everything depends on `:foundation`; `:foundation` depends on nothing app-specific.
-- `:foundation` and `:sound-profile` are plain Kotlin/JVM modules (fast JUnit5 tests).
-- `:audio-engine`, `:airpods-protocol`, `:local-storage` are Android library modules (they
-  touch Android audio/BLE/persistence APIs) but keep their core logic pure where possible.
+The manual editor uses `ProfilePlotEditor` and `ProfileChart` to modify thresholds
+for a selected ear and frequency. Chart gestures and slider edits update the same
+values in `ProfileEditorModel`; preview tones are handled separately from saving.
+The guided check instead collects responses through `ToneCheckStateModel`, using
+the threshold-search logic in `sound-profile`.
 
-### `:foundation`
-Strongly-typed units (`FrequencyHz`, `HearingDb`, `AcousticDb`, `DigitalDb`, `AudioEar`)
-and **`AudioLimits`** — the single source of truth for every output-loudness
-limit. Anything that produces sound must respect these.
+Both routes produce a `HearingCurve`: a collection of `HearingPoint` values,
+each containing an ear, frequency and hearing level. `ProfileStorage` exposes
+saved profiles and the active selection as flows. Its DataStore implementation
+encodes the profile list in preferences using the hearing-curve codec. Settings
+such as microphone choice, comfort ceiling and noise-reduction engine use
+`PreferenceStorage` in the same persistence module.
 
-### `:sound-profile`
-The audiogram domain: the `HearingCurve`/`HearingPoint` model, the pure-tone
-threshold-seeking staircase (Phase 1), and audiogram→gain-curve fitting (Phase 1).
-Pure Kotlin — no Android dependency.
+The chart's displayed hearing levels must not be confused with calibrated output
+sound pressure. The tone-check path uses consumer headphones without a clinical
+calibration. [Fitting](docs/FITTING.md) and
+[calibration](docs/CALIBRATION.md) document those constraints.
 
-### `:audio-engine`
-The real-time DSP core: multiband gain, wide dynamic range compression (WDRC),
-feedback/howl guard, and the **SAFETY-CRITICAL output limiter**. The DSP math is
-pure Kotlin behind the `StreamEngine`/`SampleTransform` interfaces; the concrete
-AudioRecord/AudioTrack engine is just the I/O shell. This is what makes the limiter
-unit-testable.
+## Starting a microphone session
 
-`LiveAudioRoute` owns microphone/output selection, audio focus, and Bluetooth
-communication routing (API 31+ device selection; legacy SCO below API 31).
-`AndroidStreamEngine` confirms actual input/output routes before submitting
-processed audio, reports connecting/running/failure state, and releases routing
-on every exit. The processor factory receives the transport's sample rate before
-building DSP. Classic SCO uses mono device output, with a bounded average of the
-two limited ear channels. The microphone preference is persisted in `:local-storage` and
-shared by the assist screen and tile; choosing the phone microphone provides the
-remote-listening use case inside the same Hearing Assist session.
-See [headset microphone routing](docs/HEADSET_MICROPHONE.md) for platform limits
-and required hardware validation.
+`LiveSessionBuilder` is shared by the listening screen and quick-settings tile.
+It checks consent and the active profile, fits a gain curve for each ear, applies
+the selected environment preset, and reads the comfort and microphone settings.
+If only one ear can be fitted, that curve supplies both channels. Pro entitlement
+is applied to listening options before the controller is configured.
 
-Optional speech enhancement uses either the bundled full RNNoise model or full
-DPDFNet8 models through the pinned sherpa-onnx C API, before per-ear processing.
-Both have worker-owned native state; DPDFNet has a separate JNI library and uses
-bundled model files verified before loading. Stateful SpeexDSP resampling adapts Bluetooth capture rates
-to the model's 48 kHz input; the original and enhanced spectra are mixed with
-matching delay to retain ambience. Optional speech-confidence-based upward gain
-raises quiet speech with RNNoise before the per-ear chains and output limiters.
-Speech clarity is a high shelf after WDRC, preventing compression from undoing
-the requested consonant lift. Feedback protection and final limiting follow it.
-An opt-in bounded recorder copies processing taps to a separate writer thread;
-normal audio processing performs no diagnostic file I/O. See [audio clarity next steps](docs/AUDIO_CLARITY_NEXT_STEPS.md)
-for the library comparison and pending quality validation; the current focus is
-[speech understanding](docs/SPEECH_UNDERSTANDING.md).
+`LiveAudioController` coordinates the session with `LiveAudioService`, which
+owns the foreground notification and screen-off listening lifecycle.
+`AndroidStreamEngine` exchanges PCM samples with Android's `AudioRecord` and
+`AudioTrack`. `LiveAudioRoute` handles focus and device selection, including
+communication-device routing on newer Android versions and legacy Bluetooth SCO.
 
-### `:airpods-protocol`
-AirPods Pro 2/3 detection, battery/state, and transparency routing over BLE /
-L2CAP CoC. The protocol is **reverse-engineered and UNVERIFIED** (see
-[docs/PROTOCOL.md](docs/PROTOCOL.md)); everything protocol-specific is behind
-interfaces. Non-root path first.
+Processing is constructed for the selected transport's sample rate. The engine
+checks the actual capture and playback routes before sending processed audio and
+reports connection or failure state to the controller. Route cleanup is part of
+session shutdown. The [routing guide](docs/HEADSET_MICROPHONE.md) lists the device
+cases that still need physical testing.
 
-### `:local-storage`
-Persistence for audiograms, profiles, and settings (DataStore/Room, Phase 4).
+## What happens to a microphone block
 
-## Data flow
+Input enhancement operates before the separate ear channels. A session selects
+one of the bundled RNNoise, DPDFNet8, SpeexDSP or Adaptive Wiener implementations;
+turning noise reduction off bypasses that enhancement. JNI bridges connect the
+Kotlin frame adapter to native processing. Neural engines adapt capture rates to
+their model rate; DPDFNet8 loads bundled models through sherpa-onnx. RNNoise can
+also apply quiet-speech boost.
 
-```
- Pure-tone screening ─► HearingCurve ─► Gain curve / fitting ─► DSP chain ─► StreamEngine ─► earbuds
- (:sound-profile)      (:core-     (:sound-profile)        (:core-      (:audio-engine)
-                         audiogram)                           audio)            │
-                                                                                ▼
-                                                          (optional, best-effort) :airpods-protocol
-                                                          tunes transparency/route — never required
-```
+After input enhancement, `StereoListeningChain` runs a `MonoListeningChain` for
+each ear. Each chain applies these operations in order:
 
-The DSP chain's **final stage is always an `OutputCeiling`**, so nothing can
-exceed the safety ceiling on the way to the device, regardless of upstream gain.
+1. Optional high-pass filtering for the selected preset.
+2. Equalization derived from that ear's `FrequencyGainCurve`.
+3. Multiband dynamic-range compression.
+4. Optional speech-presence filtering.
+5. Feedback suppression.
+6. Smoothed master gain and compensation for the presence filter's added gain.
+7. `PeakLimiter` enforcement of the configured digital ceiling.
 
-## Testing strategy
+The stereo processor reuses scratch buffers and handles larger buffers in chunks.
+Live volume changes update both ear chains. Classic SCO playback averages the
+limited ear channels into mono because the transport cannot carry independent
+left and right outputs.
 
-- **Pure-Kotlin modules** (`:foundation`, `:sound-profile`): JUnit5 unit tests,
-  no Android. This is where the screening, fitting, and safety-math tests live.
-- **Android library modules**: JUnit5 unit tests (via the `android-junit5` plugin)
-  for pure logic; Robolectric/instrumented tests for Android-touching code.
-- **`:airpods-protocol`**: can only be partially unit-tested; the protocol itself
-  is validated on real hardware using the scripts in `docs/PROTOCOL.md`.
+`AudioLimits` in `foundation` supplies shared bounds, and the per-ear limiters
+provide the last processing step before transport conversion. These are digital
+signal constraints; headphone sensitivity and device volume still affect
+physical loudness. The app has no microphone-recording path: live audio remains
+in memory for immediate playback.
 
-New clarity, route-policy and diagnostic tests live together in
-[`audio-quality/`](audio-quality/README.md): native tests link production DSP, JVM
-tests are wired into `:audio-engine`, and Python tools prepare real-speech corpora,
-evaluate reference metrics and export blind listening comparisons. The suite never
-automatically compiles a renderer or downloads a model.
+## Media playback takes a separate route
 
-## Tech stack
+Home's Media sound controls feed `MediaSoundController` and the Android effect
+session in `audio-engine`. `MediaCurvePlanner` maps the hearing profile to that
+path's settings. Balanced and Speech clarity modes provide different dynamics
+configurations, with an additional quiet-sound boost.
 
-Kotlin · Jetpack Compose + Material 3 · MVVM + clean layering · Hilt · coroutines/Flow ·
-AudioRecord/AudioTrack behind an interface · Gradle Kotlin DSL + version catalog · JUnit5 +
-Turbine + Robolectric · detekt + ktlint. minSdk 26, compile/target SDK 35.
+This feature uses Android playback effects rather than the microphone session's
+native speech engine. Device and player support determine whether an effect can
+be attached. Changes here should be evaluated separately from microphone DSP.
+
+## Code ownership and dependencies
+
+| Directory | Responsibility | Internal dependencies |
+| --- | --- | --- |
+| `app` | Compose screens, state models, dependency injection, session service, media controls and Play Billing | All four library modules |
+| `sound-profile` | Hearing thresholds, screening protocols, curve encoding and fitting | `foundation` |
+| `audio-engine` | Signal generation, Android streams and routes, Kotlin DSP, JNI and native speech engines | `foundation`, `sound-profile` |
+| `local-storage` | Profile selection and preference persistence with DataStore | `foundation`, `sound-profile` |
+| `foundation` | Unit types and common audio bounds | None |
+| `audio-quality` | Offline renderers, native regression checks and Python evaluation tools | Links or exercises production processing; not an app module |
+
+`foundation` and `sound-profile` build as Kotlin/JVM libraries. `audio-engine` and
+`local-storage` are Android libraries. The app uses Compose, coroutines and Hilt;
+the build targets Java 17, Android API 36, and a minimum Android API of 26.
+Native sources and third-party notices are under `audio-engine/src/main/cpp`;
+bundled speech-model information is under
+[audio-engine/src/main/assets/speech-models](audio-engine/src/main/assets/speech-models/README.md).
+
+## Boundaries for verification and data
+
+Profile and DSP changes have local Kotlin tests. Route policy checks cover the
+selection rules, but cannot demonstrate behavior on a particular headset.
+`audio-quality` adds native processing checks and replay of prepared speech/noise
+recordings; its Kotlin cases are included in the audio-engine test source set.
+The [workbench guide](audio-quality/README.md) documents commands, dependencies
+and the limits of each measurement.
+
+Audiograms and settings are stored locally. `ProfileImageExporter` prepares an
+image for the explicit share-preview flow. Play Billing performs purchase and
+ownership operations; local purchase evidence is excluded from backup. Release
+builds omit the debug-only ad SDK. See [privacy](docs/PRIVACY.md) for the user data
+policy and the [Play checklist](docs/GOOGLE_PLAY.md) for release prerequisites.
