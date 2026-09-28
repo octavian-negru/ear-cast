@@ -49,5 +49,5 @@ Existing profiles retain their saved volume, so begin with Volume adjustment at
 0 dB and lower it if needed. Compare Clarity Gentle and Strong with the same
 talker, microphone position and comfortable perceived volume. Keep Quiet Speech
 Boost Off for the first comparison; assess word endings, consonants, boominess
-and sudden changes in level. The existing diagnostic recordings can capture the
+and sudden changes in level. The app no longer records audio. Use external test equipment to capture the
 same conditions for the [audio quality workbench](../audio-quality/README.md).

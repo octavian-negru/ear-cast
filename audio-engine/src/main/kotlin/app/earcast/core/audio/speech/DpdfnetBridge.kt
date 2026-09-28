@@ -12,7 +12,6 @@ class DpdfnetBridge(
 ) : FrameFilter {
     override val frameSize = sampleRateHz / 100
     override val algorithmDelaySamples: Int
-    override val diagnosticMetadata: Map<String, String>
     private var handle = 0L
 
     init {
@@ -41,15 +40,6 @@ class DpdfnetBridge(
                     )
             }
         val file = materialize(context, model)
-        diagnosticMetadata =
-            mapOf(
-                "speech_engine" to "DPDFNet8",
-                "speech_model" to model.name,
-                "speech_model_sha256" to model.sha256,
-                "speech_model_rate" to model.rate.toString(),
-                "speech_runtime" to "sherpa-onnx-1.13.8",
-                "quiet_speech_boost_active" to "false",
-            )
         handle = create(sampleRateHz, model.rate, suppressionDb, file.absolutePath)
         check(handle != 0L) { "Detailed speech could not initialize. Select RNNoise and restart assist." }
         algorithmDelaySamples = delaySamples(handle)

@@ -56,7 +56,7 @@ and [model provenance](../audio-engine/src/main/assets/speech-models/README.md).
 The model does not expose speech confidence through this API. Quiet Speech Boost
 is therefore explicitly unavailable with DPDFNet8; fitted amplification and the
 volume control remain active. That matches the user's preferred Boost Off setting.
-Diagnostics record the chosen model, checksum, runtime and delay.
+Model checksums remain pinned in the source. The app no longer records audio or diagnostic metadata.
 
 ## Phonak and the sibling project
 

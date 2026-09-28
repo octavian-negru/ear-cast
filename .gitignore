@@ -37,6 +37,7 @@ externalNativeBuild/
 *.p12
 *.pfx
 secrets.properties
+keystore.properties
 google-services.json
 
 # Generated reports and coverage data

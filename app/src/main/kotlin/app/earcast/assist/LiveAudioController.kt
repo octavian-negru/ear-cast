@@ -2,14 +2,12 @@ package app.earcast.assist
 
 import android.content.Context
 import android.media.AudioManager
-import android.os.Build
 import app.earcast.audiogram.FrequencyGainCurve
 import app.earcast.core.audio.AndroidStreamEngine
 import app.earcast.core.audio.InputSource
 import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.StreamSpec
 import app.earcast.core.audio.StreamStatus
-import app.earcast.core.audio.diagnostics.AudioSessionRecorder
 import app.earcast.core.audio.dsp.MeterWindow
 import app.earcast.core.audio.dsp.MeteredTransform
 import app.earcast.core.audio.dsp.MonoListeningChain
@@ -29,8 +27,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,15 +40,6 @@ data class ListeningSnapshot(
     val sessionUnits: Double = 0.0,
     val unflushedUnits: Double = 0.0,
     val lastRmsDbfs: Double = Double.NEGATIVE_INFINITY,
-)
-
-/** Recording is opt-in for one start only, never restored by a tile or process restart. */
-data class CaptureStatus(
-    val armed: Boolean = false,
-    val saving: Boolean = false,
-    val notes: String = "",
-    val message: String = "",
-    val lastDirectory: File? = null,
 )
 
 /** Immutable configuration for an assist session, derived from the active profile. */
@@ -92,10 +79,6 @@ class LiveAudioController
         mediaEq: MediaSoundController,
     ) {
         private val applicationContext = context.applicationContext
-        private val diagnosticRoot = File(context.noBackupFilesDir, "audio-diagnostics")
-        private val sharedRoot = File(context.cacheDir, "shared")
-        private val _diagnostics = MutableStateFlow(CaptureStatus())
-        val diagnostics: StateFlow<CaptureStatus> = _diagnostics.asStateFlow()
         private val manager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         private val _sessionStatus = MutableStateFlow(StreamStatus())
         val sessionStatus: StateFlow<StreamStatus> = _sessionStatus.asStateFlow()
@@ -150,70 +133,6 @@ class LiveAudioController
             return activePremiumProcessing || configuredPremium
         }
 
-        fun armDiagnostics(armed: Boolean) {
-            if (!_running.value &&
-                _sessionStatus.value.state != StreamPhase.CONNECTING &&
-                !_diagnostics.value.saving
-            ) {
-                _diagnostics.value = _diagnostics.value.copy(armed = armed)
-            }
-        }
-
-        fun setDiagnosticNotes(notes: String) {
-            if (!_running.value && !_diagnostics.value.saving) {
-                _diagnostics.value = _diagnostics.value.copy(notes = notes.take(512))
-            }
-        }
-
-        /** Restore access to completed local files without re-arming recording. Call on an I/O dispatcher. */
-        @Synchronized
-        fun refreshDiagnostics() {
-            if (_diagnostics.value.saving || _diagnostics.value.lastDirectory != null) return
-            val latest =
-                diagnosticRoot
-                    .listFiles()
-                    ?.filter {
-                        File(it, "metadata.json").isFile && File(it, "stages.wav").isFile
-                    }?.maxByOrNull { File(it, "metadata.json").lastModified() }
-            if (latest != null && !_diagnostics.value.saving && _diagnostics.value.lastDirectory == null) {
-                _diagnostics.value =
-                    _diagnostics.value.copy(
-                        lastDirectory = latest,
-                        message = "Local recording available",
-                    )
-            }
-        }
-
-        /** Call on an I/O dispatcher. Never deletes a recording still being written. */
-        @Synchronized
-        fun deleteDiagnostics() {
-            if (_diagnostics.value.saving ||
-                _running.value ||
-                _sessionStatus.value.state == StreamPhase.CONNECTING
-            ) {
-                return
-            }
-            val folders = diagnosticRoot.listFiles()?.filter { it.isDirectory }.orEmpty()
-            val exports =
-                sharedRoot
-                    .listFiles()
-                    ?.filter {
-                        it.name.startsWith("sound-") && (it.extension == "zip" || it.extension == "tmp")
-                    }.orEmpty()
-            val deletedFolders = folders.map { it.deleteRecursively() }.all { it }
-            val deletedExports = exports.map { it.delete() }.all { it }
-            _diagnostics.value =
-                _diagnostics.value.copy(
-                    lastDirectory = null,
-                    message =
-                        if (deletedFolders && deletedExports) {
-                            "Local recordings deleted"
-                        } else {
-                            "Some files could not be deleted"
-                        },
-                )
-        }
-
         /**
          * Adjusts master gain immediately, including while the engine is running.
          * The chain clamps to the safety cap and the limiter stays downstream.
@@ -228,8 +147,6 @@ class LiveAudioController
             val c = config ?: return
             if (engine.isRunning || _sessionStatus.value.state == StreamPhase.CONNECTING) return
             activePremiumProcessing = c.listeningOptions.requiresPro()
-            val recordRequested = _diagnostics.value.armed
-            _diagnostics.value = _diagnostics.value.copy(armed = false)
             outputMeter.drain() // discard anything left from a previous session
             engine.startSession(
                 StreamSpec(
@@ -270,13 +187,11 @@ class LiveAudioController
                 // The meter taps the buffer AFTER the chain (post-limiter), so it
                 // sees exactly what reaches the device; the chain stays untouched.
                 val denoiser = createDenoiser(actual.sampleRateHz, c.listeningOptions)
-                val recording = if (recordRequested) createDiagnostics(actual, current) else null
                 InputEnhancement(
                     actual.sampleRateHz,
                     c.listeningOptions,
                     MeteredTransform(newChain, outputMeter),
                     denoiser,
-                    recording,
                 )
             }
         }
@@ -294,74 +209,6 @@ class LiveAudioController
                 EnhancementEngine.WIENER -> WienerBridge(rate, suppression)
             }
         }
-
-        @Synchronized
-        private fun createDiagnostics(
-            actual: StreamSpec,
-            c: LiveAudioConfig,
-        ): AudioSessionRecorder? =
-            try {
-                check(!_diagnostics.value.saving) { "Previous recording is still saving" }
-                val bytes = diagnosticRoot.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-                check(bytes < 96L * 1024 * 1024) {
-                    "Recording storage is full. Export and delete local recordings first."
-                }
-                _diagnostics.value =
-                    _diagnostics.value.copy(
-                        saving = true,
-                        message = "Recording up to 30 seconds locally",
-                    )
-                AudioSessionRecorder(
-                    File(diagnosticRoot, UUID.randomUUID().toString()),
-                    actual.sampleRateHz,
-                    actual.framesPerBlock,
-                    mapOf(
-                        "created_utc" to
-                            java.time.Instant
-                                .now()
-                                .toString(),
-                        "phone" to "${Build.MANUFACTURER} ${Build.MODEL}",
-                        "android_sdk" to Build.VERSION.SDK_INT.toString(),
-                        "headset_firmware" to "unavailable_via_android_audio_api_see_notes",
-                        "notes" to _diagnostics.value.notes,
-                        "requested_sample_rate" to c.sampleRateHz.toString(),
-                        "settings" to c.listeningOptions.toString(),
-                        "initial_master_gain_db" to c.masterGainDb.toString(),
-                        "gain_shaping" to "overlap_corrected_peaks_v2",
-                        "output_limiter" to "held_peak_v3",
-                        "global_media_eq" to "bypassed_during_session",
-                        "speech_presence_trim_db" to (-c.listeningOptions.speechClarity.gainDb).toString(),
-                        "quiet_speech_max_gain_db" to
-                            c.listeningOptions.quietSpeech.maximumGainDb
-                                .toString(),
-                        "ceiling_linear" to c.ceilingLinear.toString(),
-                        "left_fit" to c.leftGainCurve.points.toString(),
-                        "right_fit" to c.rightGainCurve.points.toString(),
-                        "bundled_rnnoise_revision" to "70f1d256acd4b34a572f999a05c87bf00b67730d",
-                    ),
-                ) { directory, error ->
-                    _diagnostics.value =
-                        _diagnostics.value.copy(
-                            saving = false,
-                            lastDirectory = directory,
-                            message = error ?: "Recording saved on this device",
-                        )
-                }
-            } catch (e: IllegalStateException) {
-                _diagnostics.value =
-                    _diagnostics.value.copy(
-                        saving = false,
-                        message = e.message ?: "Recording unavailable",
-                    )
-                null // Diagnostic storage failure must not end hearing assistance.
-            } catch (e: SecurityException) {
-                _diagnostics.value =
-                    _diagnostics.value.copy(
-                        saving = false,
-                        message = e.message ?: "Recording unavailable",
-                    )
-                null // Diagnostic storage failure must not end hearing assistance.
-            }
 
         fun stopEngine() {
             engine.stop()

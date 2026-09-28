@@ -40,6 +40,7 @@ import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SectionGroup
 import app.earcast.ui.common.SurfaceCard
 import app.earcast.ui.findActivity
+import app.earcast.ui.onboarding.PrivacyDialog
 import app.earcast.ui.onboarding.SafetySourceLink
 import app.earcast.ui.onboarding.TermsDialog
 import app.earcast.ui.pro.ProScreen
@@ -60,6 +61,8 @@ fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
         )
         return
     }
+    var showPrivacy by rememberSaveable { mutableStateOf(false) }
+    if (showPrivacy) PrivacyDialog(onDismiss = { showPrivacy = false })
     var showTerms by rememberSaveable { mutableStateOf(false) }
     if (showTerms) TermsDialog(onDismiss = { showTerms = false })
     EarPage {
@@ -93,6 +96,7 @@ fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
                 style = MaterialTheme.typography.titleLarge,
             )
             CollapsibleNotice(stringResource(R.string.about_title), stringResource(R.string.about_body))
+            TextButton(onClick = { showPrivacy = true }) { Text(stringResource(R.string.privacy_policy_title)) }
             TextButton(onClick = { showTerms = true }) { Text(stringResource(R.string.terms_title)) }
         }
         TestAdsSection(showPrivacyInformation = true)

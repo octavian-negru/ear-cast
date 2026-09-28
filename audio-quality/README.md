@@ -11,45 +11,20 @@ classical-engine update; real-speech and device listening comparisons remain pen
   The renderer links the actual production `RnnoiseFilter` and `VoiceLeveler`.
   It also provides Off and the previous Speex preprocessor as baselines.
 - `kotlin/`: framing, downstream limiter integration, route policy, headset
-  identity and diagnostic-recording tests. The audio-engine test source set includes
+  identity and DSP tests. The audio-engine test source set includes
   this directory. Existing unrelated module tests retain their original locations.
 - `python/audio_quality/`: real-speech corpus creation, replay, metrics, blind
   listening exports, recording extraction and explicit acceptance gates.
 - `python/tests/`: tests of the measurement tools themselves. These do not
   establish neural-model quality; the real-speech replay comparisons do that.
 
-## On-device recordings after a future app build
+## Audio inputs
 
-1. In Hearing Assist, enable **Record next session**. Add distance, room and
-   headset/firmware information in Notes. This is a one-start setting, not a
-   persistent permission to record subsequent sessions.
-2. Start assist. Recording ends after at most 30 seconds or on Stop. If the writer
-   falls behind, recording ends at the last contiguous block; playback continues.
-3. Stop assist and wait for the saved message. **Export latest** opens the Android
-   share sheet with a ZIP. **Delete recordings** deletes local sessions and their
-   cached exports; copies already exported elsewhere are not affected.
-
-The ZIP contains a four-channel float WAV, `blocks.csv` and `metadata.json`.
-Channels are captured mono, enhanced mono, limited left and limited right. These
-are synchronous processing-clock taps, not automatically aligned acoustic events.
-Enhanced includes neural processing and bass shaping. Speech presence now runs
-after per-ear WDRC and therefore appears in the limited channels. Limited channels are
-before PCM16 output conversion; classic SCO averages the two limited ears for playback.
-The fixed model/resampler delay plus the Kotlin frame adapter is recorded. It
-does not include Android/Bluetooth buffering. Final limiter/filter delay is not
-removed by the extraction tool.
-
-Diagnostics include input levels/clipping, per-block processing time, Android
-PCM rates, selected source, routed device names/types, output underruns and an
-estimate of capture backlog from timestamps. Android does not expose a reliable
-input-overrun counter here: it is explicitly reported as unknown. A requested or
-reported PCM rate is not proof of the negotiated Bluetooth codec bandwidth.
-Headset firmware is not available through these audio APIs; use Notes.
-
-Files stay in app-private storage excluded from backup. Recording storage is
-bounded by session duration, queue size and a quota checked before recording.
-An interrupted process may leave an incomplete session; never evaluate such a
-session as a complete capture. The extractor validates WAV/metadata frame counts.
+The Android app no longer records audio or exports recording archives. Live
+microphone audio is processed in memory for immediate playback only.
+Use externally prepared, consented clean/noise WAV files for the workbench.
+The offline extraction tool remains available for archives exported by older
+versions; it is not shipped in the app and cannot capture microphone audio.
 
 ## Deferred build and execution
 
@@ -66,7 +41,7 @@ ctest --test-dir /tmp/earcast-audio-quality --output-on-failure
 The app's Kotlin tests are included in the usual `:audio-engine:testDebugUnitTest`
 task on an Android build host. Release/R8, JNI, all four ABIs and device routes
 still require their own build/device checks. The native CLI does not exercise
-Kotlin fitting/WDRC/limiters: use those tests and the recorded post-limiter taps.
+Kotlin fitting/WDRC/limiters: use the Kotlin tests and external device measurements.
 
 Use an isolated Python environment with the packages in `requirements.txt` on the
 evaluation machine. No installation script is invoked by this workbench. From
@@ -117,7 +92,7 @@ word recognition, preference, onset loss, noise pumping and environmental-sound
 retention. Lower noise RMS or louder output alone is not a quality improvement.
 Unmatched float output WAVs are analytical artifacts and are not playback-limited.
 
-For actual diagnostic recordings:
+For previously exported diagnostic archives from older app versions:
 
 ```bash
 python -m audio_quality.extract_recording /path/sound-recording.zip --output /tmp/capture
@@ -173,7 +148,7 @@ strength mixing at all six capture rates. It does not prove the wet model's
 intelligibility or replace golden-output validation. Kotlin tests verify that
 consonant lift survives active WDRC and remains bounded by the final limiter.
 The renderer isolates enhancement; it does not include the Kotlin fitting,
-post-WDRC shelf or final limiter. Use post-limiter device taps to assess those.
+post-WDRC shelf or final limiter. Use Kotlin tests and external measurements to assess those.
 
 Use the user's reported headset baseline: Standard, Natural, Speech Strong,
 Bass Gentle, Noise Reduction Strong, Quiet Speech Boost Off. Compare RNNoise and
@@ -200,7 +175,7 @@ claim of improved intelligibility over either neural engine.
 
 Both classical engines accept 8, 16, 24, 32, 44.1 and 48 kHz without resampling.
 Each adds a measured 10 ms algorithm delay plus InputEnhancement's 10 ms frame
-adapter. Diagnostics identify the selected engine and this combined delay.
+adapter. The native workbench measures this delay.
 
 The native `classic_filters_test` checks Wiener overlap reconstruction/delay,
 silence and invalid samples, noise attenuation and strength ordering, retention

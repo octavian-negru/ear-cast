@@ -96,11 +96,10 @@ Android backend or a quality ranking based on popularity.
 
 The subsequent implementation adds these pieces without building or executing tests:
 
-- **Local diagnostic recording:** a one-session UI switch, notes, three processing
-  taps (four WAV channels), timing/level/route metadata, ZIP export and deletion.
-  Disk I/O runs on a separate worker behind a preallocated bounded queue. A full
-  queue ends recording without delaying playback. Recordings last at most 30
-  seconds and stay in app-private storage excluded from backup.
+- **Recording removed (September 28, 2026):** the app no longer offers the
+  diagnostic recording switch, file writer, timing metadata or audio export.
+  Use externally prepared test audio; the offline workbench can still read
+  diagnostic archives exported by older versions.
 - **Quiet speech boost:** an opt-in 6/12 dB upward leveler after RNNoise. Its
   confidence-weighted target grows gradually, relaxes when speech ends and is
   constrained by each frame's peak. It never attenuates below unity or gates
@@ -124,10 +123,9 @@ The subsequent implementation adds these pieces without building or executing te
 
 The capture ring now reserves at least 100 ms of PCM to absorb short inference
 bursts. This is capacity, not an intentional 100 ms playback delay. Sustained
-processing slower than capture still needs device profiling. Per-block timings,
-output underruns and timestamp-derived capture backlog help expose that problem;
-input overrun count and headset firmware remain explicitly unknown where Android
-cannot provide them. Notes can carry the firmware and physical test conditions.
+processing slower than capture still needs device profiling. Use external profiling tools to inspect processing time and output underruns;
+the app no longer stores per-block timing or route metadata. Record firmware
+and physical test conditions separately.
 
 ### Remaining work, in priority order
 
@@ -135,7 +133,7 @@ cannot provide them. Notes can carry the firmware and physical test conditions.
    Build debug/release for all configured ABIs, check R8/JNI/model loading and
    16 KB library alignment, and exercise failure/stop/reconnect paths on hardware.
    **No build or runtime test result is claimed yet.**
-2. Capture actual headset and phone-microphone recordings at 0.5, 2 and 5 metres
+2. Use an external test setup to capture headset and phone-microphone audio at 0.5, 2 and 5 metres
    in quiet, fan noise, babble and a reverberant room. Use identical source
    positions for microphone comparisons; separately assess a phone placed near
    the talker. If speech is missing in the raw tap, prioritize capture hardware

@@ -6,7 +6,6 @@ interface FrameFilter : AutoCloseable {
 
     /** Algorithm delay excluding InputEnhancement's frame adapter; null if not established. */
     val algorithmDelaySamples: Int? get() = null
-    val diagnosticMetadata: Map<String, String> get() = emptyMap()
 
     fun process(frame: FloatArray)
 }
@@ -18,7 +17,6 @@ class SpeexBridge(
 ) : FrameFilter {
     override val frameSize = sampleRateHz / 100
     override val algorithmDelaySamples = frameSize
-    override val diagnosticMetadata = mapOf("speech_engine" to "SpeexDSP", "speech_runtime" to "bundled-speexdsp")
     private var handle: Long
 
     init {

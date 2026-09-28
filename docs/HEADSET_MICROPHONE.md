@@ -174,9 +174,7 @@ rates and saved selection. They do not validate Android's actual routing or radi
 
 Routing uses AudioManager with the existing `MODIFY_AUDIO_SETTINGS` permission.
 No scanning, account, root access or new network permission is needed. Audio is
-streamed locally between the connected headset and phone. Saving is off by default.
-The optional Sound comparison recording control records one session for up to
-30 seconds in private local storage; Export opens the Android share chooser and
-Delete removes local recordings and cached exports. Nothing uploads automatically.
-See the [audio quality workbench](../audio-quality/README.md) for extraction,
-reference-based evaluation and blind listening instructions.
+streamed locally between the connected headset and phone and discarded after
+processing. The app does not record or export microphone audio. See the
+[audio quality workbench](../audio-quality/README.md) for evaluation of externally
+prepared WAV files and archives exported by older versions.

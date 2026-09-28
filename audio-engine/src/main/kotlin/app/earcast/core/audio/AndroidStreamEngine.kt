@@ -3,7 +3,6 @@ package app.earcast.core.audio
 import android.content.Context
 import android.media.AudioRecord
 import android.media.AudioRouting
-import android.media.AudioTimestamp
 import android.media.AudioTrack
 import android.os.Handler
 import android.os.Looper
@@ -261,16 +260,11 @@ class AndroidStreamEngine(
         val input = buffers.input
         val deadline = SystemClock.elapsedRealtime() + ROUTE_TIMEOUT_MS
         var frames = 0
-        var readFrames = 0L
-        var nextTelemetryFrame = 0L
-        val timestamp = AudioTimestamp()
-        val observer = (processor as? StreamObserver)?.takeIf { it.wantsStreamDiagnostics }
         while (requested && !routeLost) {
             val read = capture.read(input, frames, input.size - frames, AudioRecord.READ_BLOCKING)
             checkActive()
             check(read > 0) { "Microphone stopped delivering audio ($read)." }
             frames += read
-            readFrames += read
             if (frames < input.size) continue
             frames = 0
             val matched = route.matches(capture.routedDevice, playback.routedDevice)
@@ -283,7 +277,6 @@ class AndroidStreamEngine(
                 buffers.output.fill(0)
             } else {
                 if (!running) {
-                    observer?.onStreamStarted(streamMetadata(format, outputChannels, capture, playback))
                     running = true
                     onStatus(
                         StreamStatus(
@@ -296,41 +289,10 @@ class AndroidStreamEngine(
                     )
                 }
                 buffers.process(processor)
-                if (observer != null && readFrames >= nextTelemetryFrame) {
-                    val valid =
-                        capture.getTimestamp(timestamp, AudioTimestamp.TIMEBASE_MONOTONIC) ==
-                            AudioRecord.SUCCESS
-                    observer.onCaptureTiming(
-                        readFrames,
-                        if (valid) timestamp.framePosition else -1L,
-                        if (valid) timestamp.nanoTime else -1L,
-                        playback.underrunCount,
-                    )
-                    nextTelemetryFrame = readFrames + format.sampleRateHz / 5
-                }
             }
             writeAll(playback, buffers.output)
         }
     }
-
-    private fun streamMetadata(
-        format: StreamSpec,
-        outputChannels: Int,
-        capture: AudioRecord,
-        playback: AudioTrack,
-    ): Map<String, String> =
-        mapOf(
-            "routed_input" to capture.routedDevice?.productName.toString(),
-            "routed_output" to playback.routedDevice?.productName.toString(),
-            "input_type" to capture.routedDevice?.type.toString(),
-            "output_type" to playback.routedDevice?.type.toString(),
-            "android_capture_rate" to capture.sampleRate.toString(),
-            "android_playback_rate" to playback.sampleRate.toString(),
-            "capture_source" to capture.audioSource.toString(),
-            "input_tuning" to format.inputTuning.name,
-            "device_output_channels" to outputChannels.toString(),
-            "capture_buffer_frames" to capture.bufferSizeInFrames.toString(),
-        )
 
     private fun writeAll(
         playback: AudioTrack,

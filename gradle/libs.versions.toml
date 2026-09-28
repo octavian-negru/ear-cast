@@ -1,12 +1,12 @@
 [versions]
 # Build / language
-agp = "8.7.3"
+agp = "8.10.1"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
 
 # Android SDK levels
-compileSdk = "35"
-targetSdk = "35"
+compileSdk = "36"
+targetSdk = "36"
 minSdk = "26"
 
 # AndroidX / UI

@@ -34,12 +34,32 @@ Before any public consumer release:
    keyAlias=earcast
    keyPassword=********
    ```
-3. Build:
-   ```bash
-   ./gradlew assembleRelease        # signed APK (if keystore.properties present)
-   ./gradlew bundleRelease          # AAB for Play
+3. Configure these public app values in your user Gradle properties:
+   ```properties
+   earcastPlayPublicKey=BASE64_RSA_KEY_FROM_PLAY_CONSOLE
+   earcastPrivacyPolicyUrl=https://YOUR_DOMAIN/privacy
+   earcastSupportEmail=YOUR_MONITORED_EMAIL
    ```
-   Without `keystore.properties`, release builds are produced **unsigned**.
+4. Run release checks and build the signed Play bundle:
+   ```bash
+   ./gradlew :app:verifyPlayRelease
+   ./gradlew ktlintCheck detekt test testDebugUnitTest :app:lintRelease
+   ./gradlew :app:bundleRelease
+   python3 scripts/check_native_alignment.py app/build/outputs/bundle/release/app-release.aab
+   ```
+   The normal `bundleRelease` task rejects missing signing, invalid billing keys,
+   or missing privacy URL/contact. Configuration checks do not verify that a URL
+   is live or that the key belongs to this Play app. Verify those in Console.
+   Relative keystore paths resolve against the repository root.
+
+For a local audit without publisher credentials only:
+```bash
+./gradlew :app:assembleRelease :app:bundleRelease -PearcastUnsignedAudit=true
+```
+This bypasses publication configuration checks. The resulting unsigned bundle is
+**not publishable**. `assembleRelease` remains available for local APK inspection.
+Never pass the audit bypass when preparing a store upload. Do not generate a
+throwaway signing key for a real publication.
 
 Release builds use R8 (`isMinifyEnabled = true`, `isShrinkResources = true`).
 
@@ -54,11 +74,13 @@ Bump `versionCode` (integer, monotonic) and `versionName` (semver, e.g.
 - **GitHub Releases (sideload)** — simplest; good for alpha testers now.
 - **F-Droid** — best fit for this GPLv3 FOSS app. Metadata lives in
   `fastlane/metadata/android/` (store text) and a build recipe is submitted to the
-  `fdroiddata` repo. No analytics/proprietary deps keeps it eligible.
+  `fdroiddata` repo. Google Play Billing is a proprietary dependency; F-Droid eligibility needs a separate review/build.
 - **Google Play** — widest reach; needs a developer account, a privacy policy
-  (see [PRIVACY.md](PRIVACY.md)), a Data safety form (declare: no data collected),
+  (see [PRIVACY.md](PRIVACY.md)), a Data safety form (review the actual release SDKs and data flows),
   and a content rating. Health-adjacent apps can draw extra review — keep the
   non-medical framing and never imply FDA clearance.
+
+Complete the [Google Play checklist](GOOGLE_PLAY.md) for Console declarations, assets and testing.
 
 ## Pre-release checklist
 

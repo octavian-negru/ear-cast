@@ -55,7 +55,7 @@ class ConsentTest {
             val before = System.currentTimeMillis()
             PreferencesStore(data).setConsentAccepted(true)
             val saved = data.data.first()
-            assertEquals(3, saved[intPreferencesKey("consent_terms_version")])
+            assertEquals(4, saved[intPreferencesKey("consent_terms_version")])
             val acceptedAt = saved[longPreferencesKey("consent_accepted_at")]
             assertTrue(acceptedAt != null && acceptedAt in before..System.currentTimeMillis())
             assertTrue(PreferencesStore(data).observeConsentAccepted().first())
@@ -65,7 +65,7 @@ class ConsentTest {
     fun `a different terms version requires renewed acceptance`() =
         runTest {
             val data = ConsentPreferences()
-            for (version in listOf(0, 1, 2, 4)) {
+            for (version in listOf(0, 1, 2, 3, 5)) {
                 data.updateData {
                     mutablePreferencesOf(
                         booleanPreferencesKey("consent_accepted") to true,

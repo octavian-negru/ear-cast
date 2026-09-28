@@ -15,7 +15,6 @@ class RnnoiseBridge(
     override val frameSize = sampleRateHz / 100
     private var handle: Long
     override val algorithmDelaySamples: Int
-    override val diagnosticMetadata = mapOf("speech_engine" to "RNNoise", "speech_runtime" to "bundled-rnnoise")
 
     init {
         require(sampleRateHz in SUPPORTED_RATES)

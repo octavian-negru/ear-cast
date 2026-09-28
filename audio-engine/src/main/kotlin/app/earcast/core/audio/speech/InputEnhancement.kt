@@ -1,8 +1,6 @@
 package app.earcast.core.audio.speech
 
 import app.earcast.core.audio.SampleTransform
-import app.earcast.core.audio.StreamObserver
-import app.earcast.core.audio.diagnostics.AudioSessionRecorder
 import app.earcast.core.audio.dsp.BiquadFilter
 
 /**
@@ -19,11 +17,8 @@ class InputEnhancement(
     options: EnhancementOptions,
     private val downstream: SampleTransform,
     private val denoiser: FrameFilter? = null,
-    private val diagnostics: AudioSessionRecorder? = null,
 ) : SampleTransform,
-    AutoCloseable,
-    StreamObserver {
-    override val wantsStreamDiagnostics: Boolean get() = diagnostics != null
+    AutoCloseable {
     private val bass =
         if (options.voiceComfort == BassReduction.OFF) {
             null
@@ -42,8 +37,6 @@ class InputEnhancement(
     override fun process(buffer: FloatArray) {
         check(!closed)
         require(buffer.size % 2 == 0)
-        val started = if (diagnostics != null) System.nanoTime() else 0L
-        diagnostics?.input(buffer)
         for (i in buffer.indices step 2) {
             val input = buffer[i].takeIf { it.isFinite() } ?: 0f
             val cleaned = denoise(input)
@@ -53,35 +46,7 @@ class InputEnhancement(
             buffer[i] = output
             buffer[i + 1] = output
         }
-        diagnostics?.enhanced(buffer)
         downstream.process(buffer)
-        diagnostics?.output(buffer, System.nanoTime() - started)
-    }
-
-    override fun onStreamStarted(metadata: Map<String, String>) {
-        val delay = denoiser?.algorithmDelaySamples
-        diagnostics?.streamStarted(
-            metadata + denoiser?.diagnosticMetadata.orEmpty() +
-                mapOf(
-                    "enhancement_delay_samples" to
-                        if (denoiser == null) {
-                            "0"
-                        } else {
-                            delay?.let { (it + denoiser.frameSize).toString() }.orEmpty()
-                        },
-                    "enhanced_tap" to "mono_enhancement_and_bass_before_fitting",
-                    "speech_presence_position" to "after_per_ear_wdrc_before_feedback_guard_and_limiter",
-                ),
-        )
-    }
-
-    override fun onCaptureTiming(
-        readFrames: Long,
-        hardwareFrames: Long,
-        timestampNanos: Long,
-        outputUnderruns: Int,
-    ) {
-        diagnostics?.captureTiming(readFrames, hardwareFrames, timestampNanos, outputUnderruns)
     }
 
     private fun denoise(input: Float): Float {
@@ -100,11 +65,7 @@ class InputEnhancement(
     override fun close() {
         if (!closed) {
             closed = true
-            try {
-                denoiser?.close()
-            } finally {
-                diagnostics?.close()
-            }
+            denoiser?.close()
         }
     }
 }

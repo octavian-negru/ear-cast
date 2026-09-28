@@ -1,29 +1,20 @@
-EarCast is a private hearing-assistance app for Android. It runs a
-pure-tone hearing check, builds a personalized amplification profile from the
-result, and uses it to amplify quiet sound — like speech — in real time, with any
-headset or earbuds.
+EarCast is a personal sound-amplification app for Android. Use your phone or a compatible headset microphone to listen through headphones, adjust sound per ear and save sound profiles.
+
+Core listening is free. An optional one-time EarCast Pro purchase unlocks DPDFNet8 processing and Strong quiet-speech boost. Google Play shows the price before purchase and supports restoring ownership. The Play release contains no ads.
 
 Features:
-* Pure-tone hearing check (per ear, per frequency) with an adaptive staircase,
-  shown as a chart — or enter results from a professional hearing test manually
-* A personalized sound profile per ear; save several and switch between them
-* Real-time hearing assist, per ear: multi-band gain, dynamic-range compression,
-  a feedback/howl guard, and live volume control while it runs
-* Environment presets (standard / conversation / outdoors) and a quick-settings
-  tile for one-tap on/off
-* Experimental: apply your sound profile to music and videos from other apps
-* A hard output-loudness limiter and a comfort calibration so sound never gets
-  uncomfortably loud, plus an always-available instant stop; assist stops
-  automatically if your headphones disconnect
-* Accessibility-first: large controls, high-contrast theme, scalable text
-* Completely private: no accounts, no analytics, no ads, no network access. Audio
-  is processed on-device and never recorded or transmitted.
+* An uncalibrated pure-tone hearing check, with results shown per ear, or manual entry of results from a professional hearing test
+* Saved sound profiles, per-ear amplification, dynamic-range compression and live volume controls
+* Phone or compatible headset microphone input; Bluetooth performance and latency depend on your hardware
+* Listening presets and quick-settings controls
+* Optional media sound adjustments for other apps, where supported by the device
+* A relative output limiter, comfort controls, instant Stop and automatic stop when headphones disconnect
+* Large controls, high-contrast appearance and scalable text
+* On-device audio processing without an EarCast account or analytics
+* Share your hearing-check results when you choose
 
-IMPORTANT: EarCast is a sound-amplification and hearing-assistance tool. It is
-NOT a medical device, NOT a certified hearing aid, and NOT a substitute for a
-professional hearing exam. It does not diagnose or treat any condition. If you
-have concerns about your hearing, please see an audiologist or doctor. Keep the
-volume comfortable and stop if anything is too loud.
+Microphone access is used for live assist. An ongoing notification lets you stop assist while using other apps or with the screen off. Live microphone audio is processed in memory and is not saved. Sound profiles stay on your device; you can choose to share hearing-check results. Google Play processes optional purchases under its own policies.
 
-EarCast is independent and not affiliated with or endorsed by Apple. "AirPods"
-is a trademark of Apple Inc., used only to describe hardware compatibility.
+IMPORTANT: EarCast is not a medical device or certified hearing aid. It does not diagnose, treat, cure or prevent any medical condition. Hearing checks are uncalibrated estimates and are not a substitute for professional testing or care. Consult an audiologist or doctor for hearing concerns. EarCast cannot measure sound pressure at your ear or guarantee safe or comfortable listening. Start quietly, keep the volume comfortable, and stop if sound is too loud.
+
+EarCast is independent and is not affiliated with or endorsed by Apple. Hardware compatibility and audio quality vary by phone and headset.

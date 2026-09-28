@@ -1,6 +1,6 @@
 # Terms and conditions
 
-Version 3 · September 25, 2026
+Version 4 · September 28, 2026
 
 ## Purpose and limitations
 
@@ -16,7 +16,7 @@ EarCast cannot measure the sound level at your ear or guarantee safe listening. 
 
 ## Privacy and purchases
 
-Live audio is processed on your phone. Sound profiles, preferences and optional recordings are stored locally. You choose whether to record or share results; respect the privacy of anyone you record. Google Play handles purchases and restoration under its own terms and policies. EarCast does not upload your audio or sound profiles. Free mode in test builds includes Google AdMob banners automatically. Pro removes them. Test requests use limited ads without granting cookie consent; Google may still process network, device, interaction and diagnostic data.
+Live audio is processed on your phone. Sound profiles and preferences are stored locally. Microphone audio is not saved. You choose whether to share your hearing-check results. Google Play handles purchases and restoration under its own terms and policies. EarCast does not upload your audio or sound profiles. Free mode in test builds includes Google AdMob banners automatically. Pro removes them. Test requests use limited ads without granting cookie consent; Google may still process network, device, interaction and diagnostic data.
 
 ## Your agreement
 

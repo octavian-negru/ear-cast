@@ -7,8 +7,6 @@ class WienerBridge(
 ) : FrameFilter {
     override val frameSize = sampleRateHz / 100
     override val algorithmDelaySamples = frameSize
-    override val diagnosticMetadata =
-        mapOf("speech_engine" to "Adaptive Wiener", "speech_runtime" to "native-wiener-v1")
     private var handle: Long
 
     init {

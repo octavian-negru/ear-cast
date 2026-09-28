@@ -86,7 +86,7 @@ personalized amplification profile, and boost quiet speech in real time.
 - 🔒 **Private by design** — no EarCast accounts or audio uploads. Google Play handles Pro purchases.
   Debug builds show test banners automatically for free users; Pro removes them. Release builds omit the ad SDK.
   Audio is processed on the phone, streamed only to/from your connected headset,
-  and never recorded or uploaded.
+  and never saved as a recording or uploaded by EarCast.
 - 🎧 **Any earbuds** — wired or Bluetooth; AirPods support is a future enhancement.
 
 ---
@@ -129,8 +129,7 @@ and [docs/DEVICE_TESTING.md](docs/DEVICE_TESTING.md) for details.
 
 Audio processing and hearing profiles remain on-device. Google Play Billing
 handles Pro purchases, ownership checks, and restoration; EarCast has no backend.
-Microphone audio is never uploaded by EarCast. Optional recordings are stored
-locally only when enabled.
+Microphone audio is processed in memory and is never saved or uploaded by EarCast.
 
 - **No EarCast accounts.** Debug builds show Google AdMob test ads for free users; release builds omit the ad SDK.
 - A signed purchase receipt is stored locally and excluded from app backup.
@@ -142,17 +141,17 @@ Verify it yourself from the APK:
 aapt dump permissions EarCast-<version>.apk
 ```
 
-The only permissions are `RECORD_AUDIO` (the mic for assist mode),
+The app permissions include `RECORD_AUDIO` (the mic for assist mode),
 `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MICROPHONE` (to keep assist running with
 a visible notification), `POST_NOTIFICATIONS`, and `MODIFY_AUDIO_SETTINGS` (required
 by Android for audio routing and the optional media EQ effect), and `WAKE_LOCK`
-(screen-off listening). See [docs/PRIVACY.md](docs/PRIVACY.md).
+(screen-off listening). Google Play Billing also contributes BILLING, INTERNET and ACCESS_NETWORK_STATE permissions; verify the merged release manifest. See [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ---
 
 ## Build from source
 
-**Requirements:** JDK 17, Android SDK (API 35, build-tools 35.0.0). Point the build
+**Requirements:** JDK 17, Android SDK (API 36, build-tools 35.0.0). Point the build
 at your SDK via `local.properties` (`sdk.dir=...`) or `ANDROID_HOME`.
 
 ```bash
@@ -160,7 +159,7 @@ at your SDK via `local.properties` (`sdk.dir=...`) or `ANDROID_HOME`.
 ./gradlew assembleDebug                                # debug APK
 ```
 
-CI runs the same checks on every push/PR. Release/signing steps are in
+Run these checks before release. Release/signing steps are in
 [docs/RELEASE.md](docs/RELEASE.md).
 
 ---
@@ -177,7 +176,7 @@ is built and unit-tested, but **not yet validated on real hardware.**
 | Android audio engine + foreground assist service | ✅ builds — **needs on-device validation** |
 | Onboarding, persistence, assist UI, accessibility | ✅ |
 | Comfort calibration + output ceiling | ✅ (true dB SPL calibration needs a meter) |
-| Signed release build, privacy, F-Droid metadata | ✅ — [docs/RELEASE.md](docs/RELEASE.md) |
+| Google Play publication | Pending signing, public policy/contact, Console setup and device validation — [release checklist](docs/GOOGLE_PLAY.md) |
 | AirPods Pro 2/3 detection / transparency routing | ❓ **UNVERIFIED** — [docs/PROTOCOL.md](docs/PROTOCOL.md) |
 
 **On AirPods:** the protocol is reverse-engineered, not public; we build on

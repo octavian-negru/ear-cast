@@ -37,6 +37,7 @@ import app.earcast.ui.common.SurfaceTone
 fun OnboardingScreen(onAccept: () -> Unit) {
     var understandsLimitations by rememberSaveable { mutableStateOf(false) }
     var agreesToTerms by rememberSaveable { mutableStateOf(false) }
+    var showPrivacy by rememberSaveable { mutableStateOf(false) }
     var showTerms by rememberSaveable { mutableStateOf(false) }
     Box(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.TopCenter) {
         EarPage(modifier = Modifier.widthIn(max = 600.dp)) {
@@ -55,6 +56,7 @@ fun OnboardingScreen(onAccept: () -> Unit) {
             }
             Text(stringResource(R.string.listening_safety_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.listening_safety_body), style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = { showPrivacy = true }) { Text(stringResource(R.string.privacy_policy_title)) }
             TextButton(onClick = { showTerms = true }) { Text(stringResource(R.string.terms_read)) }
             ConsentCheckbox(stringResource(R.string.consent_medical), understandsLimitations) {
                 understandsLimitations = it
@@ -73,6 +75,7 @@ fun OnboardingScreen(onAccept: () -> Unit) {
             )
         }
     }
+    if (showPrivacy) PrivacyDialog(onDismiss = { showPrivacy = false })
     if (showTerms) TermsDialog(onDismiss = { showTerms = false })
 }
 

@@ -196,7 +196,6 @@ private fun AssistControls(
             enabled = !state.active,
             onChange = viewModel::setListeningOptions,
         )
-        RecordingPanel(viewModel, state.active)
 
         if (state.profiles.size > 1) {
             ProfilesCard(

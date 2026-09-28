@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <title>EarCast — Personal sound amplification</title>
+  <rect width="1024" height="500" fill="#182230"/>
+  <circle cx="819" cy="250" r="205" fill="#1e2c40"/>
+  <circle cx="819" cy="250" r="160" fill="none" stroke="#2a3d57"/>
+  <g transform="translate(630 61) scale(3.5)" fill="none" stroke="#a9c7ff" stroke-width="2.4" stroke-linecap="round">
+    <path d="M64.14,32.25 A24,24 0,1 0,75.75 64.14"/>
+    <path d="M64.73,38.68 A18.7,18.7 0,1 0,69.32 64.73"/>
+    <path d="M63.48,44.52 A13.4,13.4 0,1 0,63.48 63.48"/>
+    <path d="M60.64,49.35 A8.1,8.1 0,1 0,58.65 60.64"/>
+  </g>
+  <rect x="80" y="144" width="44" height="4" rx="2" fill="#a9c7ff"/>
+  <text x="76" y="241" font-family="DejaVu Sans, sans-serif" font-size="74" font-weight="600" letter-spacing="-3" fill="#f5f7fb">EarCast</text>
+  <text x="80" y="303" font-family="DejaVu Sans, sans-serif" font-size="27" fill="#cfdae9">Personal sound amplification</text>
+  <text x="80" y="346" font-family="DejaVu Sans, sans-serif" font-size="19" fill="#a9c7ff">Your headphones. Your sound profile.</text>
+</svg>

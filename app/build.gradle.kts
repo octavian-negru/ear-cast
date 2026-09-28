@@ -1,6 +1,10 @@
 // Android application: Compose + Material 3 UI, navigation, Hilt wiring,
 // onboarding/disclaimers, and debug screens. Depends on the core modules; no
 // core module depends back on :app.
+import java.net.URI
+import java.security.KeyFactory
+import java.security.spec.X509EncodedKeySpec
+import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -13,7 +17,7 @@ plugins {
 }
 
 // Release signing is read from a gitignored keystore.properties (never committed).
-// If absent, release builds simply go unsigned — see docs/RELEASE.md.
+// Unsigned audit bundles require an explicit opt-in — see docs/RELEASE.md.
 val keystorePropsFile = rootProject.file("keystore.properties")
 val keystoreProps =
     Properties().apply {
@@ -23,6 +27,15 @@ val keystoreProps =
                 .use { load(it) }
         }
     }
+
+val playPublicKey = providers.gradleProperty("earcastPlayPublicKey").orElse("")
+val privacyPolicyUrl = providers.gradleProperty("earcastPrivacyPolicyUrl").orElse("")
+val supportEmail = providers.gradleProperty("earcastSupportEmail").orElse("")
+val unsignedAudit = providers.gradleProperty("earcastUnsignedAudit").orElse("false")
+
+// Only validated characters are interpolated into generated Java source.
+require(privacyPolicyUrl.get().matches(Regex("[A-Za-z0-9:/?&=._%+#~-]*"))) { "Invalid privacy URL characters" }
+require(supportEmail.get().matches(Regex("[A-Za-z0-9@._+%-]*"))) { "Invalid support email characters" }
 
 android {
     namespace = "app.earcast"
@@ -50,16 +63,18 @@ android {
         versionCode = 2
         versionName = "0.0.1"
         // Public Play licensing key, supplied by the release environment (not a secret).
-        val billingKey = providers.gradleProperty("earcastPlayPublicKey").orElse("").get()
+        val billingKey = playPublicKey.get()
         require(billingKey.matches(Regex("[A-Za-z0-9+/=]*"))) { "Play public key must be base64" }
         buildConfigField("String", "PLAY_PUBLIC_KEY", "\"$billingKey\"")
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"${privacyPolicyUrl.get()}\"")
+        buildConfigField("String", "SUPPORT_EMAIL", "\"${supportEmail.get()}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         if (keystoreProps.isNotEmpty()) {
             create("release") {
-                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
                 storePassword = keystoreProps.getProperty("storePassword")
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")
@@ -128,4 +143,44 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
+}
+
+// Keep local tests and APK audits available without pretending an unsigned AAB
+// is publishable. The normal Play bundle command fails on missing release inputs.
+val verifyPlayRelease by tasks.registering {
+    group = "verification"
+    description = "Checks signing, billing and public privacy contact before packaging a Play bundle."
+    val auditOnly = unsignedAudit.get().toBoolean()
+    val signingValues = listOf("storeFile", "storePassword", "keyAlias", "keyPassword").map { keystoreProps.getProperty(it) }
+    val uploadStore = keystoreProps.getProperty("storeFile")?.let { rootProject.file(it) }
+    val publicKey = playPublicKey.get()
+    val policyUrl = privacyPolicyUrl.get()
+    val contactEmail = supportEmail.get()
+    doLast {
+        if (auditOnly) {
+            logger.warn("UNSIGNED AUDIT ONLY: this bundle has not passed Play release configuration checks.")
+        } else {
+            check(signingValues.all { !it.isNullOrBlank() }) {
+                "Configure signing in gitignored keystore.properties. See docs/RELEASE.md."
+            }
+            check(uploadStore?.isFile == true) { "Upload keystore does not exist." }
+            check(
+                runCatching {
+                    KeyFactory.getInstance("RSA").generatePublic(
+                        X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)),
+                    )
+                }.isSuccess,
+            ) { "Set earcastPlayPublicKey to the app's valid Play Console RSA public key." }
+            val uri = runCatching { URI(policyUrl) }.getOrNull()
+            check(uri?.scheme == "https" && !uri.host.isNullOrBlank() && uri.userInfo == null) {
+                "Set earcastPrivacyPolicyUrl to your published HTTPS privacy policy."
+            }
+            check(contactEmail.matches(Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+"))) {
+                "Set earcastSupportEmail to a monitored public contact address."
+            }
+        }
+    }
+}
+tasks.matching { it.name == "bundleRelease" }.configureEach {
+    dependsOn(verifyPlayRelease)
 }

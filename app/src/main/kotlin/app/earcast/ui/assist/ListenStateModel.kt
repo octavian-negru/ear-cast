@@ -19,7 +19,6 @@ import app.earcast.data.PreferenceStorage
 import app.earcast.data.ProfileStorage
 import app.earcast.data.SoundProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -76,20 +75,6 @@ class ListenStateModel
         private val sessionFactory: LiveSessionBuilder,
         private val proBilling: ProBilling,
     ) : ViewModel() {
-        val diagnostics = controller.diagnostics
-
-        init {
-            viewModelScope.launch(Dispatchers.IO) { controller.refreshDiagnostics() }
-        }
-
-        fun armDiagnostics(armed: Boolean) = controller.armDiagnostics(armed)
-
-        fun setDiagnosticNotes(notes: String) = controller.setDiagnosticNotes(notes)
-
-        fun deleteDiagnostics() {
-            viewModelScope.launch(Dispatchers.IO) { controller.deleteDiagnostics() }
-        }
-
         private val masterGain = MutableStateFlow(ListenState.DEFAULT_MASTER_GAIN_DB)
 
         private val session =
