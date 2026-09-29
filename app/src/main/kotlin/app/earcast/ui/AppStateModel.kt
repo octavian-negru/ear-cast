@@ -1,11 +1,9 @@
 package app.earcast.ui
 
-import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.earcast.assist.LiveSessionBuilder
 import app.earcast.audiogram.HearingCurve
-import app.earcast.billing.ProBilling
 import app.earcast.common.AudioLimits
 import app.earcast.common.FrequencyHz
 import app.earcast.core.audio.TestSignalGenerator
@@ -45,7 +43,7 @@ data class AppState(
     val dinAvailable: Boolean = false,
 )
 
-// Billing controls the optional ad-free upgrade; audio access requires safety consent.
+// Audio access requires safety consent.
 @Suppress("LongParameterList")
 @HiltViewModel
 class AppStateModel
@@ -58,14 +56,7 @@ class AppStateModel
         private val toneGenerator: TestSignalGenerator,
         private val tonePlayer: TestSignalPlayer,
         digitCorpus: SpokenDigitLibrary,
-        private val proBilling: ProBilling,
     ) : ViewModel() {
-        val proState = proBilling.state
-
-        fun buyPro(activity: Activity) = proBilling.buy(activity)
-
-        fun restorePro() = proBilling.refresh()
-
         private val dinAvailable = digitCorpus.isAvailable()
         private var previewJob: Job? = null
         private val mediaEqFailed = MutableStateFlow(false)

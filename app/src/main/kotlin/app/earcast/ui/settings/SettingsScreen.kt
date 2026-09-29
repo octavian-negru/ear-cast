@@ -2,7 +2,6 @@
 
 package app.earcast.ui.settings
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +19,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -30,7 +28,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.BuildConfig
 import app.earcast.R
 import app.earcast.ui.AppStateModel
-import app.earcast.ui.ads.TestAdsSection
 import app.earcast.ui.common.ActionButton
 import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.BrandBar
@@ -39,28 +36,13 @@ import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SectionGroup
 import app.earcast.ui.common.SurfaceCard
-import app.earcast.ui.findActivity
 import app.earcast.ui.onboarding.PrivacyDialog
 import app.earcast.ui.onboarding.SafetySourceLink
 import app.earcast.ui.onboarding.TermsDialog
-import app.earcast.ui.pro.ProScreen
 
 @Composable
 fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
     val state by rootViewModel.uiState.collectAsStateWithLifecycle()
-    val pro by rootViewModel.proState.collectAsStateWithLifecycle()
-    val activity = LocalContext.current.findActivity()
-    var showPro by rememberSaveable { mutableStateOf(false) }
-    BackHandler(enabled = showPro) { showPro = false }
-    if (showPro) {
-        ProScreen(
-            state = pro,
-            onBuy = { activity?.let(rootViewModel::buyPro) },
-            onRestore = rootViewModel::restorePro,
-            onContinue = { showPro = false },
-        )
-        return
-    }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
     if (showPrivacy) PrivacyDialog(onDismiss = { showPrivacy = false })
     var showTerms by rememberSaveable { mutableStateOf(false) }
@@ -68,16 +50,6 @@ fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
     EarPage {
         BrandBar(stringResource(R.string.nav_settings))
         PageHeading(stringResource(R.string.identity_settings_title), stringResource(R.string.identity_settings_detail))
-        SurfaceCard(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(if (pro.owned) R.string.pro_owned else R.string.free_mode_title),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(stringResource(R.string.pro_free_features), style = MaterialTheme.typography.bodyMedium)
-            TextButton(onClick = { showPro = true }) {
-                Text(stringResource(if (pro.owned) R.string.pro_manage else R.string.pro_upgrade))
-            }
-        }
         SectionGroup(stringResource(R.string.identity_settings_accessibility)) {
             AppearanceControl(state.highContrast, rootViewModel::setHighContrast)
         }
@@ -99,7 +71,6 @@ fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
             TextButton(onClick = { showPrivacy = true }) { Text(stringResource(R.string.privacy_policy_title)) }
             TextButton(onClick = { showTerms = true }) { Text(stringResource(R.string.terms_title)) }
         }
-        TestAdsSection(showPrivacyInformation = true)
     }
 }
 

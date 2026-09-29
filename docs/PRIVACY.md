@@ -1,9 +1,8 @@
 # Privacy Policy
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-29_
 
-EarCast processes your audio and sound profiles on your device. Optional Google Play purchases
-and automatic free-mode test advertising in debug builds use Google services.
+EarCast processes your audio and sound profiles on your device. All features are free, with no purchases or advertising in any build.
 
 ## What EarCast does with your data
 
@@ -15,29 +14,9 @@ and automatic free-mode test advertising in debug builds use Google services.
   **only on your device** (local app storage). EarCast does not upload them. App data is excluded from Android cloud backup and device transfer.
 - **Terms acceptance:** The accepted terms version and acceptance time are stored
   only on your device. They are used to ask for renewed consent when the terms change.
-- **Purchases:** Google Play Billing handles the one-time Pro payment, ownership
-  queries, and restoration through your Google Play account. Google processes
-  transaction data under its policies. EarCast stores a signed purchase receipt
-  locally, excluded from app backup. Audio and audiograms are not sent to Google
-  as part of billing.
-- **Test ads in free mode (debug builds only):** Google AdMob test banners appear
-  automatically on Home and Settings for free users. There is no optional ad
-  switch. Pro removes banners. Requests use Google’s limited-ads mode with cookie
-  consent set to zero and the non-personalized request flag. Advertising-ID
-  permissions are excluded from the debug manifest. This does not mean that no
-  data is processed: Google may still process network/device information,
-  interactions and diagnostics. EarCast does not send microphone audio or sound profiles to the ad SDK. Previous optional ad choices are
-  not converted into cookie or personalization consent. Release builds do not
-  contain the ad SDK.
-- **No EarCast accounts or backend.** Purchase and restoration operations require
-  access to Google Play.
+- **No purchases, ads, accounts or backend.** All features work without Google Play.
 
 ## Permissions
-
-- **BILLING / INTERNET** — added by the Google Play Billing library for purchasing,
-  checking ownership, and restoring Pro. Debug test ads also use internet access.
-  EarCast does not upload hearing data.
-- **ACCESS_NETWORK_STATE** — included by Google Play Billing in release builds for network status; debug ads also use it. Advertising-ID permissions are excluded.
 
 - **RECORD_AUDIO** — required for assist mode (live amplification). Used only while
   assist mode is on.
@@ -50,13 +29,9 @@ and automatic free-mode test advertising in debug builds use Google services.
 
 ## Data sharing
 
-Apart from the Google purchase and test-ad processing described above, live audio is sent only
+Live audio is sent only
 between the phone and your connected listening device. If you explicitly share
 your results chart, Android sends it to the app you choose.
-
-See [Google Mobile Ads data disclosure](https://developers.google.com/admob/android/privacy/play-data-disclosure)
-[Limited-ads setting](https://developers.google.com/admob/android/global-settings#consent_for_cookies)
-and [Google privacy policy](https://policies.google.com/privacy).
 
 ## Retention and deletion
 
@@ -65,9 +40,7 @@ storage in Android Settings, or uninstall the app. Recordings and cached audio
 exports saved by older versions remain in private storage until you clear app
 storage or uninstall; this update does not erase existing files. The app no longer
 provides recording or audio export controls. Uninstalling does not delete copies you exported to other
-apps or Google Play purchase records. Google handles those records under its
-policies. Reinstalling does not restore local hearing profiles; Pro can be
-restored through Google Play.
+apps. Reinstalling does not restore local hearing profiles.
 
 ## Children
 

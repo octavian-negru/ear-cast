@@ -187,7 +187,7 @@ class PreferencesStore(
 
     private companion object {
         // Bump when the in-app terms change so existing users review them again.
-        const val CURRENT_TERMS_VERSION = 4
+        const val CURRENT_TERMS_VERSION = 5
 
         // Conservative default until the user calibrates; bounded for safety.
         const val DEFAULT_COMFORT_CEILING = 0.5f

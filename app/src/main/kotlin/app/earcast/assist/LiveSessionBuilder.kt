@@ -2,7 +2,6 @@ package app.earcast.assist
 
 import app.earcast.audiogram.FrequencyGainCurve
 import app.earcast.audiogram.ProfileFitting
-import app.earcast.billing.ProBilling
 import app.earcast.common.AudioEar
 import app.earcast.core.audio.InputSource
 import app.earcast.core.audio.dsp.ListeningPreset
@@ -35,7 +34,6 @@ class LiveSessionBuilder
         private val profileRepository: ProfileStorage,
         private val settingsRepository: PreferenceStorage,
         private val fittingStrategy: ProfileFitting,
-        private val proBilling: ProBilling,
     ) {
         /** Prepare the controller config from the active profile. Returns true if ready. */
         suspend fun prepare(): Boolean {
@@ -50,7 +48,6 @@ class LiveSessionBuilder
                     .observeListeningSettings()
                     .first()
                     .toOptions()
-                    .forEntitlement(proBilling.state.value.owned)
             controller.configure(
                 LiveAudioConfig(
                     leftGainCurve = left.withPreset(preset),

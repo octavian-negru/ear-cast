@@ -103,9 +103,6 @@ class LiveAudioController
         @Volatile
         private var chain: StereoListeningChain? = null
 
-        @Volatile
-        private var activePremiumProcessing = false
-
         private val _running = MutableStateFlow(false)
         val running: StateFlow<Boolean> = _running.asStateFlow()
 
@@ -128,11 +125,6 @@ class LiveAudioController
 
         fun hasConfig(): Boolean = config != null
 
-        fun usesPremiumProcessing(): Boolean {
-            val configuredPremium = config?.listeningOptions?.requiresPro() == true
-            return activePremiumProcessing || configuredPremium
-        }
-
         /**
          * Adjusts master gain immediately, including while the engine is running.
          * The chain clamps to the safety cap and the limiter stays downstream.
@@ -146,7 +138,6 @@ class LiveAudioController
         fun startEngine() {
             val c = config ?: return
             if (engine.isRunning || _sessionStatus.value.state == StreamPhase.CONNECTING) return
-            activePremiumProcessing = c.listeningOptions.requiresPro()
             outputMeter.drain() // discard anything left from a previous session
             engine.startSession(
                 StreamSpec(
@@ -213,7 +204,6 @@ class LiveAudioController
         fun stopEngine() {
             engine.stop()
             chain = null
-            activePremiumProcessing = false
             _running.value = false
             _exposure.value = ListeningSnapshot()
         }

@@ -20,6 +20,13 @@ Before any public consumer release:
    appropriate advice before broad distribution or any medical claims. This repo
    cannot provide legal advice.
 
+## Production APK
+
+Run `just build-prod` to build the optimized release APK in
+`app/build/outputs/apk/release/`. With the signing configuration below, the output
+is `app-release.apk`; otherwise it is `app-release-unsigned.apk`, which must be
+signed before installation. The recipe does not bypass Play bundle checks.
+
 ## Build a signed release
 
 1. Generate an upload keystore (one time, keep it safe and **never commit it**):
@@ -36,7 +43,6 @@ Before any public consumer release:
    ```
 3. Configure these public app values in your user Gradle properties:
    ```properties
-   earcastPlayPublicKey=BASE64_RSA_KEY_FROM_PLAY_CONSOLE
    earcastPrivacyPolicyUrl=https://YOUR_DOMAIN/privacy
    earcastSupportEmail=YOUR_MONITORED_EMAIL
    ```
@@ -44,12 +50,13 @@ Before any public consumer release:
    ```bash
    ./gradlew :app:verifyPlayRelease
    ./gradlew ktlintCheck detekt test testDebugUnitTest :app:lintRelease
+   just build-prod
    ./gradlew :app:bundleRelease
    python3 scripts/check_native_alignment.py app/build/outputs/bundle/release/app-release.aab
    ```
-   The normal `bundleRelease` task rejects missing signing, invalid billing keys,
+   The normal `bundleRelease` task rejects missing signing
    or missing privacy URL/contact. Configuration checks do not verify that a URL
-   is live or that the key belongs to this Play app. Verify those in Console.
+   is live. Verify it before publishing.
    Relative keystore paths resolve against the repository root.
 
 For a local audit without publisher credentials only:
@@ -74,7 +81,7 @@ Bump `versionCode` (integer, monotonic) and `versionName` (semver, e.g.
 - **GitHub Releases (sideload)** — simplest; good for alpha testers now.
 - **F-Droid** — best fit for this GPLv3 FOSS app. Metadata lives in
   `fastlane/metadata/android/` (store text) and a build recipe is submitted to the
-  `fdroiddata` repo. Google Play Billing is a proprietary dependency; F-Droid eligibility needs a separate review/build.
+  `fdroiddata` repo. Review all bundled dependencies and models for F-Droid eligibility.
 - **Google Play** — widest reach; needs a developer account, a privacy policy
   (see [PRIVACY.md](PRIVACY.md)), a Data safety form (review the actual release SDKs and data flows),
   and a content rating. Health-adjacent apps can draw extra review — keep the

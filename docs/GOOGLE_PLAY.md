@@ -2,13 +2,12 @@
 
 Reviewed September 28, 2026. **Not approved for production yet.** Local build
 verification does not replace Play Console review or hardware listening tests.
-See the final verification record below and [RELEASE.md](RELEASE.md).
+See [RELEASE.md](RELEASE.md). Historical verification records below predate
+removal of Pro and advertising and do not validate the current build.
 
 ## Publisher inputs still required
 
 - Upload keystore and `keystore.properties`; use Play App Signing and keep secure backups.
-- App-specific RSA licensing public key; activate `earcast_pro`, then complete
-  [purchase tests](MONETIZATION.md) using a Play-installed build.
 - Public publisher identity and monitored contact email. Finish [PRIVACY.md](PRIVACY.md)
   and publish it on a public, non-geofenced HTTPS HTML page, without login.
   Set `earcastPrivacyPolicyUrl` and `earcastSupportEmail` for the build.
@@ -25,16 +24,14 @@ See the final verification record below and [RELEASE.md](RELEASE.md).
 - Complete identity/account verification, app access, target audience, content
   rating, countries, pricing and the Health apps declaration. Describe hearing
   checks, sound profiles and amplification accurately, even with a non-medical disclaimer.
-- Release builds omit the advertising SDK: answer “Contains ads” for the actual
-  release behavior, not debug test banners. Never upload the debug variant.
+- All builds contain no advertising or billing SDK. Set the app price to free
+  and declare no ads. Never upload the debug variant.
 - Data safety: microphone audio is processed in memory without recording; profiles stay local;
-  the app has no backend or analytics. User-selected exports and Google Play
-  payment processing must be assessed against Google's applicable exceptions.
+  the app has no backend or analytics. User-selected exports must be assessed against Google's applicable exceptions.
   Review the merged release manifest and all SDK behavior before submitting;
   do not copy a blanket “no data collected” answer from old documentation.
 - There is no EarCast account creation. Profiles can be removed in-app; all local data (including any recordings left
-  by older versions) can be removed by clearing storage or uninstalling. Google purchase data
-  and previously exported copies are separate.
+  by older versions) can be removed by clearing storage or uninstalling. Previously exported copies are separate.
 - Declare `FOREGROUND_SERVICE_MICROPHONE` with the Background Audio Access use case.
   Suggested explanation: “The user starts live sound amplification to headphones.
   The microphone must continue processing while another app is visible or the
@@ -52,7 +49,7 @@ See the final verification record below and [RELEASE.md](RELEASE.md).
   Run SDK `zipalign -c -P 16 -v 4` on generated APKs. ELF alignment alone is
   insufficient. Test actual playback on a 16 KB system without compatibility mode.
 - Install the minified release through Play internal testing; exercise JNI models,
-  cold start, consent and privacy policy, free access, purchases/restoration,
+  cold start, consent and privacy policy, all audio options,
   profile persistence, sharing hearing-check results and offline use.
 - Run [DEVICE_TESTING.md](DEVICE_TESTING.md) and [CALIBRATION.md](CALIBRATION.md)
   with real wired/USB/Bluetooth headsets. Include Android 16, API 26 minimum,

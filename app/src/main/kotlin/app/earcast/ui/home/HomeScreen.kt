@@ -50,7 +50,6 @@ fun HomeScreen(
     onSetMediaEq: (Boolean) -> Unit,
     onSetMediaBoost: (Float) -> Unit,
     onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
-    adContent: @Composable () -> Unit = {},
 ) {
     EarPage {
         BrandBar(trailing = stringResource(R.string.identity_private))
@@ -77,7 +76,6 @@ fun HomeScreen(
             },
         )
         SafetyDisclaimer()
-        adContent()
     }
 }
 

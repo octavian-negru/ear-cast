@@ -9,3 +9,7 @@ build:
 
 test:
     bash ./gradlew test
+
+# Build an optimized release APK; uses keystore.properties when configured.
+build-prod:
+    bash ./gradlew :app:assembleRelease

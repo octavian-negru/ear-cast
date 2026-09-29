@@ -2,9 +2,6 @@
 
 package app.earcast.ui
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,7 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.core.audio.dsp.MediaProcessingMode
-import app.earcast.ui.ads.TestAdsSection
 import app.earcast.ui.assist.ListenScreen
 import app.earcast.ui.dintest.SpeechCheckScreen
 import app.earcast.ui.hearingtest.ToneCheckScreen
@@ -142,7 +138,6 @@ private fun DestinationContent(
                 onSetMediaEq = onSetMediaEq,
                 onSetMediaBoost = onSetMediaBoost,
                 onSetMediaProcessingMode = onSetMediaProcessingMode,
-                adContent = { TestAdsSection() },
             )
         AppDestination.PROFILE ->
             ProfileSetupScreen(
@@ -209,11 +204,4 @@ private fun PrimaryDestination.toAppDestination(): AppDestination =
         PrimaryDestination.ASSIST -> AppDestination.ASSIST
         PrimaryDestination.PROFILE -> AppDestination.PROFILE
         PrimaryDestination.SETTINGS -> AppDestination.SETTINGS
-    }
-
-internal fun Context.findActivity(): Activity? =
-    when (this) {
-        is Activity -> this
-        is ContextWrapper -> baseContext.findActivity()
-        else -> null
     }

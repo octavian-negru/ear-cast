@@ -54,18 +54,16 @@ Keep volume comfortable and stop if listening feels unpleasant. The digital
 output ceiling does not measure sound pressure at your eardrum. Read the
 [safety notes](docs/SAFETY.md) and [calibration guide](docs/CALIBRATION.md).
 
-## Local data and purchases
+## Free and private
 
 EarCast keeps audiograms and preferences on the device. Live microphone samples
 are processed in memory for playback; the app does not record or upload them.
 Sharing an audiogram is an explicit action with a preview.
 
-Core listening is free. Google Play handles the one-time Pro purchase, including
-ownership checks and restoration. Pro enables DPDFNet8 and Strong quiet-speech
-boost. Debug builds can show test ads to free users; release builds omit the ad
-SDK. Purchase evidence is stored locally and excluded from app backup.
+All features are free, including DPDFNet8 and Strong quiet-speech boost.
+There are no purchases, paid tiers or advertisements in any build.
 
-Details: [privacy](docs/PRIVACY.md) · [Pro configuration](docs/MONETIZATION.md).
+Details: [privacy](docs/PRIVACY.md).
 
 ## Build and evaluate
 
@@ -74,8 +72,13 @@ Use JDK 17 and Android SDK 36. Set `sdk.dir` in `local.properties` or provide
 
 ```bash
 ./gradlew assembleDebug
+just build-prod
 ./gradlew ktlintCheck detekt test testDebugUnitTest
 ```
+
+`just build-prod` produces an optimized release APK in `app/build/outputs/apk/release/`.
+Configure `keystore.properties` to sign it; without signing configuration the APK
+is unsigned and must be signed before installation. See the release instructions below.
 
 The repository includes Kotlin checks for profile fitting, processing and route
 behavior, plus a native/Python [audio quality workbench](audio-quality/README.md).
@@ -95,7 +98,7 @@ storage into a listening session, then describes the capture and playback paths.
 The five Gradle modules are `app`, `sound-profile`, `audio-engine`,
 `local-storage` and `foundation`. Offline evaluation tools live in `audio-quality`.
 
-EarCast is distributed under [GPL-3.0](LICENSE). Bundled libraries and models
+EarCast is free and open-source software distributed under [GPL-3.0](LICENSE). Bundled libraries and models
 retain their license notices in their respective directories.
 
 LibrePods and CAPod informed earlier AirPods protocol research, retained in the

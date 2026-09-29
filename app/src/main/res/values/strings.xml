@@ -18,7 +18,7 @@
     <string name="onboarding_ack">Please read and acknowledge the above before using EarCast.</string>
     <string name="onboarding_agree">I understand and agree</string>
     <string name="onboarding_private_title">Private by default</string>
-    <string name="onboarding_private_detail">Your audio and sound profiles stay on this device. Purchases use Google Play. Free mode in test builds includes Google AdMob banners; Pro removes them.</string>
+    <string name="onboarding_private_detail">Your audio and sound profiles stay on this device. All features are free, with no ads or purchases.</string>
     <string name="onboarding_personal_title">Built around your hearing</string>
     <string name="onboarding_personal_detail">Create a profile from a guided tone check or enter an existing audiogram.</string>
 
@@ -230,7 +230,7 @@
     <!-- About -->
     <string name="about_title">About</string>
     <string name="about_version">Version %1$s</string>
-    <string name="about_body">EarCast processes audio on your device. No EarCast account is needed. Core features are free; DPDFNet8 and Strong quiet-speech boost require Pro. Google Play handles Pro purchases. Live microphone audio is processed in memory and is not saved.</string>
+    <string name="about_body">EarCast is free and open source under GPL-3.0. All audio options, including DPDFNet8 and Strong quiet-speech boost, are included. Audio is processed on your device. No account is needed. Live microphone audio is processed in memory and is not saved.</string>
     <string name="nav_home">Home</string>
     <string name="nav_listen">Listen</string>
     <string name="nav_profile_label">Audiogram</string>
@@ -271,7 +271,7 @@
     <string name="preview_section">Try your sound profile</string>
     <string name="details_section">Detailed results</string>
     <string name="privacy_title">Privacy &amp; credits</string>
-    <string name="privacy_body">EarCast processes sound on your device. No EarCast account is required. Free mode in test builds includes Google AdMob banners using limited ads. Live microphone audio is processed in memory and is not saved.</string>
+    <string name="privacy_body">Live audio is processed on your phone. Sound profiles and preferences are stored locally. Microphone audio is not saved. You choose whether to share your hearing-check results. EarCast does not upload your audio or sound profiles. All features are free, with no purchases, advertisements or account required.</string>
     <string name="credits_body">EarCast is based on EarCast, licensed under GPL v3. It includes RNNoise, SpeexDSP, DPDFNet8 and sherpa-onnx. Original copyright and third-party license notices are retained with the source.</string>
     <string name="listen_subtitle">Connect headphones, then start listening.</string>
     <string name="settings_subtitle">Small adjustments. More comfortable listening.</string>
@@ -336,35 +336,16 @@
     <string name="identity_stop">Stop</string>
     <string name="identity_contrast_detail">Use stronger contrast for text, buttons and controls.</string>
     <string name="identity_comfort_cap">OUTPUT LIMIT</string>
-    <string name="pro_label">EARCAST PRO</string>
-    <string name="pro_title">EarCast Pro</string>
-    <string name="pro_description">Pro unlocks DPDFNet8 and Strong quiet-speech boost and removes test ads in debug builds. Core listening remains free.</string>
-    <string name="pro_profile_title">Your hearing, mapped</string>
-    <string name="pro_profile_detail">Guided tone checks, audiogram entry, saved profiles and sharing.</string>
-    <string name="pro_listen_title">Live listening, personalized</string>
-    <string name="pro_listen_detail">Microphone listening, sound controls, and noise reduction.</string>
-    <string name="pro_media_title">Music and videos, adjusted</string>
-    <string name="pro_media_detail">Apply your hearing profile to media sound on compatible phones.</string>
-    <string name="pro_offline">Free mode works offline. Google Play and an internet connection are only needed to buy or restore Pro.</string>
-    <string name="pro_buy">Unlock Pro · %1$s once</string>
-    <string name="pro_price_unavailable">Price unavailable</string>
-    <string name="pro_checking">Checking Google Play…</string>
-    <string name="pro_restore">Restore purchase / retry</string>
-    <string name="pro_account">Your purchase belongs to your Google Play account. Use the same account to restore after reinstalling.</string>
-    <string name="pro_pending">Payment is pending. Pro unlocks once Google Play confirms completion.</string>
-    <string name="pro_no_purchase">No completed Pro purchase was found for the current Google Play account.</string>
-    <string name="pro_store_error">Google Play could not complete the check. You can continue using EarCast for free and retry later.</string>
-    <string name="pro_not_configured">Purchases are not available in this build. Core listening remains free.</string>
     <string name="terms_title">Terms and conditions</string>
-    <string name="terms_version">Version 4 · September 28, 2026</string>
+    <string name="terms_version">Version 5 · September 29, 2026</string>
     <string name="terms_purpose_title">Purpose and limitations</string>
     <string name="terms_purpose_body">EarCast is a personal sound-amplification tool, not a medical device or a certified hearing aid. Tone checks and sound profiles are uncalibrated estimates. They are not a diagnosis or a substitute for a professional hearing exam or care. For hearing concerns, consult an audiologist or doctor.</string>
     <string name="listening_safety_title">Loud and harsh sounds</string>
     <string name="listening_safety_body">Start with low device volume and increase slowly. Loud sounds can damage hearing, even when they do not hurt. If sound is harsh, painfully loud or uncomfortable, stop playback and lower the volume. Take regular quiet breaks; do not turn up the volume to cover background noise. If you notice ringing, muffled hearing or persistent discomfort, stop using the app and seek professional advice.</string>
     <string name="terms_limits_title">Use with care</string>
     <string name="terms_limits_body">EarCast cannot measure the sound level at your ear or guarantee safe listening. Output limits and the listening meter are relative guides. Use headphones to reduce feedback, and keep the microphone away from speakers. Do not rely on EarCast for alarms, traffic awareness or situations where hearing is essential to safety.</string>
-    <string name="terms_privacy_title">Privacy and purchases</string>
-    <string name="terms_privacy_body">Live audio is processed on your phone. Sound profiles and preferences are stored locally. Microphone audio is not saved. You choose whether to share your hearing-check results. Google Play handles purchases and restoration under its own terms and policies. EarCast does not upload your audio or sound profiles. Free mode in test builds includes Google AdMob banners automatically. Pro removes them. Test requests use limited ads without granting cookie consent; Google may still process network, device, interaction and diagnostic data.</string>
+    <string name="terms_privacy_title">Privacy</string>
+    <string name="terms_privacy_body">Live audio is processed on your phone. Sound profiles and preferences are stored locally. Microphone audio is not saved. You choose whether to share your hearing-check results. EarCast does not upload your audio or sound profiles. All features are free, with no purchases, advertisements or account required.</string>
     <string name="terms_agreement_title">Your agreement</string>
     <string name="terms_agreement_body">By selecting the consent boxes and continuing, you acknowledge these limitations and agree to follow the safe-use guidance. Acceptance is saved on this device with the terms version and time. You can review these terms in Settings. If the terms change, you will be asked to review them again. If you do not agree, close the app. These terms do not limit rights you have under applicable law.</string>
     <string name="consent_medical">I understand that EarCast is not a medical device and does not replace professional hearing care.</string>
@@ -375,21 +356,8 @@
     <string name="terms_close">Close</string>
     <string name="safety_source">Safe listening guidance: World Health Organization</string>
     <string name="safety_source_url" translatable="false">https://www.who.int/news-room/questions-and-answers/item/deafness-and-hearing-loss-safe-listening</string>
-    <string name="free_mode_title">Free mode</string>
-    <string name="pro_continue_free">Continue for free</string>
-    <string name="assist_pro_options_hint">DPDFNet8 and Strong quiet-speech boost require Pro. Open Settings to upgrade.</string>
-    <string name="pro_free_features">Tone checks, sound profiles, live listening and compatible media adjustments are included for everyone.</string>
-    <string name="pro_upgrade">Unlock Pro audio</string>
-    <string name="pro_manage">Manage Pro purchase</string>
-    <string name="pro_owned">Pro active · Thank you for supporting EarCast</string>
-    <string name="test_ads_title">Ads in free mode</string>
-    <string name="test_ads_disclosure">Free mode shows Google AdMob test banners automatically. Pro removes them. Requests use limited ads, and EarCast does not grant cookie consent. Google may still process network, device, interaction and diagnostic data. EarCast does not send microphone audio or sound profiles to Google.</string>
-    <string name="test_ads_label">Advertisement · Test ad</string>
-    <string name="test_ads_retry">Test ad unavailable · Retry</string>
-    <string name="google_privacy_label">Google privacy policy</string>
-    <string name="google_privacy_url" translatable="false">https://policies.google.com/privacy</string>
     <string name="privacy_policy_title">Privacy policy</string>
-    <string name="privacy_policy_body">EarCast processes microphone audio on your phone to play amplified sound to your headset. Assist can continue while the screen is off or you use other apps, with an ongoing notification. Stop assist to stop microphone access. Live audio is discarded after processing and is not saved.\n\nSound profiles, hearing-check results and settings remain in app-private storage. EarCast excludes its data from Android cloud backup and device transfer.\n\nHearing-check results leave the app only when you choose to share them. The receiving app then handles that copy under its own policies. EarCast has no account, backend or analytics and does not upload your hearing data.\n\nGoogle Play handles optional Pro purchases and restoration under Google policies. A signed purchase receipt is stored locally outside backup. Release builds contain no advertising SDK. Debug builds may show Google test ads, which can process network, device, interaction and diagnostic information.\n\nRecordings saved by older versions remain in private storage until you clear app storage or uninstall. Clear app storage in Android Settings or uninstall EarCast to remove its local data. Copies you exported and Google purchase records are not removed by this. Reinstalling does not restore local profiles; Pro ownership can be restored through Google Play.\n\nFor privacy questions, use the support contact in the Play store listing or the published policy below.</string>
+    <string name="privacy_policy_body">EarCast processes microphone audio on your phone to play amplified sound to your headset. Assist can continue while the screen is off or you use other apps, with an ongoing notification. Stop assist to stop microphone access. Live audio is discarded after processing and is not saved.\n\nSound profiles, hearing-check results and settings remain in app-private storage. EarCast excludes its data from Android cloud backup and device transfer.\n\nHearing-check results leave the app only when you choose to share them. The receiving app then handles that copy under its own policies. EarCast has no account, backend or analytics and does not upload your hearing data.\n\nAll features are free. EarCast contains no billing or advertising SDK in any build.\n\nRecordings saved by older versions remain in private storage until you clear app storage or uninstall. Clear app storage in Android Settings or uninstall EarCast to remove its local data. Copies you exported are not removed by this. Reinstalling does not restore local profiles.\n\nFor privacy questions, use the support contact in the Play store listing or the published policy below.</string>
     <string name="privacy_policy_online">Read published privacy policy</string>
     <string name="privacy_support">Privacy contact: %1$s</string>
 </resources>

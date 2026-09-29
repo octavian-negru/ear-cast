@@ -34,8 +34,7 @@ calibration. [Fitting](docs/FITTING.md) and
 `LiveSessionBuilder` is shared by the listening screen and quick-settings tile.
 It checks consent and the active profile, fits a gain curve for each ear, applies
 the selected environment preset, and reads the comfort and microphone settings.
-If only one ear can be fitted, that curve supplies both channels. Pro entitlement
-is applied to listening options before the controller is configured.
+If only one ear can be fitted, that curve supplies both channels. All listening options are available without an entitlement check.
 
 `LiveAudioController` coordinates the session with `LiveAudioService`, which
 owns the foreground notification and screen-off listening lifecycle.
@@ -95,7 +94,7 @@ be attached. Changes here should be evaluated separately from microphone DSP.
 
 | Directory | Responsibility | Internal dependencies |
 | --- | --- | --- |
-| `app` | Compose screens, state models, dependency injection, session service, media controls and Play Billing | All four library modules |
+| `app` | Compose screens, state models, dependency injection, session service, media controls | All four library modules |
 | `sound-profile` | Hearing thresholds, screening protocols, curve encoding and fitting | `foundation` |
 | `audio-engine` | Signal generation, Android streams and routes, Kotlin DSP, JNI and native speech engines | `foundation`, `sound-profile` |
 | `local-storage` | Profile selection and preference persistence with DataStore | `foundation`, `sound-profile` |
@@ -119,7 +118,6 @@ The [workbench guide](audio-quality/README.md) documents commands, dependencies
 and the limits of each measurement.
 
 Audiograms and settings are stored locally. `ProfileImageExporter` prepares an
-image for the explicit share-preview flow. Play Billing performs purchase and
-ownership operations; local purchase evidence is excluded from backup. Release
-builds omit the debug-only ad SDK. See [privacy](docs/PRIVACY.md) for the user data
+image for the explicit share-preview flow. All builds are free of billing and
+advertising SDKs. See [privacy](docs/PRIVACY.md) for the user data
 policy and the [Play checklist](docs/GOOGLE_PLAY.md) for release prerequisites.

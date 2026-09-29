@@ -1,6 +1,6 @@
 EarCast is a personal sound-amplification app for Android. Use your phone or a compatible headset microphone to listen through headphones, adjust sound per ear and save sound profiles.
 
-Core listening is free. An optional one-time EarCast Pro purchase unlocks DPDFNet8 processing and Strong quiet-speech boost. Google Play shows the price before purchase and supports restoring ownership. The Play release contains no ads.
+All features are free, including DPDFNet8 processing and Strong quiet-speech boost. EarCast is open source under GPL-3.0, with no purchases or ads.
 
 Features:
 * An uncalibrated pure-tone hearing check, with results shown per ear, or manual entry of results from a professional hearing test
@@ -13,7 +13,7 @@ Features:
 * On-device audio processing without an EarCast account or analytics
 * Share your hearing-check results when you choose
 
-Microphone access is used for live assist. An ongoing notification lets you stop assist while using other apps or with the screen off. Live microphone audio is processed in memory and is not saved. Sound profiles stay on your device; you can choose to share hearing-check results. Google Play processes optional purchases under its own policies.
+Microphone access is used for live assist. An ongoing notification lets you stop assist while using other apps or with the screen off. Live microphone audio is processed in memory and is not saved. Sound profiles stay on your device; you can choose to share hearing-check results.
 
 IMPORTANT: EarCast is not a medical device or certified hearing aid. It does not diagnose, treat, cure or prevent any medical condition. Hearing checks are uncalibrated estimates and are not a substitute for professional testing or care. Consult an audiologist or doctor for hearing concerns. EarCast cannot measure sound pressure at your ear or guarantee safe or comfortable listening. Start quietly, keep the volume comfortable, and stop if sound is too loud.
 

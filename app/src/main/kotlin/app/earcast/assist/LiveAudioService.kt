@@ -18,7 +18,6 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import app.earcast.MainActivity
 import app.earcast.R
-import app.earcast.billing.ProBilling
 import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.dsp.ListeningTracker
 import app.earcast.data.PreferenceStorage
@@ -53,11 +52,7 @@ class LiveAudioService : Service() {
     @Inject
     lateinit var settingsRepository: PreferenceStorage
 
-    @Inject
-    lateinit var proBilling: ProBilling
-
     private var consentJob: Job? = null
-    private var entitlementJob: Job? = null
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -107,22 +102,10 @@ class LiveAudioService : Service() {
                     }
                 }
         }
-        if (entitlementJob?.isActive != true) {
-            entitlementJob =
-                serviceScope.launch(Dispatchers.Main.immediate) {
-                    proBilling.state.collect { pro ->
-                        if (pro.loaded && !pro.owned && controller.usesPremiumProcessing()) stopSelf()
-                    }
-                }
-        }
         return START_STICKY
     }
 
     private fun startListening() {
-        if (!proBilling.state.value.owned && controller.usesPremiumProcessing()) {
-            stopSelf()
-            return
-        }
         // Assist can keep running with the screen off, including when the phone
         // microphone is being used as a remote listening microphone.
         acquireWakeLock()

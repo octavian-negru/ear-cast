@@ -1,6 +1,6 @@
 # Terms and conditions
 
-Version 4 · September 28, 2026
+Version 5 · September 29, 2026
 
 ## Purpose and limitations
 
@@ -14,9 +14,9 @@ Start with low device volume and increase slowly. Loud sounds can damage hearing
 
 EarCast cannot measure the sound level at your ear or guarantee safe listening. Output limits and the listening meter are relative guides. Use headphones to reduce feedback, and keep the microphone away from speakers. Do not rely on EarCast for alarms, traffic awareness or situations where hearing is essential to safety.
 
-## Privacy and purchases
+## Privacy
 
-Live audio is processed on your phone. Sound profiles and preferences are stored locally. Microphone audio is not saved. You choose whether to share your hearing-check results. Google Play handles purchases and restoration under its own terms and policies. EarCast does not upload your audio or sound profiles. Free mode in test builds includes Google AdMob banners automatically. Pro removes them. Test requests use limited ads without granting cookie consent; Google may still process network, device, interaction and diagnostic data.
+Live audio is processed on your phone. Sound profiles and preferences are stored locally. Microphone audio is not saved. You choose whether to share your hearing-check results. EarCast does not upload your audio or sound profiles. All features are free, with no purchases, advertisements or account required.
 
 ## Your agreement
 
