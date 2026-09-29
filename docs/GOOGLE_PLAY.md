@@ -24,7 +24,7 @@ removal of Pro and advertising and do not validate the current build.
 - Complete identity/account verification, app access, target audience, content
   rating, countries, pricing and the Health apps declaration. Describe hearing
   checks, sound profiles and amplification accurately, even with a non-medical disclaimer.
-- All builds contain no advertising or billing SDK. Set the app price to free
+- All release builds contain no advertising or billing SDK. Set the app price to free
   and declare no ads. Never upload the debug variant.
 - Data safety: microphone audio is processed in memory without recording; profiles stay local;
   the app has no backend or analytics. User-selected exports must be assessed against Google's applicable exceptions.

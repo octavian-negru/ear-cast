@@ -27,6 +27,13 @@ val keystoreProps =
 
 val privacyPolicyUrl = providers.gradleProperty("earcastPrivacyPolicyUrl").orElse("")
 val supportEmail = providers.gradleProperty("earcastSupportEmail").orElse("")
+// Test inventory is opt-in and compiled only into debug. Release never includes the SDK.
+val testAdsEnabled =
+    providers
+        .gradleProperty("earcastTestAds")
+        .orElse("false")
+        .get()
+        .toBooleanStrict()
 val unsignedAudit = providers.gradleProperty("earcastUnsignedAudit").orElse("false")
 
 // Only validated characters are interpolated into generated Java source.
@@ -61,6 +68,17 @@ android {
         buildConfigField("String", "PRIVACY_POLICY_URL", "\"${privacyPolicyUrl.get()}\"")
         buildConfigField("String", "SUPPORT_EMAIL", "\"${supportEmail.get()}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    sourceSets {
+        getByName("debug") {
+            java.srcDir(if (testAdsEnabled) "src/testAds/kotlin" else "src/noAds/kotlin")
+            if (testAdsEnabled) {
+                manifest.srcFile("src/testAds/AndroidManifest.xml")
+                res.srcDir("src/testAds/res")
+            }
+        }
+        getByName("release").java.srcDir("src/noAds/kotlin")
     }
 
     signingConfigs {
@@ -100,6 +118,8 @@ android {
 }
 
 dependencies {
+    if (testAdsEnabled) debugImplementation(libs.google.mobile.ads)
+
     implementation(project(":foundation"))
     implementation(project(":sound-profile"))
     implementation(project(":audio-engine"))

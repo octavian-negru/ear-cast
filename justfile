@@ -13,3 +13,7 @@ test:
 # Build an optimized release APK; uses keystore.properties when configured.
 build-prod:
     bash ./gradlew :app:assembleRelease
+
+# Explicit opt-in to Google test banners; normal and release builds stay ad-free.
+build-test-ads:
+    bash ./gradlew :app:assembleDebug -PearcastTestAds=true

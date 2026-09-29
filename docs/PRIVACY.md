@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-29_
 
-EarCast processes your audio and sound profiles on your device. All features are free, with no purchases or advertising in any build.
+EarCast processes your audio and sound profiles on your device. All features are free, with no purchases. Normal debug and all release builds contain no advertising or ad SDK.
 
 ## What EarCast does with your data
 
@@ -57,3 +57,13 @@ until that contact is supplied.
 
 > EarCast is a hearing-assistance tool, not a medical device. See the README
 > and docs/SAFETY.md.
+
+## Optional development test ads
+
+Explicitly building debug with `-PearcastTestAds=true` includes Google AdMob test
+banners on Home. This build contacts Google, which may process device and network
+metadata. Microphone audio, profiles and hearing-check results are never passed to
+the ad SDK. Test requests use limited ads and non-personalized request flags; this
+does not mean no data is processed. The development build shows a matching disclosure.
+See [Google’s privacy policy](https://policies.google.com/privacy) and
+[development setup](ADMOB.md). This option has no effect on release builds.

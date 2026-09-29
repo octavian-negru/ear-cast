@@ -27,6 +27,7 @@ import app.earcast.R
 import app.earcast.common.AudioLimits
 import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.ui.AppState
+import app.earcast.ui.ads.TestAdsSection
 import app.earcast.ui.common.ActionButton
 import app.earcast.ui.common.AdaptiveSplit
 import app.earcast.ui.common.AudiogramCard
@@ -76,6 +77,7 @@ fun HomeScreen(
             },
         )
         SafetyDisclaimer()
+        TestAdsSection()
     }
 }
 
