@@ -22,35 +22,69 @@ Before any public consumer release:
 
 ## Installable optimized APK
 
-Run `just build-prod`. Install the signed output:
-`app/build/outputs/apk/release/app-release.apk`.
+Run `just build-prod`. It produces a complete, independently installable APK for
+each supported CPU architecture in `app/build/outputs/apk/release/`:
 
-The recipe builds the release variant with R8 and resource shrinking. It uses
-`keystore.properties` when configured. Otherwise it explicitly permits signing
-with this machine’s Android debug key (`-PearcastLocalRelease=true`) and prints
+| APK | Device architecture |
+|---|---|
+| `app-arm64-v8a-release.apk` | 64-bit ARM phones/tablets |
+| `app-armeabi-v7a-release.apk` | 32-bit ARM devices |
+| `app-x86_64-release.apk` | 64-bit Intel devices/emulators |
+| `app-x86-release.apk` | 32-bit Intel devices/emulators |
+
+Install **one** APK matching the phone. These are standalone APKs, not parts that
+need a split-APK installer. To check a connected device, run
+`adb shell getprop ro.product.cpu.abilist` and choose its first matching ABI.
+All four APKs contain the same features and full audio models.
+
+For one larger file supporting every architecture, run `just build-prod-universal`.
+That produces `app-release.apk`. Both recipes print each signed output path and
+verify every APK signature before reporting success. `just apk-size` reports the
+sizes and content breakdown of the most recent build using its output metadata.
+
+Both recipes use the release variant with R8 and resource shrinking. They use
+`keystore.properties` when configured. Otherwise they explicitly permit signing
+with this machine’s Android debug key (`-PearcastLocalRelease=true`) and print
 that the APK is for local testing. Debug-key signing does not enable debug mode,
 AdMob, or other debug-only code. It is not a store-publication configuration.
-The recipe verifies the APK signature before reporting success and prints the
-installation path. It does not bypass Play bundle checks.
+The recipes do not bypass Play bundle checks.
 
-The previous recipe produced `app-release-unsigned.apk` without a keystore;
-Android cannot install that unsigned file. Use `app-release.apk`, even if an old
-unsigned APK is still present in the output folder.
+The original recipe could produce `app-release-unsigned.apk` without a keystore;
+Android cannot install that unsigned file. Install a signed output printed by the
+current recipe, rather than a file copied from an earlier build.
 
 To install over an existing copy, the signing key must match the installed app.
 The local fallback uses the same key as debug builds on this machine. A copy from
 another machine or Play may have a different key; use its original signing key
 for an update that preserves local data. Uninstalling clears local profiles and
-settings.
-
-You can verify the APK before copying it to your phone:
-```bash
-"$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
-```
+settings. Architecture-specific APKs keep the same application ID and version code.
 
 For publication, configure your permanent release key below. Direct
-`:app:assembleRelease` keeps its existing behavior: without signing configuration
-it produces an unsigned APK for inspection.
+`:app:assembleRelease` keeps its universal APK behavior unless
+`-PearcastSplitApks=true` is supplied; without signing configuration it produces
+unsigned APKs for inspection. Debug builds are also universal by default.
+Build Play App Bundles in a separate invocation with `-PearcastSplitApks=false`
+(the default). AGP 8.10 cannot build bundles from multiple shrunk APK-resource
+outputs, so the release check rejects that combination with instructions. The
+bundle still contains every supported ABI; Play selects the matching architecture
+automatically.
+
+### Size optimization and audio fidelity
+
+R8 code shrinking and resource shrinking were already enabled. Most of the
+universal APK was four copies of the native audio runtimes, one per architecture.
+The per-architecture APKs remove only code for other CPUs. The app and native
+module now share a pinned NDK so APK packaging can strip native debug symbols.
+Unstripped native build outputs remain available for local debugging.
+
+All three DPDFNet8 models, full RNNoise weights, the selectable audio engines,
+resampling quality, DSP and safety limiters are preserved. Native libraries remain
+uncompressed and directly loadable; this avoids an extra extracted copy at install.
+No model download is needed. See [APK size measurements](APK_SIZE.md) for before/after
+sizes and verification evidence.
+
+References: [Android ABI-specific APKs](https://developer.android.com/build/configure-apk-splits),
+[native debug symbols](https://developer.android.com/build/include-native-symbols).
 
 ## Build a signed release
 
@@ -76,7 +110,7 @@ it produces an unsigned APK for inspection.
    ./gradlew :app:verifyPlayRelease
    ./gradlew ktlintCheck detekt test testDebugUnitTest :app:lintRelease
    just build-prod
-   ./gradlew :app:bundleRelease
+   ./gradlew :app:bundleRelease -PearcastSplitApks=false
    python3 scripts/check_native_alignment.py app/build/outputs/bundle/release/app-release.aab
    ```
    The normal `bundleRelease` task rejects missing signing
@@ -86,7 +120,7 @@ it produces an unsigned APK for inspection.
 
 For a local audit without publisher credentials only:
 ```bash
-./gradlew :app:assembleRelease :app:bundleRelease -PearcastUnsignedAudit=true
+./gradlew :app:assembleRelease :app:bundleRelease -PearcastUnsignedAudit=true -PearcastSplitApks=false
 ```
 This bypasses publication configuration checks. The resulting unsigned bundle is
 **not publishable**. `assembleRelease` remains available for local APK inspection.

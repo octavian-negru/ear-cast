@@ -10,10 +10,18 @@ build:
 test:
     bash ./gradlew test
 
-# Build an installable optimized APK; use the release key, or the local debug key if unconfigured.
+# Build one smaller, complete APK per CPU architecture; every audio feature is included.
 build-prod:
-    bash ./gradlew :app:assembleLocalRelease -PearcastLocalRelease=true
+    bash ./gradlew :app:assembleLocalRelease -PearcastLocalRelease=true -PearcastSplitApks=true
+
+# Larger APK supporting all four CPU architectures in one file.
+build-prod-universal:
+    bash ./gradlew :app:assembleLocalRelease -PearcastLocalRelease=true -PearcastSplitApks=false
 
 # Explicit opt-in to Google test banners; normal and release builds stay ad-free.
 build-test-ads:
     bash ./gradlew :app:assembleDebug -PearcastTestAds=true
+
+# Size breakdown for the most recently built release APKs.
+apk-size:
+    python3 scripts/apk_size.py

@@ -41,6 +41,17 @@ val localRelease =
         .orElse("false")
         .get()
         .toBooleanStrict()
+// ABI-specific APKs preserve all features but avoid shipping other CPUs' native libraries.
+// This selects APK outputs, not ABI filters. Build App Bundles separately with this flag off.
+val splitApks =
+    providers
+        .gradleProperty("earcastSplitApks")
+        .orElse("false")
+        .get()
+        .toBooleanStrict()
+val supportedAbis = listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
+val localApkNames =
+    if (splitApks) supportedAbis.associateWith { "app-$it-release.apk" } else mapOf("universal" to "app-release.apk")
 val unsignedAudit = providers.gradleProperty("earcastUnsignedAudit").orElse("false")
 
 // Only validated characters are interpolated into generated Java source.
@@ -49,6 +60,8 @@ require(supportEmail.get().matches(Regex("[A-Za-z0-9@._+%-]*"))) { "Invalid supp
 
 android {
     namespace = "app.earcast"
+    // The APK packager needs the same installed strip tool as the native build.
+    ndkVersion = libs.versions.ndk.get()
     compileSdk =
         libs
             .versions
@@ -86,6 +99,15 @@ android {
             }
         }
         getByName("release").java.srcDir("src/noAds/kotlin")
+    }
+
+    splits {
+        abi {
+            isEnable = splitApks
+            reset()
+            include(*supportedAbis.toTypedArray())
+            isUniversalApk = false
+        }
     }
 
     signingConfigs {
@@ -170,11 +192,15 @@ val verifyPlayRelease by tasks.registering {
     group = "verification"
     description = "Checks signing and public privacy contact before packaging a Play bundle."
     val auditOnly = unsignedAudit.get().toBoolean()
+    val apkSplitsEnabled = splitApks
     val signingValues = listOf("storeFile", "storePassword", "keyAlias", "keyPassword").map { keystoreProps.getProperty(it) }
     val uploadStore = keystoreProps.getProperty("storeFile")?.let { rootProject.file(it) }
     val policyUrl = privacyPolicyUrl.get()
     val contactEmail = supportEmail.get()
     doLast {
+        check(!apkSplitsEnabled) {
+            "Build App Bundles with -PearcastSplitApks=false; AGP 8.10 resource shrinking requires one APK output."
+        }
         if (auditOnly) {
             logger.warn("UNSIGNED AUDIT ONLY: this bundle has not passed Play release configuration checks.")
         } else {
@@ -192,46 +218,60 @@ val verifyPlayRelease by tasks.registering {
         }
     }
 }
-tasks.matching { it.name == "bundleRelease" }.configureEach {
+tasks.matching { it.name == "bundleRelease" || it.name == "buildReleasePreBundle" }.configureEach {
     dependsOn(verifyPlayRelease)
 }
 
-val verifyLocalReleaseApk by tasks.registering(Exec::class) {
+// Validate every produced APK, including all ABI-specific outputs.
+val signatureChecks =
+    localApkNames.map { (abi, fileName) ->
+        val suffix = abi.split('-', '_').joinToString("") { it.replaceFirstChar(Char::uppercaseChar) }
+        tasks.register<Exec>("verifyLocalRelease${suffix}Signature") {
+            group = "verification"
+            description = "Verifies the $abi APK signature."
+            dependsOn("assembleRelease")
+            val sdk =
+                androidComponents.sdkComponents.sdkDirectory
+                    .get()
+                    .asFile
+            val signerName = if (System.getProperty("os.name").startsWith("Windows")) "apksigner.bat" else "apksigner"
+            commandLine(
+                sdk.resolve("build-tools/${android.buildToolsVersion}/$signerName"),
+                "verify",
+                "--verbose",
+                layout.buildDirectory
+                    .file("outputs/apk/release/$fileName")
+                    .get()
+                    .asFile,
+            )
+        }
+    }
+
+val verifyLocalReleaseApk by tasks.registering {
     group = "verification"
-    description = "Verifies the signature of the APK produced for local installation."
-    dependsOn("assembleRelease")
-    val sdk =
-        androidComponents.sdkComponents.sdkDirectory
-            .get()
-            .asFile
-    val signerName = if (System.getProperty("os.name").startsWith("Windows")) "apksigner.bat" else "apksigner"
-    commandLine(
-        sdk.resolve("build-tools/${android.buildToolsVersion}/$signerName"),
-        "verify",
-        "--verbose",
-        layout.buildDirectory
-            .file("outputs/apk/release/app-release.apk")
-            .get()
-            .asFile,
-    )
+    description = "Verifies the signatures of all APKs produced for local installation."
+    dependsOn(signatureChecks)
 }
 
-// An installable release APK for local testing; publication still uses verifyPlayRelease.
+// Installable release APKs for local testing; publication still uses verifyPlayRelease.
 val assembleLocalRelease by tasks.registering {
     group = "build"
-    description = "Builds a signed, optimized APK for installation on a local device."
+    description = "Builds signed, optimized APKs for installation on a local device."
     val localSigningAllowed = localRelease
     val configuredReleaseSigning = keystoreProps.isNotEmpty()
-    val apk = layout.buildDirectory.file("outputs/apk/release/app-release.apk")
+    val apks = localApkNames.mapValues { (_, name) -> layout.buildDirectory.file("outputs/apk/release/$name") }
     dependsOn(verifyLocalReleaseApk)
     doLast {
         check(configuredReleaseSigning || localSigningAllowed) {
             "Use just build-prod or pass -PearcastLocalRelease=true for local signing."
         }
-        check(apk.get().asFile.isFile) { "Expected signed APK was not produced." }
         if (!configuredReleaseSigning) {
             logger.lifecycle("LOCAL TEST APK: signed with the debug key; configure keystore.properties before publishing.")
         }
-        logger.lifecycle("Install APK: ${apk.get().asFile}")
+        apks.forEach { (abi, output) ->
+            val apk = output.get().asFile
+            check(apk.isFile) { "Expected signed APK was not produced: $apk" }
+            logger.lifecycle("Install APK ($abi): $apk (${apk.length() / 1_000_000} MB)")
+        }
     }
 }

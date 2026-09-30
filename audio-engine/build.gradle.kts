@@ -16,7 +16,7 @@ android {
             .compileSdk
             .get()
             .toInt()
-    ndkVersion = "27.2.12479018"
+    ndkVersion = libs.versions.ndk.get()
 
     defaultConfig {
         minSdk =

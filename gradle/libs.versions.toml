@@ -1,6 +1,7 @@
 [versions]
 # Build / language
 agp = "8.10.1"
+ndk = "27.2.12479018"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
 
