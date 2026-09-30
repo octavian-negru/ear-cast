@@ -20,12 +20,37 @@ Before any public consumer release:
    appropriate advice before broad distribution or any medical claims. This repo
    cannot provide legal advice.
 
-## Production APK
+## Installable optimized APK
 
-Run `just build-prod` to build the optimized release APK in
-`app/build/outputs/apk/release/`. With the signing configuration below, the output
-is `app-release.apk`; otherwise it is `app-release-unsigned.apk`, which must be
-signed before installation. The recipe does not bypass Play bundle checks.
+Run `just build-prod`. Install the signed output:
+`app/build/outputs/apk/release/app-release.apk`.
+
+The recipe builds the release variant with R8 and resource shrinking. It uses
+`keystore.properties` when configured. Otherwise it explicitly permits signing
+with this machine’s Android debug key (`-PearcastLocalRelease=true`) and prints
+that the APK is for local testing. Debug-key signing does not enable debug mode,
+AdMob, or other debug-only code. It is not a store-publication configuration.
+The recipe verifies the APK signature before reporting success and prints the
+installation path. It does not bypass Play bundle checks.
+
+The previous recipe produced `app-release-unsigned.apk` without a keystore;
+Android cannot install that unsigned file. Use `app-release.apk`, even if an old
+unsigned APK is still present in the output folder.
+
+To install over an existing copy, the signing key must match the installed app.
+The local fallback uses the same key as debug builds on this machine. A copy from
+another machine or Play may have a different key; use its original signing key
+for an update that preserves local data. Uninstalling clears local profiles and
+settings.
+
+You can verify the APK before copying it to your phone:
+```bash
+"$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
+```
+
+For publication, configure your permanent release key below. Direct
+`:app:assembleRelease` keeps its existing behavior: without signing configuration
+it produces an unsigned APK for inspection.
 
 ## Build a signed release
 

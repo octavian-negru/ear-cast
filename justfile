@@ -10,9 +10,9 @@ build:
 test:
     bash ./gradlew test
 
-# Build an optimized release APK; uses keystore.properties when configured.
+# Build an installable optimized APK; use the release key, or the local debug key if unconfigured.
 build-prod:
-    bash ./gradlew :app:assembleRelease
+    bash ./gradlew :app:assembleLocalRelease -PearcastLocalRelease=true
 
 # Explicit opt-in to Google test banners; normal and release builds stay ad-free.
 build-test-ads:

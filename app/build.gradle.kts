@@ -34,6 +34,13 @@ val testAdsEnabled =
         .orElse("false")
         .get()
         .toBooleanStrict()
+// The local APK recipe explicitly permits debug-key signing when no release key is configured.
+val localRelease =
+    providers
+        .gradleProperty("earcastLocalRelease")
+        .orElse("false")
+        .get()
+        .toBooleanStrict()
 val unsignedAudit = providers.gradleProperty("earcastUnsignedAudit").orElse("false")
 
 // Only validated characters are interpolated into generated Java source.
@@ -100,7 +107,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.findByName("release")
+            signingConfig =
+                signingConfigs.findByName("release")
+                    ?: if (localRelease) signingConfigs.getByName("debug") else null
         }
     }
 
@@ -185,4 +194,44 @@ val verifyPlayRelease by tasks.registering {
 }
 tasks.matching { it.name == "bundleRelease" }.configureEach {
     dependsOn(verifyPlayRelease)
+}
+
+val verifyLocalReleaseApk by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Verifies the signature of the APK produced for local installation."
+    dependsOn("assembleRelease")
+    val sdk =
+        androidComponents.sdkComponents.sdkDirectory
+            .get()
+            .asFile
+    val signerName = if (System.getProperty("os.name").startsWith("Windows")) "apksigner.bat" else "apksigner"
+    commandLine(
+        sdk.resolve("build-tools/${android.buildToolsVersion}/$signerName"),
+        "verify",
+        "--verbose",
+        layout.buildDirectory
+            .file("outputs/apk/release/app-release.apk")
+            .get()
+            .asFile,
+    )
+}
+
+// An installable release APK for local testing; publication still uses verifyPlayRelease.
+val assembleLocalRelease by tasks.registering {
+    group = "build"
+    description = "Builds a signed, optimized APK for installation on a local device."
+    val localSigningAllowed = localRelease
+    val configuredReleaseSigning = keystoreProps.isNotEmpty()
+    val apk = layout.buildDirectory.file("outputs/apk/release/app-release.apk")
+    dependsOn(verifyLocalReleaseApk)
+    doLast {
+        check(configuredReleaseSigning || localSigningAllowed) {
+            "Use just build-prod or pass -PearcastLocalRelease=true for local signing."
+        }
+        check(apk.get().asFile.isFile) { "Expected signed APK was not produced." }
+        if (!configuredReleaseSigning) {
+            logger.lifecycle("LOCAL TEST APK: signed with the debug key; configure keystore.properties before publishing.")
+        }
+        logger.lifecycle("Install APK: ${apk.get().asFile}")
+    }
 }
