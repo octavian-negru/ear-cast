@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.ui.assist.ListenScreen
+import app.earcast.ui.background.BackgroundSetupPrompt
 import app.earcast.ui.dintest.SpeechCheckScreen
 import app.earcast.ui.hearingtest.ToneCheckScreen
 import app.earcast.ui.home.HomeScreen
@@ -50,9 +51,13 @@ private enum class AppDestination { HOME, PROFILE, HEARING_TEST, MANUAL_ENTRY, A
 @Composable
 fun EarCastApp(rootViewModel: AppStateModel = hiltViewModel()) {
     val root by rootViewModel.uiState.collectAsStateWithLifecycle()
+    val backgroundReviewed by rootViewModel.backgroundSetupReviewed.collectAsStateWithLifecycle()
 
     EarCastTheme(highContrast = root.highContrast) {
         val colors = MaterialTheme.colorScheme
+        if (root.consentAccepted == true) {
+            BackgroundSetupPrompt(backgroundReviewed, rootViewModel::markBackgroundSetupReviewed)
+        }
         Surface(modifier = Modifier.fillMaxSize(), color = colors.background) {
             when (root.consentAccepted) {
                 null -> LoadingState()

@@ -27,6 +27,7 @@ private object PreferenceKeys {
     val CONSENT = booleanPreferencesKey("consent_accepted")
     val CONSENT_VERSION = intPreferencesKey("consent_terms_version")
     val CONSENT_ACCEPTED_AT = longPreferencesKey("consent_accepted_at")
+    val BACKGROUND_SETUP_REVIEWED = booleanPreferencesKey("background_setup_reviewed")
     val HIGH_CONTRAST = booleanPreferencesKey("high_contrast")
     val COMFORT_CEILING = floatPreferencesKey("comfort_ceiling")
     val ASSIST_PRESET = stringPreferencesKey("assist_preset")
@@ -76,6 +77,13 @@ class PreferencesStore(
                 it.remove(PreferenceKeys.CONSENT_ACCEPTED_AT)
             }
         }
+    }
+
+    override fun observeBackgroundSetupReviewed(): Flow<Boolean> =
+        dataStore.observe { it[PreferenceKeys.BACKGROUND_SETUP_REVIEWED] ?: false }
+
+    override suspend fun markBackgroundSetupReviewed() {
+        dataStore.edit { it[PreferenceKeys.BACKGROUND_SETUP_REVIEWED] = true }
     }
 
     override fun observeHighContrast(): Flow<Boolean> = dataStore.observe { it[PreferenceKeys.HIGH_CONTRAST] ?: false }

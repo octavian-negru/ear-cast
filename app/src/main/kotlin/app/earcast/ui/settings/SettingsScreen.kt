@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.BuildConfig
 import app.earcast.R
 import app.earcast.ui.AppStateModel
+import app.earcast.ui.background.BackgroundListeningSettings
 import app.earcast.ui.common.ActionButton
 import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.BrandBar
@@ -58,6 +59,7 @@ fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
                 rootViewModel.previewComfort(state.comfortCeiling)
             }
         }
+        BackgroundListeningSettings()
         SectionGroup(stringResource(R.string.listening_safety_title)) {
             Text(stringResource(R.string.listening_safety_body), style = MaterialTheme.typography.bodyMedium)
             SafetySourceLink()

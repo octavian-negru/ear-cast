@@ -137,6 +137,17 @@ class AppStateModel
             }
         }
 
+        val backgroundSetupReviewed: StateFlow<Boolean?> =
+            settings.observeBackgroundSetupReviewed().stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                null,
+            )
+
+        fun markBackgroundSetupReviewed() {
+            viewModelScope.launch { settings.markBackgroundSetupReviewed() }
+        }
+
         fun acceptDisclaimer() {
             viewModelScope.launch { settings.setConsentAccepted(true) }
         }

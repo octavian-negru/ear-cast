@@ -9,6 +9,11 @@ interface PreferenceStorage {
 
     suspend fun setConsentAccepted(accepted: Boolean)
 
+    /** Whether the optional background-listening setup has been handled, not an OS permission grant. */
+    fun observeBackgroundSetupReviewed(): Flow<Boolean>
+
+    suspend fun markBackgroundSetupReviewed()
+
     /** High-contrast theme preference (accessibility). */
     fun observeHighContrast(): Flow<Boolean>
 

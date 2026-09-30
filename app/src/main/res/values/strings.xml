@@ -360,4 +360,14 @@
     <string name="privacy_policy_body">EarCast processes microphone audio on your phone to play amplified sound to your headset. Assist can continue while the screen is off or you use other apps, with an ongoing notification. Stop assist to stop microphone access. Live audio is discarded after processing and is not saved.\n\nSound profiles, hearing-check results and settings remain in app-private storage. EarCast excludes its data from Android cloud backup and device transfer.\n\nHearing-check results leave the app only when you choose to share them. The receiving app then handles that copy under its own policies. EarCast has no account, backend or analytics and does not upload your hearing data.\n\nAll features are free. EarCast contains no billing or advertising SDK in any build.\n\nRecordings saved by older versions remain in private storage until you clear app storage or uninstall. Clear app storage in Android Settings or uninstall EarCast to remove its local data. Copies you exported are not removed by this. Reinstalling does not restore local profiles.\n\nFor privacy questions, use the support contact in the Play store listing or the published policy below.</string>
     <string name="privacy_policy_online">Read published privacy policy</string>
     <string name="privacy_support">Privacy contact: %1$s</string>
+    <string name="background_listening_title">Background listening</string>
+    <string name="background_listening_explanation">Hearing Assist can continue while the screen is off or you use other apps. Some phones interrupt it to save battery. Allowing unrestricted battery use can help, but uses more battery. Listening starts only when you start Assist; use Stop in the app or its notification to end it.</string>
+    <string name="background_battery_instructions">In Android battery settings, choose All apps if needed, find EarCast, and select Don’t optimize or Unrestricted. Some phones also have an Allow background activity setting under EarCast’s app settings. Names vary by phone. You can do this later in Settings → Background listening. This cannot prevent every system interruption.</string>
+    <string name="background_open_battery_settings">Open battery settings</string>
+    <string name="background_open_app_settings">Open app settings</string>
+    <string name="background_not_now">Not now</string>
+    <string name="background_status_restricted">Android reports background activity is restricted</string>
+    <string name="background_status_exempt">Android battery optimization is off for EarCast</string>
+    <string name="background_status_optimized">Android battery optimization is on for EarCast</string>
+    <string name="background_settings_unavailable">Open Android Settings, then Apps → EarCast → Battery to review background restrictions.</string>
 </resources>

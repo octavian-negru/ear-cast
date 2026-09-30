@@ -132,3 +132,38 @@ remaining open questions are hardware questions:
 5. **A/B demo toggle** — play the "hear the difference" sample on real earbuds;
    confirm the mid-playback switch is click-free and the contrast is audible
    with a boosted profile.
+
+## First-run background listening setup
+
+After accepting the safety terms, EarCast offers a one-time battery-settings
+prompt. It opens Android’s public battery-optimization settings (or app settings
+when Android reports restricted background activity). No permission is granted
+automatically, and no audio session starts during setup. Not now and Android Back
+dismiss the prompt permanently; the same controls remain in Settings → Background
+listening. Existing installations see the suggestion once after this update too.
+Apps already exempt from optimization and not background-restricted skip it.
+
+The settings panel reads the actual OS state again on resume. The stored “reviewed”
+flag only controls the prompt; it does not stand in for a system permission.
+Manufacturer-specific sleep/autostart controls may require an additional manual
+change. An exemption cannot prevent force-stop, every system interruption, or
+replace Android microphone/foreground-service requirements.
+
+Check on a real phone:
+
+- Fresh install: no battery prompt before safety acceptance; one prompt afterward.
+- Choose Not now or press Back, restart, and confirm the prompt stays dismissed.
+- Open battery settings, select All apps → EarCast → Don’t optimize (or the
+  manufacturer’s Unrestricted option), return, and check the displayed status.
+- Deny/cancel the system change: app features still work and the Settings panel
+  still reports optimization/restriction accurately.
+- Re-enable optimization or restrict background usage externally, return to the
+  app, and verify Settings updates without repeating onboarding.
+- If a settings destination is unavailable, app details/general Settings should
+  open instead; if none is available, show instructions without crashing.
+- Start Assist with headphones, lock the screen and switch apps for at least an
+  hour. Verify continuous audio, battery use, and notification Stop. Stopping must
+  release microphone access and the wake lock. Test an aggressive-battery OEM.
+
+See [Android’s Doze and App Standby guidance](https://developer.android.com/training/monitoring-device-state/doze-standby)
+for exemption behavior and device-idle testing.

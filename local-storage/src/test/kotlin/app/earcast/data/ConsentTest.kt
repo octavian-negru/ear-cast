@@ -19,6 +19,30 @@ import org.junit.jupiter.api.Test
 
 class ConsentTest {
     @Test
+    fun `background setup is offered once and handling it never accepts safety terms`() =
+        runTest {
+            val data = ConsentPreferences()
+            val store = PreferencesStore(data)
+            assertFalse(store.observeBackgroundSetupReviewed().first())
+            store.markBackgroundSetupReviewed()
+            val recreated = PreferencesStore(data)
+            assertTrue(recreated.observeBackgroundSetupReviewed().first())
+            assertFalse(recreated.observeConsentAccepted().first())
+        }
+
+    @Test
+    fun `safety consent changes do not repeat or silently complete battery setup`() =
+        runTest {
+            val store = PreferencesStore(ConsentPreferences())
+            store.setConsentAccepted(true)
+            assertFalse(store.observeBackgroundSetupReviewed().first())
+            store.markBackgroundSetupReviewed()
+            store.setConsentAccepted(false)
+            store.setConsentAccepted(true)
+            assertTrue(store.observeBackgroundSetupReviewed().first())
+        }
+
+    @Test
     fun `legacy ad choices neither accept new terms nor become privacy consent`() =
         runTest {
             val data = ConsentPreferences()
