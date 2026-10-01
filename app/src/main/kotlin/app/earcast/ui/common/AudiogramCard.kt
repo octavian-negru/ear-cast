@@ -25,18 +25,17 @@ fun AudiogramCard(
     audiogram: HearingCurve?,
     onEdit: () -> Unit,
     actionLabel: String = stringResource(R.string.audiogram_edit),
+    editEnabled: Boolean = true,
+    onShare: (() -> Unit)? = null,
 ) {
     SurfaceCard(Modifier.fillMaxWidth(), padding = 16.dp) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.identity_profile_label),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(stringResource(R.string.identity_hearing_map), style = MaterialTheme.typography.titleLarge)
-                }
+                Text(
+                    stringResource(R.string.ui_your_audiogram),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleLarge,
+                )
                 Text(
                     "dB HL",
                     style = MaterialTheme.typography.labelMedium,
@@ -48,8 +47,15 @@ fun AudiogramCard(
             } else {
                 Text(stringResource(R.string.audiogram_empty_detail), style = MaterialTheme.typography.bodyMedium)
             }
-            TextButton(onClick = onEdit, modifier = Modifier.fillMaxWidth()) {
-                Text(actionLabel)
+            Row(Modifier.fillMaxWidth()) {
+                TextButton(onClick = onEdit, enabled = editEnabled, modifier = Modifier.weight(1f)) {
+                    Text(actionLabel)
+                }
+                if (onShare != null) {
+                    TextButton(onClick = onShare, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.check_share))
+                    }
+                }
             }
         }
     }

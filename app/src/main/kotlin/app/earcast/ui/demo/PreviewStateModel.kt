@@ -13,6 +13,7 @@ import app.earcast.data.PreferenceStorage
 import app.earcast.data.ProfileStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +50,7 @@ class PreviewStateModel
         controller: LiveAudioController,
         private val player: PreviewPlayer,
     ) : ViewModel() {
+        private var playbackJob: Job? = null
         private val playing = MutableStateFlow(false)
         private val processed = MutableStateFlow(false)
 
@@ -81,23 +83,27 @@ class PreviewStateModel
         }
 
         fun stop() {
+            playbackJob?.cancel()
+            playbackJob = null
             player.stop()
         }
 
         private fun play() {
-            viewModelScope.launch {
-                if (uiState.value.assistRunning || playing.value) return@launch
-                val source = withContext(Dispatchers.Default) { buildSource() } ?: return@launch
-                source.processedActive = processed.value
-                activeSource = source
-                playing.value = true
-                try {
-                    player.play(source)
-                } finally {
-                    playing.value = false
-                    activeSource = null
+            if (playbackJob?.isActive == true) return
+            playbackJob =
+                viewModelScope.launch {
+                    if (uiState.value.assistRunning || playing.value) return@launch
+                    val source = withContext(Dispatchers.Default) { buildSource() } ?: return@launch
+                    source.processedActive = processed.value
+                    activeSource = source
+                    playing.value = true
+                    try {
+                        player.play(source)
+                    } finally {
+                        playing.value = false
+                        activeSource = null
+                    }
                 }
-            }
         }
 
         private suspend fun buildSource(): PreviewBufferSource? {

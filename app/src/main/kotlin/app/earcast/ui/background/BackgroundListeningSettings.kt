@@ -25,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import app.earcast.R
+import app.earcast.ui.common.DetailSection
 import app.earcast.ui.common.SectionGroup
 
 /** A one-time suggestion after safety consent; dismissing never disables an app feature. */
@@ -77,8 +78,10 @@ fun BackgroundListeningSettings() {
         }
     SectionGroup(stringResource(R.string.background_listening_title)) {
         Text(stringResource(statusText), style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(R.string.background_listening_explanation), style = MaterialTheme.typography.bodyMedium)
-        Text(stringResource(R.string.background_battery_instructions), style = MaterialTheme.typography.bodyMedium)
+        DetailSection(stringResource(R.string.ui_background_help)) {
+            Text(stringResource(R.string.background_battery_instructions), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.background_listening_explanation), style = MaterialTheme.typography.bodyMedium)
+        }
         TextButton(onClick = { context.openBatterySettings() }) {
             Text(stringResource(R.string.background_open_battery_settings))
         }

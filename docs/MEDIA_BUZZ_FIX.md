@@ -20,7 +20,7 @@ output level, and $C=-2$ dBFS. At 0 dB boost the compressor is unity. The ratio
 otherwise makes full-scale input converge on $C$. The 4 dB soft knee and final
 linked limiter remain in place for transient peaks.
 
-The Home screen now offers two algorithms. **Balanced** uses one linked dynamics
+Listen → Media sound offers two algorithms. **Balanced** uses one linked dynamics
 band to preserve the mix. **Speech clarity** splits processing at 250 Hz, 1 kHz,
 4 kHz and 20 kHz, so loud bass does not make the compressor pull speech bands
 down with it. Bass uses slower attack/release timing while consonant bands recover
@@ -44,7 +44,7 @@ still required.
 
 The cut-only update below made media too quiet for the user, while assist now
 sounds acceptable. Media therefore has a separate **Media boost** slider on
-the Home screen: **0–25 dB, default +6 dB**, persisted independently of assist settings.
+Listen → Media sound: **0–25 dB, default +6 dB**, persisted independently of assist settings.
 This replaces the fixed −3 dB input attenuation. The relative EQ curve remains
 unchanged. This initial implementation used fixed gain before the platform
 limiter and was superseded by the WDRC update above.

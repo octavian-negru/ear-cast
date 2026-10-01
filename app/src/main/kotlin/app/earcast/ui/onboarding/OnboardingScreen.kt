@@ -27,8 +27,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import app.earcast.R
 import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionPage
 import app.earcast.ui.common.BrandBar
-import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.SurfaceCard
 import app.earcast.ui.common.SurfaceTone
@@ -40,7 +40,14 @@ fun OnboardingScreen(onAccept: () -> Unit) {
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
     var showTerms by rememberSaveable { mutableStateOf(false) }
     Box(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.TopCenter) {
-        EarPage(modifier = Modifier.widthIn(max = 600.dp)) {
+        ActionPage(modifier = Modifier.widthIn(max = 600.dp), actions = {
+            ActionButton(
+                stringResource(R.string.consent_continue),
+                onClick = { if (understandsLimitations && agreesToTerms) onAccept() },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = understandsLimitations && agreesToTerms,
+            )
+        }) {
             BrandBar(stringResource(R.string.identity_private))
             PageHeading(
                 stringResource(R.string.identity_welcome_title),
@@ -66,12 +73,6 @@ fun OnboardingScreen(onAccept: () -> Unit) {
                 stringResource(R.string.consent_required_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            ActionButton(
-                stringResource(R.string.consent_continue),
-                onClick = { if (understandsLimitations && agreesToTerms) onAccept() },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = understandsLimitations && agreesToTerms,
             )
         }
     }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_profiles">Profiles</string>
+    <string name="ui_listen_subtitle">Sound that works for you.</string>
+    <string name="ui_live">Live listening</string>
+    <string name="ui_media">Media sound</string>
+    <string name="ui_profile_active">Your listening profile</string>
+    <string name="ui_profile_manage">Manage profiles</string>
+    <string name="ui_session_active">Live listening is on</string>
+    <string name="ui_stop_to_edit">Stop live listening before changing your profile or running a check.</string>
+    <string name="ui_profile_delete_title">Delete this profile?</string>
+    <string name="ui_profile_delete_body">“%1$s” will be removed from this device. This cannot be undone.</string>
+    <string name="ui_cancel">Cancel</string>
+    <string name="ui_profile_create">Create a profile</string>
+    <string name="ui_profile_subtitle">Your hearing map, your sound.</string>
+    <string name="ui_live_details">Use your microphone to hear the sounds around you through headphones.</string>
+    <string name="ui_mic_permission">Microphone access is needed for live listening. Allow it in the app’s permissions, then try again.</string>
+    <string name="ui_permissions">Open app settings</string>
+    <string name="ui_tuning">Sound tuning</string>
+    <string name="ui_advanced_audio">Audio engine &amp; capture</string>
+    <string name="ui_preview">Try your sound</string>
+    <string name="ui_settings_subtitle">Comfort, accessibility and peace of mind.</string>
+    <string name="ui_legal">Privacy &amp; terms</string>
+    <string name="ui_stop_to_tune">Stop listening to change these settings.</string>
+    <string name="ui_background_help">Keep listening in the background</string>
+    <string name="ui_speaker_title">Use headphones for live listening</string>
+    <string name="ui_start_listening">Start listening</string>
+    <string name="ui_amplification">Amplification</string>
+    <string name="ui_your_audiogram">Your audiogram</string>
+</resources>

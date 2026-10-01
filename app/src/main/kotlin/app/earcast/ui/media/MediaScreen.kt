@@ -1,13 +1,11 @@
 @file:Suppress("ktlint:standard:function-naming")
 
-package app.earcast.ui.home
+package app.earcast.ui.media
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -29,53 +27,25 @@ import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.ui.AppState
 import app.earcast.ui.ads.TestAdsSection
 import app.earcast.ui.common.ActionButton
-import app.earcast.ui.common.AdaptiveSplit
-import app.earcast.ui.common.AudiogramCard
-import app.earcast.ui.common.BrandBar
 import app.earcast.ui.common.ChoiceChip
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
 import app.earcast.ui.common.EarPage
-import app.earcast.ui.common.FeatureRoute
 import app.earcast.ui.common.InlineChoices
-import app.earcast.ui.common.PageHeading
-import app.earcast.ui.common.SectionGroup
 import app.earcast.ui.common.SurfaceCard
 import app.earcast.ui.common.SurfaceTone
 
 @Composable
-fun HomeScreen(
+fun MediaScreen(
     state: AppState,
     onOpenProfile: () -> Unit,
-    onOpenAssist: () -> Unit,
     onSetMediaEq: (Boolean) -> Unit,
     onSetMediaBoost: (Float) -> Unit,
     onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
     EarPage {
-        BrandBar(trailing = stringResource(R.string.identity_private))
-        PageHeading(stringResource(R.string.identity_home_title))
-        AdaptiveSplit(
-            primary = {
-                if (state.hasProfile) {
-                    AudiogramCard(audiogram = state.audiogram, onEdit = onOpenProfile)
-                } else {
-                    WelcomeInstrument(onOpenProfile)
-                }
-            },
-            secondary = {
-                SectionGroup(stringResource(R.string.identity_listen_section)) {
-                    FeatureRoute(
-                        number = stringResource(R.string.identity_live_label),
-                        title = stringResource(R.string.identity_live_title),
-                        detail = stringResource(R.string.identity_live_detail),
-                        icon = Icons.Filled.Headphones,
-                        onClick = onOpenAssist,
-                    )
-                    MediaPlaybackSection(state, onSetMediaEq, onSetMediaBoost, onSetMediaProcessingMode)
-                }
-            },
-        )
+        if (!state.hasProfile) WelcomeInstrument(onOpenProfile)
+        MediaPlaybackSection(state, onSetMediaEq, onSetMediaBoost, onSetMediaProcessingMode)
         SafetyDisclaimer()
         TestAdsSection()
     }
@@ -137,7 +107,7 @@ private fun MediaPlaybackSection(
             modifier = Modifier.padding(top = 6.dp),
         )
         if (state.mediaEqEnabled && state.mediaEqSupported && state.hasProfile) {
-            DetailSection(title = stringResource(R.string.media_adjust_sound)) {
+            DetailSection(title = stringResource(R.string.media_adjust_sound), initiallyExpanded = true) {
                 MediaAlgorithmControl(state, onSetMediaProcessingMode)
                 MediaBoostControl(state, onSetMediaBoost)
             }

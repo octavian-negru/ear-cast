@@ -73,41 +73,44 @@ fun BrandBar(trailing: String) {
 
 @Composable
 fun FeatureRoute(
-    number: String,
     title: String,
     detail: String,
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
-    Column(
+    Row(
         modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(
-                Modifier
-                    .size(36.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-            }
-            Column(Modifier.weight(1f)) {
-                Text(number, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                Text(title, style = MaterialTheme.typography.titleMedium)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+        Box(
+            Modifier
+                .size(44.dp)
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
         }
-        Text(
-            detail,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                detail,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowForward,
+            null,
+            Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.primary,
         )
     }
 }

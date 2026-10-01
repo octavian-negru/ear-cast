@@ -13,7 +13,7 @@ bash ./gradlew :app:assembleDebug -PearcastTestAds=true
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Open the app, accept the safety terms, and visit Home while connected to the
+Open the app, accept the safety terms, and visit Listen → Media sound while connected to the
 internet. The banner must say **Test Ad**. Logcat tag `EarCastAds` reports successful
 loads and load errors. A failed request offers a retry button. Returning to a
 normal build (`just build`, with no property set in user Gradle properties) removes
@@ -25,8 +25,8 @@ No runtime switch can initialize an SDK absent from the APK.
 
 ## Behavior
 
-- Only Home contains a banner. Onboarding, Settings, checks and assist controls
-  do not request ads. Leaving Home or backgrounding destroys its ad view.
+- Only Listen → Media sound contains a banner. Onboarding, Settings, checks and assist controls
+  do not request ads. Leaving Media sound or backgrounding destroys its ad view.
 - Safety acceptance is required; connecting/running live audio (including starts
   through the Quick Settings tile) suppresses and destroys the banner.
 - SDK initialization is process-wide, and requests wait for initialization.
@@ -63,8 +63,8 @@ release declares advertising-ID permissions. No device or emulator was connected
 so an actual test-banner load has not been verified.
 
 Device checks still required: successful test-banner load, offline failure/retry,
-Home/background/rotation navigation, and starting/stopping assist via the Quick
-Settings tile while Home is visible. JVM tests cover build
+Media sound/background/rotation navigation, and starting/stopping assist via the Quick
+Settings tile while Media sound is visible. JVM tests cover build
 enablement, safety acceptance and every audio-session state; they do not prove ad serving.
 
 ## Future production enablement

@@ -3,6 +3,7 @@
 package app.earcast.ui.assist
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenu
@@ -29,9 +30,8 @@ import app.earcast.core.audio.speech.SpeechPresence
 import app.earcast.core.audio.speech.VoiceBoost
 import app.earcast.ui.common.ActionButton
 import app.earcast.ui.common.ActionStyle
-import app.earcast.ui.common.ChoiceChip
-import app.earcast.ui.common.InlineChoices
-import app.earcast.ui.common.SurfaceCard
+import app.earcast.ui.common.AdaptiveChoices
+import app.earcast.ui.common.DetailSection
 
 @Composable
 @Suppress("LongMethod")
@@ -40,27 +40,8 @@ internal fun SoundOptionsPanel(
     enabled: Boolean,
     onChange: (EnhancementOptions) -> Unit,
 ) {
-    SurfaceCard(Modifier.fillMaxWidth()) {
-        Text(stringResource(R.string.assist_sound_quality), style = MaterialTheme.typography.titleSmall)
+    Column(Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.assist_quality_description), style = MaterialTheme.typography.bodySmall)
-        EngineChoice(options.speechEngine, enabled) { onChange(options.copy(speechEngine = it)) }
-        Text(
-            stringResource(
-                when (options.speechEngine) {
-                    EnhancementEngine.RNNOISE -> R.string.assist_rnnoise_description
-                    EnhancementEngine.DPDFNET -> R.string.assist_engine_description
-                    EnhancementEngine.SPEEX -> R.string.assist_speex_description
-                    EnhancementEngine.WIENER -> R.string.assist_wiener_description
-                },
-            ),
-            style = MaterialTheme.typography.bodySmall,
-        )
-        QualityChoice(
-            stringResource(R.string.assist_capture_mode),
-            listOf(stringResource(R.string.assist_capture_natural), stringResource(R.string.assist_capture_call)),
-            options.captureMode.ordinal,
-            enabled,
-        ) { onChange(options.copy(captureMode = InputMode.entries[it])) }
         val strengths =
             listOf(
                 stringResource(R.string.assist_quality_off),
@@ -113,6 +94,26 @@ internal fun SoundOptionsPanel(
             ),
             style = MaterialTheme.typography.bodySmall,
         )
+        DetailSection(stringResource(R.string.ui_advanced_audio)) {
+            EngineChoice(options.speechEngine, enabled) { onChange(options.copy(speechEngine = it)) }
+            Text(
+                stringResource(
+                    when (options.speechEngine) {
+                        EnhancementEngine.RNNOISE -> R.string.assist_rnnoise_description
+                        EnhancementEngine.DPDFNET -> R.string.assist_engine_description
+                        EnhancementEngine.SPEEX -> R.string.assist_speex_description
+                        EnhancementEngine.WIENER -> R.string.assist_wiener_description
+                    },
+                ),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            QualityChoice(
+                stringResource(R.string.assist_capture_mode),
+                listOf(stringResource(R.string.assist_capture_natural), stringResource(R.string.assist_capture_call)),
+                options.captureMode.ordinal,
+                enabled,
+            ) { onChange(options.copy(captureMode = InputMode.entries[it])) }
+        }
         if (!enabled) {
             Text(stringResource(R.string.assist_quality_restart), style = MaterialTheme.typography.bodySmall)
         }
@@ -169,17 +170,7 @@ private fun QualityChoice(
     onChange: (Int) -> Unit,
 ) {
     Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 12.dp))
-    InlineChoices(modifier = Modifier.padding(top = 6.dp)) {
-        labels.forEachIndexed { index, label ->
-            ChoiceChip(
-                label = label,
-                selected = index == selected,
-                enabled = enabled,
-                onClick = { onChange(index) },
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
+    AdaptiveChoices(labels, selected, onChange, enabled, Modifier.padding(top = 6.dp))
 }
 
 @Composable

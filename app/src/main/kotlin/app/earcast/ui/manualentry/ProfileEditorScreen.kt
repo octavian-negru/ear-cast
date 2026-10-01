@@ -14,9 +14,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionPage
 import app.earcast.ui.common.CollapsibleNotice
-import app.earcast.ui.common.EarPage
-import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.ScreenHeader
 
 /**
@@ -35,13 +34,22 @@ fun ProfileEditorScreen(
         onDispose { viewModel.stopPreview() }
     }
 
-    EarPage {
-        ScreenHeader(title = stringResource(R.string.manual_title), onBack = onBack)
-        PageHeading(stringResource(R.string.identity_editor_title), stringResource(R.string.identity_editor_detail))
+    ActionPage(actions = {
+        ActionButton(
+            label = stringResource(R.string.manual_save),
+            onClick = { viewModel.save(onSaved = onBack) },
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        )
+    }) {
+        ScreenHeader(
+            title = stringResource(R.string.manual_title),
+            subtitle = stringResource(R.string.identity_editor_detail),
+            onBack = onBack,
+        )
         CollapsibleNotice(
             title = stringResource(R.string.manual_notice_title),
             body = stringResource(R.string.manual_intro),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth(),
         )
 
         ProfilePlotEditor(
@@ -51,12 +59,6 @@ fun ProfileEditorScreen(
             onChange = viewModel::setLevel,
             onPreview = viewModel::previewTone,
             onStopPreview = viewModel::stopPreview,
-        )
-
-        ActionButton(
-            label = stringResource(R.string.manual_save),
-            onClick = { viewModel.save(onSaved = onBack) },
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
         )
     }
 }

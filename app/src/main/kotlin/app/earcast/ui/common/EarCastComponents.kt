@@ -95,7 +95,7 @@ fun ScreenHeader(
             subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 6.dp, bottom = 12.dp),
+            modifier = Modifier.padding(bottom = 4.dp),
         )
     }
 }
@@ -148,7 +148,6 @@ fun CollapsibleNotice(
 ) {
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     val state = stringResource(if (expanded) R.string.section_expanded else R.string.section_collapsed)
-    val toggleDescription = stringResource(if (expanded) R.string.notice_collapse else R.string.notice_expand)
     Column(
         modifier =
             modifier
@@ -176,20 +175,12 @@ fun CollapsibleNotice(
                 color = contentColor,
                 modifier = Modifier.weight(1f).padding(start = 9.dp),
             )
-            IconButton(
-                onClick = { expanded = !expanded },
-                modifier =
-                    Modifier.semantics {
-                        contentDescription = toggleDescription
-                        stateDescription = state
-                    },
-            ) {
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = null,
-                    tint = contentColor,
-                )
-            }
+            Icon(
+                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.padding(12.dp),
+            )
         }
         AnimatedVisibility(expanded) {
             Text(

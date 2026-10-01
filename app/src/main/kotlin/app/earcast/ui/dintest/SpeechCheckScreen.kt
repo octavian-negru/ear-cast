@@ -22,9 +22,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.audiogram.SpeechProtocol
 import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionPage
 import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.CollapsibleNotice
-import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.ScreenHeader
 import app.earcast.ui.common.SectionHeader
 import app.earcast.ui.common.StatusTag
@@ -47,7 +47,14 @@ fun SpeechCheckScreen(
         onDispose { viewModel.mute() }
     }
 
-    EarPage {
+    ActionPage(showActions = state.phase == SpeechCheckPhase.IN_PROGRESS, actions = {
+        ActionButton(
+            stringResource(R.string.check_mute),
+            viewModel::mute,
+            Modifier.fillMaxWidth(),
+            style = ActionStyle.DANGER,
+        )
+    }) {
         ScreenHeader(title = stringResource(R.string.din_title), onBack = onBack)
         NoticeCard()
 
@@ -92,7 +99,7 @@ private fun InProgress(
     viewModel: SpeechCheckStateModel,
 ) {
     Column {
-        SurfaceCard(tone = SurfaceTone.DARK, modifier = Modifier.fillMaxWidth()) {
+        SurfaceCard(tone = SurfaceTone.TINT, modifier = Modifier.fillMaxWidth()) {
             StatusTag(
                 stringResource(R.string.din_progress, state.tripletNumber, state.totalTriplets),
                 active = state.isPlaying,
@@ -108,7 +115,7 @@ private fun InProgress(
                     stringResource(R.string.din_enter_prompt)
                 },
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.background,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.padding(top = 16.dp),
             )
             EnteredDigits(state.entered)
@@ -130,13 +137,6 @@ private fun InProgress(
                 modifier = Modifier.weight(1f),
             )
         }
-
-        ActionButton(
-            label = stringResource(R.string.check_mute),
-            onClick = viewModel::mute,
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-            style = ActionStyle.DANGER,
-        )
     }
 }
 
@@ -150,7 +150,7 @@ private fun EnteredDigits(entered: List<Int>) {
         display,
         style = MaterialTheme.typography.headlineLarge,
         fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.background,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
         modifier = Modifier.padding(vertical = 14.dp),
     )
 }

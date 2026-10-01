@@ -15,13 +15,14 @@ import app.earcast.common.AudioEar
 import app.earcast.common.FrequencyHz
 import app.earcast.common.HearingDb
 import app.earcast.ui.AppState
+import app.earcast.ui.assist.AmplificationCard
 import app.earcast.ui.assist.ListenState
-import app.earcast.ui.assist.ListeningConsole
 import app.earcast.ui.common.EarPage
-import app.earcast.ui.home.HomeScreen
+import app.earcast.ui.media.MediaScreen
 import app.earcast.ui.navigation.PrimaryDestination
 import app.earcast.ui.navigation.navigationBarContent
 import app.earcast.ui.onboarding.OnboardingScreen
+import app.earcast.ui.profile.ProfileSetupScreen
 import app.earcast.ui.theme.EarCastTheme
 
 // Fictional data is confined to IDE previews. Production screens use the active saved profile.
@@ -69,7 +70,7 @@ private fun ListeningPreview() {
     EarCastTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
             EarPage {
-                ListeningConsole(ListenState(hasProfile = true), false, {}, {}, {})
+                AmplificationCard(ListenState(hasProfile = true), {}, {})
             }
         }
     }
@@ -84,16 +85,15 @@ private fun HomePreview(
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize()) {
                 androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
-                    HomeScreen(
+                    MediaScreen(
                         state = AppState(hasProfile = ready, audiogram = if (ready) previewAudiogram() else null),
                         onOpenProfile = {},
-                        onOpenAssist = {},
                         onSetMediaEq = {},
                         onSetMediaBoost = {},
                         onSetMediaProcessingMode = {},
                     )
                 }
-                navigationBarContent(PrimaryDestination.HOME) {}
+                navigationBarContent(PrimaryDestination.ASSIST) {}
             }
         }
     }
@@ -113,5 +113,17 @@ private fun ConsentPreview() {
 private fun DarkConsentPreview() {
     EarCastTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) { OnboardingScreen {} }
+    }
+}
+
+@Preview(name = "Profiles", widthDp = 390, heightDp = 844)
+@Preview(name = "Profiles · large text", widthDp = 360, heightDp = 800, fontScale = 1.5f)
+@Preview(name = "Profiles · tablet", widthDp = 840, heightDp = 900)
+@Composable
+private fun ProfilesPreview() {
+    EarCastTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ProfileSetupScreen(AppState(hasProfile = true, audiogram = previewAudiogram()), {}, {}, {})
+        }
     }
 }

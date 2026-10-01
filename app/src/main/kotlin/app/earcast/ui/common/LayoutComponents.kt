@@ -23,7 +23,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -136,9 +136,15 @@ fun ActionButton(
             androidx.compose.foundation.layout
                 .PaddingValues(horizontal = 16.dp, vertical = 10.dp),
     ) {
-        Text(label, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
-        Spacer(Modifier.width(12.dp))
-        Icon(icon ?: Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(20.dp))
+        if (icon != null) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(
+            label,
+            style = MaterialTheme.typography.labelLarge,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
     }
 }
 
@@ -209,30 +215,43 @@ fun ChoiceChip(
     enabled: Boolean = true,
 ) {
     val containerColor =
-        if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceVariant
+        if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
     Box(
         modifier =
             modifier
                 .heightIn(min = 48.dp)
                 .clip(MaterialTheme.shapes.small)
                 .background(containerColor)
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
-                .selectable(selected = selected, enabled = enabled, role = Role.RadioButton, onClick = onClick)
+                .border(
+                    1.dp,
+                    if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                    MaterialTheme.shapes.small,
+                ).selectable(selected = selected, enabled = enabled, role = Role.RadioButton, onClick = onClick)
                 .padding(horizontal = 10.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelLarge,
-            color =
-                if (!enabled) {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
-                } else if (selected) {
-                    MaterialTheme.colorScheme.surface
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (selected) {
+                Icon(
+                    Icons.Filled.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            Text(
+                label,
+                style = MaterialTheme.typography.labelLarge,
+                color =
+                    if (!enabled) {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+                    } else if (selected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+            )
+        }
     }
 }
 
@@ -246,5 +265,31 @@ fun SectionGroup(
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionHeader(title, index = index)
         content()
+    }
+}
+
+@Composable
+fun AdaptiveChoices(
+    labels: List<String>,
+    selected: Int,
+    onChange: (Int) -> Unit,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+) {
+    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxWidth()) {
+        if (maxWidth / fontScale < (labels.size * 92).dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                labels.forEachIndexed { index, label ->
+                    ChoiceChip(label, index == selected, { onChange(index) }, Modifier.fillMaxWidth(), enabled)
+                }
+            }
+        } else {
+            InlineChoices {
+                labels.forEachIndexed { index, label ->
+                    ChoiceChip(label, index == selected, { onChange(index) }, Modifier.weight(1f), enabled)
+                }
+            }
+        }
     }
 }

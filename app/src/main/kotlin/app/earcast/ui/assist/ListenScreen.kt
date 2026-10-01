@@ -7,21 +7,17 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -29,15 +25,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -48,18 +42,13 @@ import app.earcast.R
 import app.earcast.assist.LiveAudioService
 import app.earcast.common.AudioLimits
 import app.earcast.core.audio.InputSource
-import app.earcast.core.audio.StreamPhase
 import app.earcast.core.audio.dsp.ListeningPreset
-import app.earcast.data.SoundProfile
 import app.earcast.ui.common.ActionButton
-import app.earcast.ui.common.ActionStyle
-import app.earcast.ui.common.BrandBar
+import app.earcast.ui.common.ActionPage
+import app.earcast.ui.common.AdaptiveChoices
+import app.earcast.ui.common.AdaptiveSplit
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
-import app.earcast.ui.common.EarPage
-import app.earcast.ui.common.InlineChoices
-import app.earcast.ui.common.PageHeading
-import app.earcast.ui.common.SectionGroup
 import app.earcast.ui.common.SectionHeader
 import app.earcast.ui.common.SurfaceCard
 import app.earcast.ui.common.SurfaceTone
@@ -82,7 +71,8 @@ fun ListenScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var speakerWarning by remember { mutableStateOf(false) }
+    var speakerWarning by rememberSaveable { mutableStateOf(false) }
+    var permissionDenied by rememberSaveable { mutableStateOf(false) }
 
     val permissions =
         buildList {
@@ -94,12 +84,14 @@ fun ListenScreen(
 
     fun proceedStart() {
         speakerWarning = false
+        permissionDenied = false
         scope.launch { if (viewModel.prepare()) LiveAudioService.start(context) }
     }
 
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
             val micGranted = result[Manifest.permission.RECORD_AUDIO] == true
+            permissionDenied = !micGranted
             if (micGranted) {
                 if (headphonesConnected(context)) proceedStart() else speakerWarning = true
             }
@@ -111,27 +103,24 @@ fun ListenScreen(
                 PackageManager.PERMISSION_GRANTED
         when {
             !micGranted -> launcher.launch(permissions)
-            !headphonesConnected(context) && !speakerWarning -> speakerWarning = true
+            !headphonesConnected(context) -> speakerWarning = true
             else -> proceedStart()
         }
     }
 
-    EarPage {
-        BrandBar(stringResource(R.string.nav_listen))
-        PageHeading(stringResource(R.string.identity_listen_title))
+    if (speakerWarning) SpeakerConfirmation(onConfirm = ::proceedStart, onCancel = { speakerWarning = false })
 
-        if (!state.hasProfile) {
-            EmptyAssistState(onOpenProfile)
-        } else {
-            AssistControls(
-                state = state,
-                speakerWarning = speakerWarning,
-                viewModel = viewModel,
-                onStart = ::startAssist,
-                onStop = { LiveAudioService.stop(context) },
+    ActionPage(showActions = state.hasProfile && !state.active, actions = {
+        if (state.hasProfile && !state.active) {
+            ActionButton(
+                stringResource(R.string.ui_start_listening),
+                onClick = ::startAssist,
+                modifier = Modifier.fillMaxWidth(),
+                icon = Icons.Filled.PlayArrow,
             )
         }
-        SafetyNote()
+    }) {
+        ListeningContent(state, viewModel, onOpenProfile, permissionDenied)
     }
 }
 
@@ -156,120 +145,57 @@ private fun EmptyAssistState(onOpenProfile: () -> Unit) {
 @Composable
 private fun AssistControls(
     state: ListenState,
-    speakerWarning: Boolean,
     viewModel: ListenStateModel,
-    onStart: () -> Unit,
-    onStop: () -> Unit,
 ) {
-    if (speakerWarning && !state.active) SpeakerWarning()
-
-    ListeningConsole(
-        state = state,
-        onGainChange = viewModel::setMasterGain,
-        onStart = onStart,
-        onStop = onStop,
-        speakerWarning = speakerWarning,
-    )
-
     SessionAudioStatus(state.sessionStatus)
-
     if (state.active) ListeningMeterCard(exposure = state.exposure, running = state.running)
-
-    SectionGroup(stringResource(R.string.identity_input_section)) {
-        MicrophoneSelector(
-            source = state.microphoneSource,
-            enabled = !state.active,
-            onChange = viewModel::setMicrophoneSource,
-        )
-    }
-
-    PresetSelector(
-        preset = state.preset,
-        running = state.active,
-        onChange = viewModel::setPreset,
-    )
-
-    DetailSection(title = stringResource(R.string.assist_more_options)) {
-        SoundOptionsPanel(
-            options = state.listeningOptions,
-            enabled = !state.active,
-            onChange = viewModel::setListeningOptions,
-        )
-
-        if (state.profiles.size > 1) {
-            ProfilesCard(
-                profiles = state.profiles,
-                activeProfileId = state.activeProfileId,
-                running = state.active,
-                onSelect = viewModel::selectProfile,
-                onDelete = viewModel::deleteProfile,
-            )
+    AdaptiveSplit(primary = {
+        MicrophoneSelector(state.microphoneSource, !state.active, viewModel::setMicrophoneSource)
+        PresetSelector(state.preset, state.active, viewModel::setPreset)
+        DetailSection(title = stringResource(R.string.ui_preview)) { SoundPreviewCard() }
+    }, secondary = {
+        SurfaceCard(Modifier.fillMaxWidth()) {
+            DetailSection(title = stringResource(R.string.ui_tuning), initiallyExpanded = true) {
+                if (state.active) {
+                    Text(
+                        stringResource(R.string.ui_stop_to_tune),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                SoundOptionsPanel(state.listeningOptions, !state.active, viewModel::setListeningOptions)
+            }
         }
-
-        SoundPreviewCard()
-    }
+    })
 }
 
 @Composable
-internal fun ListeningConsole(
+internal fun AmplificationCard(
     state: ListenState,
-    speakerWarning: Boolean,
+    onOpenProfile: () -> Unit,
     onGainChange: (Double) -> Unit,
-    onStart: () -> Unit,
-    onStop: () -> Unit,
 ) {
-    val active = state.active
-    val action =
-        stringResource(
-            if (active) {
-                R.string.assist_stop_button
-            } else if (speakerWarning) {
-                R.string.assist_start_anyway
-            } else {
-                R.string.assist_start
-            },
-        )
-    val status =
-        stringResource(
-            when (state.sessionStatus.state) {
-                StreamPhase.CONNECTING -> R.string.assist_connecting
-                StreamPhase.RUNNING -> R.string.identity_listen_running
-                else -> R.string.identity_listen_ready
-            },
-        )
-    Column(
-        Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        ListeningPowerControl(active, action, if (active) onStop else onStart)
-        Text(status, style = MaterialTheme.typography.titleLarge)
-        Text(
-            stringResource(R.string.identity_listen_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
+    SurfaceCard(Modifier.fillMaxWidth(), tone = SurfaceTone.TINT) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.ui_profile_active),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    state.profiles
+                        .firstOrNull { it.id == state.activeProfileId }
+                        ?.name
+                        .orEmpty(),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+            IconButton(onClick = onOpenProfile) {
+                Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.ui_profile_manage))
+            }
+        }
+        GainControl(state.masterGainDb, onGainChange)
     }
-    SurfaceCard(Modifier.fillMaxWidth()) {
-        SectionHeader(stringResource(R.string.identity_sound_controls))
-        GainControl(masterGainDb = state.masterGainDb, onChange = onGainChange)
-    }
-}
-
-@Composable
-private fun ListeningPowerControl(
-    active: Boolean,
-    action: String,
-    onClick: () -> Unit,
-) {
-    ActionButton(
-        label = action,
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        style = if (active) ActionStyle.DANGER else ActionStyle.PRIMARY,
-        icon = if (active) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-    )
 }
 
 @Composable
@@ -288,31 +214,17 @@ private fun MicrophoneSelector(
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(top = 8.dp),
         )
-        InputSource.entries.forEach { option ->
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                        .selectable(
-                            selected = option == source,
-                            enabled = enabled,
-                            role = Role.RadioButton,
-                            onClick = { onChange(option) },
-                        ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SelectionDot(selected = option == source)
-                Text(
-                    when (option) {
-                        InputSource.PHONE -> stringResource(R.string.assist_phone_microphone)
-                        InputSource.HEADSET -> stringResource(R.string.assist_headset_microphone)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            }
-        }
+        AdaptiveChoices(
+            labels =
+                listOf(
+                    stringResource(R.string.assist_phone_microphone),
+                    stringResource(R.string.assist_headset_microphone),
+                ),
+            selected = source.ordinal,
+            onChange = { onChange(InputSource.entries[it]) },
+            enabled = enabled,
+            modifier = Modifier.padding(top = 8.dp),
+        )
         if (!enabled) {
             Text(
                 stringResource(R.string.assist_microphone_while_running),
@@ -331,68 +243,21 @@ private fun PresetSelector(
 ) {
     SurfaceCard(modifier = Modifier.fillMaxWidth()) {
         SectionHeader(stringResource(R.string.identity_preset_section))
-        InlineChoices(modifier = Modifier.padding(top = 10.dp)) {
-            ListeningPreset.entries.forEach { entry ->
-                PresetTile(
-                    label = presetLabel(entry),
-                    selected = entry == preset,
-                    onClick = { onChange(entry) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
+        AdaptiveChoices(
+            labels = ListeningPreset.entries.map { presetLabel(it) },
+            selected = preset.ordinal,
+            onChange = { onChange(ListeningPreset.entries[it]) },
+            enabled = !running,
+            modifier = Modifier.padding(top = 8.dp),
+        )
         if (running) {
             Text(
-                stringResource(R.string.preset_while_running),
+                stringResource(R.string.ui_stop_to_tune),
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp),
             )
         }
     }
-}
-
-@Composable
-private fun PresetTile(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val containerColor =
-        if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-    Box(
-        modifier =
-            modifier
-                .heightIn(min = 50.dp)
-                .clip(MaterialTheme.shapes.small)
-                .background(containerColor)
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
-                .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-                .padding(12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun SelectionDot(selected: Boolean) {
-    val fillColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    Box(
-        modifier =
-            Modifier
-                .padding(horizontal = 6.dp)
-                .size(18.dp)
-                .clip(CircleShape)
-                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                .padding(4.dp)
-                .clip(CircleShape)
-                .background(fillColor),
-    )
 }
 
 @Composable
@@ -413,6 +278,11 @@ private fun GainControl(
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        Text(
+            stringResource(R.string.ui_amplification),
+            Modifier.weight(1f),
+            style = MaterialTheme.typography.titleMedium,
+        )
         Text("${masterGainDb.toInt()}", style = MaterialTheme.typography.headlineLarge)
         Text(
             "dB",
@@ -443,65 +313,58 @@ private fun GainControl(
 }
 
 @Composable
-private fun ProfilesCard(
-    profiles: List<SoundProfile>,
-    activeProfileId: String?,
-    running: Boolean,
-    onSelect: (String) -> Unit,
-    onDelete: (String) -> Unit,
-) {
-    SurfaceCard(modifier = Modifier.fillMaxWidth()) {
-        Text(stringResource(R.string.profiles_title), style = MaterialTheme.typography.titleSmall)
-        profiles.forEach { profile ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                        .selectable(
-                            selected = profile.id == activeProfileId,
-                            role = Role.RadioButton,
-                            onClick = { onSelect(profile.id) },
-                        ),
-            ) {
-                SelectionDot(selected = profile.id == activeProfileId)
-                Text(
-                    profile.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 8.dp).weight(1f),
-                )
-                TextButton(onClick = { onDelete(profile.id) }) {
-                    Text(stringResource(R.string.profile_delete))
-                }
-            }
-        }
-        if (running) {
-            Text(
-                stringResource(R.string.profile_switch_while_running),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun SpeakerWarning() {
-    SurfaceCard(modifier = Modifier.fillMaxWidth(), tone = SurfaceTone.DANGER) {
-        Text(
-            stringResource(R.string.assist_speaker_warning),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-        )
-    }
-}
-
-@Composable
 private fun SafetyNote() {
     CollapsibleNotice(
         title = stringResource(R.string.notice_summary),
         body = stringResource(R.string.assist_safety_note),
         modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
     )
+}
+
+@Composable
+private fun SpeakerConfirmation(
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.ui_speaker_title)) },
+        text = { Text(stringResource(R.string.assist_speaker_warning)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(stringResource(R.string.assist_start_anyway)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) { Text(stringResource(R.string.ui_cancel)) }
+        },
+    )
+}
+
+@Composable
+private fun ListeningContent(
+    state: ListenState,
+    viewModel: ListenStateModel,
+    onOpenProfile: () -> Unit,
+    permissionDenied: Boolean,
+) {
+    val context = LocalContext.current
+    if (!state.hasProfile) {
+        EmptyAssistState(onOpenProfile)
+    } else {
+        AmplificationCard(state, onOpenProfile, viewModel::setMasterGain)
+        if (permissionDenied) {
+            SurfaceCard(Modifier.fillMaxWidth(), tone = SurfaceTone.WARM) {
+                Text(stringResource(R.string.ui_mic_permission), style = MaterialTheme.typography.bodyMedium)
+                TextButton(onClick = {
+                    context.startActivity(
+                        android.content.Intent(
+                            android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            android.net.Uri.parse("package:" + context.packageName),
+                        ),
+                    )
+                }) { Text(stringResource(R.string.ui_permissions)) }
+            }
+        }
+        AssistControls(state, viewModel)
+    }
+    SafetyNote()
 }

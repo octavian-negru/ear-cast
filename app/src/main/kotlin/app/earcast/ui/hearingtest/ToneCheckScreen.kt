@@ -28,10 +28,10 @@ import app.earcast.R
 import app.earcast.audiogram.HearingCurve
 import app.earcast.common.AudioEar
 import app.earcast.ui.common.ActionButton
+import app.earcast.ui.common.ActionPage
 import app.earcast.ui.common.ActionStyle
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.DetailSection
-import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.JourneyStep
 import app.earcast.ui.common.PageHeading
 import app.earcast.ui.common.ScreenHeader
@@ -57,7 +57,14 @@ fun ToneCheckScreen(
         onDispose { viewModel.mute() }
     }
 
-    EarPage {
+    ActionPage(showActions = state.phase == ToneCheckPhase.IN_PROGRESS, actions = {
+        ActionButton(
+            stringResource(R.string.check_mute),
+            viewModel::mute,
+            Modifier.fillMaxWidth(),
+            style = ActionStyle.DANGER,
+        )
+    }) {
         ScreenHeader(title = stringResource(R.string.check_title), onBack = onBack)
 
         when (state.phase) {
@@ -119,7 +126,7 @@ private fun InProgress(
     val questionText =
         if (state.isPlaying) stringResource(R.string.check_playing) else stringResource(R.string.check_question)
     Column {
-        SurfaceCard(tone = SurfaceTone.DARK, modifier = Modifier.fillMaxWidth()) {
+        SurfaceCard(tone = SurfaceTone.TINT, modifier = Modifier.fillMaxWidth()) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 StatusTag(
                     stringResource(R.string.check_progress, state.completed + 1, state.total),
@@ -132,7 +139,7 @@ private fun InProgress(
                         state.currentFrequencyHz?.toInt() ?: 0,
                     ),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.background,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
             LinearProgressIndicator(
@@ -142,7 +149,7 @@ private fun InProgress(
             Text(
                 questionText,
                 style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.background,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.padding(top = 18.dp, bottom = 4.dp),
             )
         }
@@ -177,12 +184,6 @@ private fun SafetyControls(
             value = state.masterCap,
             onValueChange = viewModel::setMasterCap,
             modifier = Modifier.semantics { contentDescription = sliderDescription },
-        )
-        ActionButton(
-            label = stringResource(R.string.check_mute),
-            onClick = viewModel::mute,
-            modifier = Modifier.fillMaxWidth(),
-            style = ActionStyle.DANGER,
         )
     }
 }

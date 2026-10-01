@@ -31,7 +31,6 @@ import app.earcast.ui.AppStateModel
 import app.earcast.ui.background.BackgroundListeningSettings
 import app.earcast.ui.common.ActionButton
 import app.earcast.ui.common.ActionStyle
-import app.earcast.ui.common.BrandBar
 import app.earcast.ui.common.CollapsibleNotice
 import app.earcast.ui.common.EarPage
 import app.earcast.ui.common.PageHeading
@@ -49,17 +48,18 @@ fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
     var showTerms by rememberSaveable { mutableStateOf(false) }
     if (showTerms) TermsDialog(onDismiss = { showTerms = false })
     EarPage {
-        BrandBar(stringResource(R.string.nav_settings))
-        PageHeading(stringResource(R.string.identity_settings_title), stringResource(R.string.identity_settings_detail))
+        PageHeading(stringResource(R.string.nav_settings), stringResource(R.string.ui_settings_subtitle))
         SectionGroup(stringResource(R.string.identity_settings_accessibility)) {
-            AppearanceControl(state.highContrast, rootViewModel::setHighContrast)
+            SurfaceCard(Modifier.fillMaxWidth()) {
+                AppearanceControl(state.highContrast, rootViewModel::setHighContrast)
+            }
         }
         SectionGroup(stringResource(R.string.identity_settings_comfort)) {
             ComfortCalibration(state.comfortCeiling, rootViewModel::setComfortCeiling) {
                 rootViewModel.previewComfort(state.comfortCeiling)
             }
         }
-        BackgroundListeningSettings()
+        SurfaceCard(Modifier.fillMaxWidth()) { BackgroundListeningSettings() }
         SectionGroup(stringResource(R.string.listening_safety_title)) {
             Text(stringResource(R.string.listening_safety_body), style = MaterialTheme.typography.bodyMedium)
             SafetySourceLink()
@@ -70,8 +70,18 @@ fun SettingsScreen(rootViewModel: AppStateModel = hiltViewModel()) {
                 style = MaterialTheme.typography.titleLarge,
             )
             CollapsibleNotice(stringResource(R.string.about_title), stringResource(R.string.about_body))
-            TextButton(onClick = { showPrivacy = true }) { Text(stringResource(R.string.privacy_policy_title)) }
-            TextButton(onClick = { showTerms = true }) { Text(stringResource(R.string.terms_title)) }
+        }
+        SectionGroup(stringResource(R.string.ui_legal)) {
+            SurfaceCard(Modifier.fillMaxWidth()) {
+                TextButton(
+                    onClick = { showPrivacy = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text(stringResource(R.string.privacy_policy_title)) }
+                TextButton(
+                    onClick = { showTerms = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text(stringResource(R.string.terms_title)) }
+            }
         }
     }
 }
