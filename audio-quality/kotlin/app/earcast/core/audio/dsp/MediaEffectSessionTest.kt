@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class MediaEffectSessionTest {
     private val bands = listOf(MediaBand(1_000.0, 2_000.0, -3.0, 0.0))
@@ -120,6 +121,51 @@ class MediaEffectSessionTest {
         assertEquals(1, closed)
         assertTrue(session.apply(changed))
         assertTrue(session.isActive)
+    }
+
+    @Test
+    fun `asynchronous effect failure is inactive and identical settings can restore it`() {
+        var healthy = true
+        var started = 0
+        var closed = 0
+        val session =
+            MediaEffectSession {
+                started++
+                healthy = true
+                object : MediaEffectHandle {
+                    override val isActive: Boolean
+                        get() = healthy
+
+                    override fun setBoostDb(db: Float) = Unit
+
+                    override fun close() {
+                        closed++
+                    }
+                }
+            }
+        assertTrue(session.apply(configuration))
+        healthy = false
+        assertFalse(session.isActive)
+        assertTrue(session.apply(configuration))
+        assertTrue(session.isActive)
+        assertEquals(2, started)
+        assertEquals(1, closed)
+    }
+
+    @Test
+    fun `invalid post EQ cannot add gain after the headroom planner`() {
+        for (gain in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 1.0, -100.0)) {
+            assertThrows<IllegalArgumentException> {
+                configuration.copy(bands = listOf(bands.single().copy(leftGainDb = gain)))
+            }
+            assertThrows<IllegalArgumentException> {
+                configuration.copy(bands = listOf(bands.single().copy(rightGainDb = gain)))
+            }
+        }
+        assertThrows<IllegalArgumentException> { configuration.copy(bands = bands + bands) }
+        assertThrows<IllegalArgumentException> {
+            configuration.copy(bands = listOf(bands.single().copy(cutoffHz = Double.NaN)))
+        }
     }
 
     private fun effect(

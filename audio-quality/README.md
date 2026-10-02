@@ -1,6 +1,6 @@
 # Audio quality workbench
 
-All new evaluation code lives here, outside production source directories.
+Offline evaluation code lives here, outside production source directories.
 Nothing in this directory installs dependencies, downloads models or plays audio
 automatically. The native regression suite and Kotlin unit tests were run for the
 classical-engine update; real-speech and device listening comparisons remain pending.
@@ -17,6 +17,13 @@ classical-engine update; real-speech and device listening comparisons remain pen
   listening exports, recording extraction and explicit acceptance gates.
 - `python/tests/`: tests of the measurement tools themselves. These do not
   establish neural-model quality; the real-speech replay comparisons do that.
+
+Media amplification has a separate [design and evaluation note](../docs/MEDIA_AMPLIFIER.md).
+`MediaDynamicsQualityTest` uses production plans and a band-envelope reference;
+it does not render Android's FFT effect or prove PCM peak containment. Silent
+framework configuration tests live in `app/src/androidTest`; run them with
+`:app:connectedDebugAndroidTest` on an API 28+ emulator/device. Physical output
+capture and matched-loudness listening comparisons remain necessary.
 
 ## Audio inputs
 

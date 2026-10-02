@@ -84,7 +84,10 @@ in memory for immediate playback.
 Home's Media sound controls feed `MediaSoundController` and the Android effect
 session in `audio-engine`. `MediaCurvePlanner` maps the hearing profile to that
 path's settings. Balanced and Speech clarity modes provide different dynamics
-configurations, with an additional quiet-sound boost.
+spectral headroom budgets, with an additional quiet-sound boost. Both modes use
+four compression bands followed by the per-ear profile and a linked limiter;
+boost changes ramp on the existing effect. The [amplifier design](docs/MEDIA_AMPLIFIER.md)
+documents the transfer law, regression results and RMS limiter limitations.
 
 This feature uses Android playback effects rather than the microphone session's
 native speech engine. Device and player support determine whether an effect can

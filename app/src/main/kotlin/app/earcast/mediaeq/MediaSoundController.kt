@@ -3,7 +3,9 @@ package app.earcast.mediaeq
 import android.annotation.TargetApi
 import android.media.audiofx.DynamicsProcessing
 import android.os.Build
-import app.earcast.core.audio.dsp.MediaDynamicsBand
+import android.os.Handler
+import android.os.Looper
+import app.earcast.core.audio.dsp.MediaBoostRamp
 import app.earcast.core.audio.dsp.MediaDynamicsPlanner
 import app.earcast.core.audio.dsp.MediaEffectHandle
 import app.earcast.core.audio.dsp.MediaEffectSession
@@ -14,18 +16,18 @@ import javax.inject.Singleton
 
 /**
  * Applies the user's per-ear sound profile to other apps' audio by
- * attaching a [DynamicsProcessing] effect (pre-EQ per channel + the effect's own
- * wide-dynamic-range compressor and limiter) to the global output mix (audio session 0).
+ * attaching a [DynamicsProcessing] effect (spectral dynamics, per-ear post-EQ and
+ * a linked limiter) to the global output mix (audio session 0).
  *
  * Honest limitations, surfaced in the UI copy:
  * - Global-session effects are deprecated platform behavior; several OEMs ignore
- *   or reject them. Every call is wrapped and failure is reported, never thrown.
+ *   or reject them. Attachment failures are returned to the caller.
  * - The effect lives only as long as the app's process.
  * - Requires API 28+ ([DynamicsProcessing]'s introduction).
  *
- * The planner supplies relative cuts and either linked broadband or independent
- * multiband dynamics. Boost is post-compression makeup gain, leaving the effect's
- * input at unity so high settings do not create an over-range intermediate signal.
+ * Both modes use a shared spectral power budget. Post-EQ prevents the independent
+ * channel compressors from undoing the profile. Only the final limiter is stereo
+ * linked; Android exposes no channel link for MBC. Boost changes slew in dB.
  * Playback leases prevent applying this global effect on top of the app's own processing.
  */
 @Singleton
@@ -35,26 +37,13 @@ class MediaSoundController
         private val session =
             MediaEffectSession { configuration ->
                 val effect = buildEffect(configuration)
-                object : MediaEffectHandle {
-                    @TargetApi(Build.VERSION_CODES.P)
-                    override fun setBoostDb(db: Float) {
-                        configureDynamics(effect, db, configuration.mode)
-                    }
-
-                    override fun close() {
-                        try {
-                            effect.setEnabled(false)
-                        } finally {
-                            effect.release()
-                        }
-                    }
-                }
+                RampedEffect(effect, configuration.mode).also { it.setBoostDb(configuration.boostDb) }
             }
 
         val isSupported: Boolean
             get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 
-        /** True while the effect object exists (created and not yet released). */
+        /** False after release or an asynchronous parameter-update failure. */
         val isActive: Boolean
             get() = session.isActive
 
@@ -74,54 +63,9 @@ class MediaSoundController
         @TargetApi(Build.VERSION_CODES.P)
         private fun buildEffect(configuration: MediaSoundConfig): DynamicsProcessing {
             check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            val bands = configuration.bands
-            val dynamicsBands = MediaDynamicsPlanner.planBands(configuration.boostDb, configuration.mode)
-            val config =
-                DynamicsProcessing.Config
-                    .Builder(
-                        DynamicsProcessing.VARIANT_FAVOR_FREQUENCY_RESOLUTION,
-                        CHANNEL_COUNT,
-                        true,
-                        bands.size,
-                        true,
-                        dynamicsBands.size,
-                        false,
-                        0,
-                        true,
-                    ).setPreferredFrameDuration(FRAME_DURATION_MS)
-                    .build()
-
-            val dp = DynamicsProcessing(0, GLOBAL_OUTPUT_MIX_SESSION, config)
+            val dp = DynamicsProcessing(0, GLOBAL_OUTPUT_MIX_SESSION, MediaEffectConfiguration.create(configuration))
             var configured = false
             try {
-                dp.setInputGainAllChannelsTo(0.0f)
-                bands.forEachIndexed { index, band ->
-                    dp.setPreEqBandByChannelIndex(
-                        LEFT_CHANNEL,
-                        index,
-                        DynamicsProcessing.EqBand(true, band.cutoffHz.toFloat(), band.leftGainDb.toFloat()),
-                    )
-                    dp.setPreEqBandByChannelIndex(
-                        RIGHT_CHANNEL,
-                        index,
-                        DynamicsProcessing.EqBand(true, band.cutoffHz.toFloat(), band.rightGainDb.toFloat()),
-                    )
-                }
-                dynamicsBands.forEachIndexed { index, band ->
-                    dp.setMbcBandAllChannelsTo(index, compressionBand(band))
-                }
-                dp.setLimiterAllChannelsTo(
-                    DynamicsProcessing.Limiter(
-                        true,
-                        true,
-                        LIMITER_LINK_GROUP,
-                        LIMITER_ATTACK_MS,
-                        LIMITER_RELEASE_MS,
-                        LIMITER_RATIO,
-                        LIMITER_THRESHOLD_DB,
-                        LIMITER_POST_GAIN_DB,
-                    ),
-                )
                 check(dp.setEnabled(true) == 0) { "Android could not enable media EQ" }
                 configured = true
                 return dp
@@ -137,42 +81,59 @@ class MediaSoundController
             mode: MediaProcessingMode,
         ) {
             MediaDynamicsPlanner.planBands(boostDb, mode).forEachIndexed { index, band ->
-                effect.setMbcBandAllChannelsTo(index, compressionBand(band))
+                effect.setMbcBandAllChannelsTo(index, MediaEffectConfiguration.compressionBand(band))
             }
         }
 
         @TargetApi(Build.VERSION_CODES.P)
-        private fun compressionBand(band: MediaDynamicsBand): DynamicsProcessing.MbcBand {
-            val plan = band.compression
-            return DynamicsProcessing.MbcBand(
-                true,
-                band.cutoffHz,
-                plan.attackMs,
-                plan.releaseMs,
-                plan.ratio,
-                plan.thresholdDbFs,
-                plan.kneeWidthDb,
-                MBC_NOISE_GATE_DB,
-                MBC_EXPANDER_RATIO,
-                MBC_PRE_GAIN_DB,
-                plan.postGainDb,
-            )
+        private inner class RampedEffect(
+            private val effect: DynamicsProcessing,
+            private val mode: MediaProcessingMode,
+        ) : MediaEffectHandle {
+            private val handler = Handler(Looper.getMainLooper())
+            private val ramp = MediaBoostRamp()
+            private var closed = false
+            private val tick = Runnable { advance() }
+
+            override val isActive: Boolean
+                @Synchronized get() = !closed
+
+            @Synchronized
+            override fun setBoostDb(db: Float) {
+                check(!closed) { "Media effect is closed" }
+                ramp.setTarget(db)
+                handler.removeCallbacks(tick)
+                if (!ramp.isSettled) handler.postDelayed(tick, RAMP_INTERVAL_MS)
+            }
+
+            @Synchronized
+            private fun advance() {
+                if (closed) return
+                try {
+                    configureDynamics(effect, ramp.advance(RAMP_INTERVAL_MS.toFloat()), mode)
+                    if (!ramp.isSettled) handler.postDelayed(tick, RAMP_INTERVAL_MS)
+                } catch (_: RuntimeException) {
+                    // Native effect loss must not crash the main thread or leave
+                    // a partially updated boost running. A later apply can retry.
+                    runCatching { close() }
+                }
+            }
+
+            @Synchronized
+            override fun close() {
+                if (closed) return
+                closed = true
+                handler.removeCallbacks(tick)
+                try {
+                    effect.setEnabled(false)
+                } finally {
+                    effect.release()
+                }
+            }
         }
 
         private companion object {
             const val GLOBAL_OUTPUT_MIX_SESSION = 0
-            const val CHANNEL_COUNT = 2
-            const val LEFT_CHANNEL = 0
-            const val RIGHT_CHANNEL = 1
-            const val FRAME_DURATION_MS = 10.0f
-            const val MBC_NOISE_GATE_DB = -80.0f
-            const val MBC_EXPANDER_RATIO = 1.0f
-            const val MBC_PRE_GAIN_DB = 0.0f
-            const val LIMITER_LINK_GROUP = 0
-            const val LIMITER_ATTACK_MS = 1.0f
-            const val LIMITER_RELEASE_MS = 60.0f
-            const val LIMITER_RATIO = 10.0f
-            const val LIMITER_THRESHOLD_DB = -2.0f
-            const val LIMITER_POST_GAIN_DB = 0.0f
+            const val RAMP_INTERVAL_MS = 10L
         }
     }

@@ -221,8 +221,8 @@
     <string name="media_algorithm">Sound algorithm</string>
     <string name="media_algorithm_balanced">Balanced</string>
     <string name="media_algorithm_speech">Speech clarity</string>
-    <string name="media_algorithm_balanced_desc">Smooth, linked dynamics that preserve the original mix.</string>
-    <string name="media_algorithm_speech_desc">Four bands lift speech separately so bass and music do not mask voices.</string>
+    <string name="media_algorithm_balanced_desc">Balances bass, voices and treble as you turn up quiet media.</string>
+    <string name="media_algorithm_speech_desc">Gives voices more room when bass and background sound get loud.</string>
     <string name="media_eq_unsupported">Not supported on this device or Android version.</string>
     <string name="media_eq_no_profile">Run the hearing check or enter results first.</string>
     <string name="media_eq_failed">Couldn\'t enable on this device.</string>

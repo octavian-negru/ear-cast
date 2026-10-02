@@ -21,89 +21,27 @@ data class MediaSoundConfig(
     init {
         require(bands.isNotEmpty())
         require(boostDb.isFinite() && boostDb in 0f..AudioLimits.MAX_MEDIA_BOOST_DB)
-    }
-}
-
-/** WDRC settings that preserve requested gain for quiet media without overdriving loud media. */
-data class MediaCompressionPlan(
-    val thresholdDbFs: Float,
-    val ratio: Float,
-    val attackMs: Float,
-    val releaseMs: Float,
-    val kneeWidthDb: Float,
-    val postGainDb: Float,
-)
-
-data class MediaDynamicsBand(
-    val cutoffHz: Float,
-    val compression: MediaCompressionPlan,
-)
-
-object MediaDynamicsPlanner {
-    const val QUIET_INPUT_THRESHOLD_DB_FS = -30.0f
-    const val OUTPUT_CEILING_DB_FS = -2.0f
-    const val ATTACK_MS = 5.0f
-    const val RELEASE_MS = 120.0f
-    const val KNEE_WIDTH_DB = 4.0f
-    const val TOP_CUTOFF_HZ = 20_000.0f
-    private const val COMPRESSION_RANGE_DB = 12.0f
-
-    fun plan(boostDb: Float): MediaCompressionPlan = compressionPlan(boostDb, ATTACK_MS, RELEASE_MS)
-
-    fun planBands(
-        boostDb: Float,
-        mode: MediaProcessingMode,
-    ): List<MediaDynamicsBand> =
-        when (mode) {
-            MediaProcessingMode.BALANCED ->
-                listOf(MediaDynamicsBand(TOP_CUTOFF_HZ, plan(boostDb)))
-            MediaProcessingMode.SPEECH_CLARITY ->
-                listOf(
-                    dynamicsBand(boostDb, cutoffHz = 250.0f, attackMs = 15.0f, releaseMs = 240.0f),
-                    dynamicsBand(boostDb, cutoffHz = 1_000.0f, attackMs = 10.0f, releaseMs = 180.0f),
-                    dynamicsBand(boostDb, cutoffHz = 4_000.0f, attackMs = 5.0f, releaseMs = 120.0f),
-                    dynamicsBand(boostDb, cutoffHz = TOP_CUTOFF_HZ, attackMs = 3.0f, releaseMs = 80.0f),
-                )
-        }
-
-    private fun dynamicsBand(
-        boostDb: Float,
-        cutoffHz: Float,
-        attackMs: Float,
-        releaseMs: Float,
-    ) = MediaDynamicsBand(cutoffHz, compressionPlan(boostDb, attackMs, releaseMs))
-
-    private fun compressionPlan(
-        boostDb: Float,
-        attackMs: Float,
-        releaseMs: Float,
-    ): MediaCompressionPlan {
-        require(boostDb.isFinite() && boostDb in 0f..AudioLimits.MAX_MEDIA_BOOST_DB)
-        // Use available headroom before compressing ordinary listening levels.
-        // At high boosts retain the quiet-speech threshold and existing full-scale
-        // target; the final platform limiter still catches transient overshoot.
-        val thresholdDbFs =
-            maxOf(QUIET_INPUT_THRESHOLD_DB_FS, OUTPUT_CEILING_DB_FS - boostDb - COMPRESSION_RANGE_DB)
-        val ratio =
-            if (boostDb == 0.0f) {
-                1.0f
-            } else {
-                -thresholdDbFs /
-                    (OUTPUT_CEILING_DB_FS - boostDb - thresholdDbFs)
-            }
-        return MediaCompressionPlan(
-            thresholdDbFs = thresholdDbFs,
-            ratio = ratio,
-            attackMs = attackMs,
-            releaseMs = releaseMs,
-            kneeWidthDb = KNEE_WIDTH_DB,
-            postGainDb = boostDb,
+        require(
+            bands.all {
+                it.centerHz.isFinite() && it.centerHz > 0.0 && it.cutoffHz.isFinite() && it.cutoffHz > 0.0
+            },
+        )
+        require(bands.zipWithNext().all { (lower, upper) -> lower.cutoffHz < upper.cutoffHz })
+        require(
+            bands.all {
+                it.leftGainDb in -AudioLimits.MEDIA_EQ_MAX_BAND_GAIN_DB..0.0 &&
+                    it.rightGainDb in -AudioLimits.MEDIA_EQ_MAX_BAND_GAIN_DB..0.0
+            },
         )
     }
 }
 
 /** Native effect handle; volume changes update the existing effect without a gap. */
 interface MediaEffectHandle : AutoCloseable {
+    /** False after asynchronous loss of the platform effect. */
+    val isActive: Boolean
+        get() = true
+
     fun setBoostDb(db: Float)
 }
 
@@ -120,15 +58,16 @@ class MediaEffectSession(
     private var players = 0
 
     val isActive: Boolean
-        @Synchronized get() = effect != null
+        @Synchronized get() = effect?.isActive == true
 
     @Synchronized
     fun apply(configuration: MediaSoundConfig): Boolean {
-        if (requested == configuration && (effect != null || players > 0)) return true
+        if (requested == configuration && (isActive || players > 0)) return true
         val previous = requested
         requested = configuration.copy(bands = configuration.bands.toList())
         val current = effect
-        if (previous?.bands == configuration.bands && previous.mode == configuration.mode && current != null) {
+        val sameShape = previous?.bands == configuration.bands && previous.mode == configuration.mode
+        if (sameShape && current?.isActive == true) {
             return runCatching { current.setBoostDb(configuration.boostDb) }
                 .onFailure { closeEffect() }
                 .isSuccess
@@ -167,7 +106,8 @@ class MediaEffectSession(
 
     private fun restore(): Boolean {
         val configuration = requested ?: return true
-        if (players > 0 || effect != null) return true
+        if (players > 0 || isActive) return true
+        closeEffect()
         return runCatching { effect = createEffect(configuration) }.isSuccess
     }
 }
