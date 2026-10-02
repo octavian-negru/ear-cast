@@ -4,8 +4,7 @@
 // core — including the limiter — is unit-testable without a device.
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.android.junit5)
+    alias(libs.plugins.android.junit)
 }
 
 android {
@@ -32,7 +31,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
+            version = libs.versions.cmake.get()
         }
     }
 
@@ -40,10 +39,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-    sourceSets.getByName("test").java.srcDir(rootProject.file("audio-quality/kotlin"))
+}
+
+androidComponents.onVariants { variant ->
+    variant.hostTests["unitTest"]?.sources?.kotlin?.addStaticSourceDirectory(
+        rootProject.file("audio-quality/kotlin").path,
+    )
 }
 
 dependencies {
@@ -55,5 +56,6 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.kotlinx.coroutines.test)
 }

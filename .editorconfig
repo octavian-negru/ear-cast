@@ -1,0 +1,6 @@
+root = true
+
+[*.{kt,kts}]
+# Keep the existing when-expression style when upgrading to ktlint 1.8.
+ktlint_standard_blank-line-between-when-conditions = disabled
+ktlint_standard_when-entry-bracing = disabled

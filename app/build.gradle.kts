@@ -6,11 +6,10 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.android.junit5)
+    alias(libs.plugins.android.junit)
 }
 
 // Release signing is read from a gitignored keystore.properties (never committed).
@@ -121,9 +120,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
         buildConfig = true // BuildConfig.VERSION_NAME shown on the About card
@@ -159,6 +155,7 @@ dependencies {
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.test.ext.junit)
@@ -168,36 +165,37 @@ dependencies {
 
 // Keep local tests and APK audits available without pretending an unsigned AAB
 // is publishable. The normal Play bundle command fails on missing release inputs.
-val verifyPlayRelease by tasks.registering {
-    group = "verification"
-    description = "Checks signing and public privacy contact before packaging a Play bundle."
-    val auditOnly = unsignedAudit.get().toBoolean()
-    val apkSplitsEnabled = splitApks
-    val signingValues = listOf("storeFile", "storePassword", "keyAlias", "keyPassword").map { keystoreProps.getProperty(it) }
-    val uploadStore = keystoreProps.getProperty("storeFile")?.let { rootProject.file(it) }
-    val policyUrl = privacyPolicyUrl.get()
-    val contactEmail = supportEmail.get()
-    doLast {
-        check(!apkSplitsEnabled) {
-            "Build App Bundles with -PearcastSplitApks=false; AGP 8.10 resource shrinking requires one APK output."
-        }
-        if (auditOnly) {
-            logger.warn("UNSIGNED AUDIT ONLY: this bundle has not passed Play release configuration checks.")
-        } else {
-            check(signingValues.all { !it.isNullOrBlank() }) {
-                "Configure signing in gitignored keystore.properties. See docs/RELEASE.md."
+val verifyPlayRelease =
+    tasks.register("verifyPlayRelease") {
+        group = "verification"
+        description = "Checks signing and public privacy contact before packaging a Play bundle."
+        val auditOnly = unsignedAudit.get().toBoolean()
+        val apkSplitsEnabled = splitApks
+        val signingValues = listOf("storeFile", "storePassword", "keyAlias", "keyPassword").map { keystoreProps.getProperty(it) }
+        val uploadStore = keystoreProps.getProperty("storeFile")?.let { rootProject.file(it) }
+        val policyUrl = privacyPolicyUrl.get()
+        val contactEmail = supportEmail.get()
+        doLast {
+            check(!apkSplitsEnabled) {
+                "Build App Bundles with -PearcastSplitApks=false; AGP 8.10 resource shrinking requires one APK output."
             }
-            check(uploadStore?.isFile == true) { "Upload keystore does not exist." }
-            val uri = runCatching { URI(policyUrl) }.getOrNull()
-            check(uri?.scheme == "https" && !uri.host.isNullOrBlank() && uri.userInfo == null) {
-                "Set earcastPrivacyPolicyUrl to your published HTTPS privacy policy."
-            }
-            check(contactEmail.matches(Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+"))) {
-                "Set earcastSupportEmail to a monitored public contact address."
+            if (auditOnly) {
+                logger.warn("UNSIGNED AUDIT ONLY: this bundle has not passed Play release configuration checks.")
+            } else {
+                check(signingValues.all { !it.isNullOrBlank() }) {
+                    "Configure signing in gitignored keystore.properties. See docs/RELEASE.md."
+                }
+                check(uploadStore?.isFile == true) { "Upload keystore does not exist." }
+                val uri = runCatching { URI(policyUrl) }.getOrNull()
+                check(uri?.scheme == "https" && !uri.host.isNullOrBlank() && uri.userInfo == null) {
+                    "Set earcastPrivacyPolicyUrl to your published HTTPS privacy policy."
+                }
+                check(contactEmail.matches(Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+"))) {
+                    "Set earcastSupportEmail to a monitored public contact address."
+                }
             }
         }
     }
-}
 tasks.matching { it.name == "bundleRelease" || it.name == "buildReleasePreBundle" }.configureEach {
     dependsOn(verifyPlayRelease)
 }
@@ -227,31 +225,33 @@ val signatureChecks =
         }
     }
 
-val verifyLocalReleaseApk by tasks.registering {
-    group = "verification"
-    description = "Verifies the signatures of all APKs produced for local installation."
-    dependsOn(signatureChecks)
-}
+val verifyLocalReleaseApk =
+    tasks.register("verifyLocalReleaseApk") {
+        group = "verification"
+        description = "Verifies the signatures of all APKs produced for local installation."
+        dependsOn(signatureChecks)
+    }
 
 // Installable release APKs for local testing; publication still uses verifyPlayRelease.
-val assembleLocalRelease by tasks.registering {
-    group = "build"
-    description = "Builds signed, optimized APKs for installation on a local device."
-    val localSigningAllowed = localRelease
-    val configuredReleaseSigning = keystoreProps.isNotEmpty()
-    val apks = localApkNames.mapValues { (_, name) -> layout.buildDirectory.file("outputs/apk/release/$name") }
-    dependsOn(verifyLocalReleaseApk)
-    doLast {
-        check(configuredReleaseSigning || localSigningAllowed) {
-            "Use just build-prod or pass -PearcastLocalRelease=true for local signing."
-        }
-        if (!configuredReleaseSigning) {
-            logger.lifecycle("LOCAL TEST APK: signed with the debug key; configure keystore.properties before publishing.")
-        }
-        apks.forEach { (abi, output) ->
-            val apk = output.get().asFile
-            check(apk.isFile) { "Expected signed APK was not produced: $apk" }
-            logger.lifecycle("Install APK ($abi): $apk (${apk.length() / 1_000_000} MB)")
+val assembleLocalRelease =
+    tasks.register("assembleLocalRelease") {
+        group = "build"
+        description = "Builds signed, optimized APKs for installation on a local device."
+        val localSigningAllowed = localRelease
+        val configuredReleaseSigning = keystoreProps.isNotEmpty()
+        val apks = localApkNames.mapValues { (_, name) -> layout.buildDirectory.file("outputs/apk/release/$name") }
+        dependsOn(verifyLocalReleaseApk)
+        doLast {
+            check(configuredReleaseSigning || localSigningAllowed) {
+                "Use just build-prod or pass -PearcastLocalRelease=true for local signing."
+            }
+            if (!configuredReleaseSigning) {
+                logger.lifecycle("LOCAL TEST APK: signed with the debug key; configure keystore.properties before publishing.")
+            }
+            apks.forEach { (abi, output) ->
+                val apk = output.get().asFile
+                check(apk.isFile) { "Expected signed APK was not produced: $apk" }
+                logger.lifecycle("Install APK ($abi): $apk (${apk.length() / 1_000_000} MB)")
+            }
         }
     }
-}

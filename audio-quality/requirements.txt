@@ -1,6 +1,6 @@
 # Evaluation only; never added to the app or installed automatically.
-numpy>=1.24,<3
-scipy>=1.10,<2
-pystoi>=0.4,<0.5
+numpy>=2.5.3,<3
+scipy>=1.18.1,<2
+pystoi>=0.4.1,<0.5
 # Optional DFN comparison additionally needs an upstream-compatible installation
 # of deepfilternet, torch and torchaudio, and an explicit local DFN3 model directory.
