@@ -9,15 +9,28 @@ EarCast was inspired by [OpenHearing](https://github.com/HMAKT99/OpenHearing).
 The app runs on Android 8.0 and newer. Audio processing happens on the phone;
 root access and an EarCast account are not required.
 
+## Screenshots
+
+Screenshots from the Android app, using an example audiogram. Select an image to
+view it at full size.
+
+| Profiles | Audiogram editor |
+| :---: | :---: |
+| [<img src="docs/images/screenshots/profiles.png" alt="EarCast Profiles screen with a saved audiogram" width="260">](docs/images/screenshots/profiles.png) | [<img src="docs/images/screenshots/audiogram-editor.png" alt="EarCast audiogram editor with separate right and left ear curves" width="260">](docs/images/screenshots/audiogram-editor.png) |
+
+| Listening | Settings |
+| :---: | :---: |
+| [<img src="docs/images/screenshots/listen.png" alt="EarCast live listening controls for amplification, microphone and listening style" width="260">](docs/images/screenshots/listen.png) | [<img src="docs/images/screenshots/settings.png" alt="EarCast settings for output comfort and accessibility" width="260">](docs/images/screenshots/settings.png) |
+
 ## Start with your audiogram
 
-The **Audiogram** tab brings together the hearing check and profile editor.
+The **Profiles** tab brings together the hearing check and profile editor.
 You can take the guided tone check or enter values from an existing audiogram.
 The editor lets you select an ear, change points on the chart, and adjust a
 selected frequency with the level slider. Tone previews have a separate stop
 control.
 
-Your saved chart appears on Home and in Audiogram, with separate markers for
+Your saved chart appears in Profiles, with separate markers for
 left and right ears. Keep multiple profiles, select the one to use for listening,
 and preview a results image before sharing it through Android.
 
@@ -28,7 +41,7 @@ replacement for a professional hearing assessment.
 ## Listen with your profile
 
 1. Connect your headphones and accept the first-run safety terms.
-2. Open **Audiogram** and save a profile from a tone check or manual entry.
+2. Open **Profiles** and save a profile from a tone check or manual entry.
 3. In **Settings**, set a comfortable output ceiling.
 4. Open **Listen**, choose a microphone and listening options, and start assist.
 5. Adjust the listening volume as needed. Stop from the listening controls or
@@ -48,7 +61,7 @@ reduction. Only one noise-reduction engine runs at a time. RNNoise also supports
 quiet-speech boost. The output limiters remain active regardless of the selected
 engine.
 
-**Media sound**, on Home, applies the profile to supported music and video
+**Media sound**, on Listen, applies the profile to supported music and video
 playback through Android audio effects. It offers Balanced and Speech clarity
 processing plus a quiet-sound boost. Availability varies by device and player.
 
