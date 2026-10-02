@@ -1,3 +1,5 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -20,6 +22,10 @@ subprojects {
         buildUponDefaultConfig = true
         config.setFrom(rootProject.files("config/detekt/detekt.yml"))
         ignoreFailures = false
+    }
+
+    tasks.withType<Detekt>().configureEach {
+        jvmTarget = "17"
     }
 
     ktlint {

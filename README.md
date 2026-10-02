@@ -69,8 +69,14 @@ Details: [privacy](docs/PRIVACY.md).
 
 ## Build and evaluate
 
-Use JDK 17 and Android SDK 37. Set `sdk.dir` in `local.properties` or provide
-`ANDROID_HOME` for your SDK installation.
+The build uses JDK 27 (the latest stable release) and Android SDK 37. Gradle's
+runtime version is pinned in `gradle/gradle-daemon-jvm.properties`. Gradle uses
+an installed JDK 27 or downloads Eclipse Temurin 27 on Linux (x64/ARM64), macOS
+(ARM64) and Windows (x64). The first download requires network access.
+`just i` installs a system JDK to launch the wrapper; Gradle then selects JDK 27
+for the build, including builds started from Android Studio. Source and bytecode
+compatibility stay at Java 17 for Android. Set `sdk.dir` in `local.properties` or
+provide `ANDROID_HOME` for your SDK installation.
 
 ```bash
 ./gradlew assembleDebug

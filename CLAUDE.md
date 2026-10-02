@@ -15,8 +15,10 @@ The app is not a medical device. See [README](README.md) and
 
 ## Build
 
-Use JDK 17, the Gradle wrapper and the Android SDK. Versions are in
-`gradle/libs.versions.toml` and `gradle/wrapper/gradle-wrapper.properties`.
+Use JDK 27, the Gradle wrapper and the Android SDK. The Gradle runtime is pinned
+in `gradle/gradle-daemon-jvm.properties`; source and bytecode compatibility stay
+at Java 17 for Android. Other versions are in `gradle/libs.versions.toml` and
+`gradle/wrapper/gradle-wrapper.properties`.
 
 ```sh
 ./gradlew test ktlintCheck detekt :app:assembleDebug :app:lintRelease
