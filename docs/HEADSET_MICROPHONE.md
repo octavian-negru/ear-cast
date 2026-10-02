@@ -1,6 +1,6 @@
 # Headset microphone hearing assist
 
-Hearing assist now offers **Phone microphone** and **Headset microphone**.
+Hearing assist offers **Phone microphone** and **Headset microphone**.
 Choose the source before starting; the choice is saved and also used by the
 quick-settings tile. For remote listening, choose **Phone microphone** and place
 the phone near the sound source; there is no separate remote-microphone mode.
@@ -36,80 +36,16 @@ on the assist screen, in the notification, and through the tile. Losing the
 selected route or audio focus ends the session; reconnect and explicitly restart.
 Connection failure is shown on the screen rather than silently using the phone mic.
 
-## Sound clarity (CMF Buds 2 / OnePlus Nord 3 starting point)
+## Capture and processing
 
-Start with **Natural** capture, **Gentle** speech clarity, **Gentle** bass reduction,
-and noise reduction **Off**. These are the defaults; settings are saved and used
-by both the assist screen and quick-settings tile. Stop assist to change them.
-Try Strong speech clarity only if Gentle still sounds dull, and Off bass reduction
-if voices sound thin. Use Call mode if the phone cannot route Natural capture.
+Natural requests `UNPROCESSED` when supported, otherwise `VOICE_RECOGNITION`.
+Call mode requests `VOICE_COMMUNICATION`. Headset firmware can still suppress
+surrounding speech before Android receives it; processing cannot restore removed
+information. Compare phone input near the talker when headset pickup is poor.
 
-Natural requests Android's `UNPROCESSED` source when the platform advertises it,
-otherwise `VOICE_RECOGNITION`. Call mode requests `VOICE_COMMUNICATION`.
-Android's raw-source capability flag is not proof that a Bluetooth microphone is
-unprocessed: headset firmware can still alter it before Android receives it.
-
-The CMF Buds 2 microphone is designed for calls. Nothing describes its Clear Voice
-Technology as reducing ambient noise while recording voice. **Inference:** this can
-work against listening to other people around the wearer; those sounds may already
-be suppressed before EarCast receives them. Neither EQ, denoising nor changing
-the phone's audio library can recover information removed at capture.
-The app cannot access the buds' private transparency/ANC microphone feeds.
-For surrounding speech, compare the phone microphone placed near the talker, which
-also avoids the classic Bluetooth two-way call playback path.
-
-- [Nothing's CMF Buds 2 microphone description](https://iq.nothing.tech/en/products/cmf-buds-2)
-- [Android raw-capture guidance](https://developer.android.com/media/platform/mediarecorder)
-
-## Processing and verification
-
-Speech clarity is a +3 or +6 dB high shelf applied **after** per-ear compression,
-so compression does not undo the consonant lift. Its transition is 1.8 kHz
-(1.6 kHz at 8 kHz capture). Bass reduction remains a -6 or -12 dB low shelf at
-450 Hz before fitting; it softens boomy sound without identifying the wearer.
-Neither control creates missing Bluetooth bandwidth.
-
-The reported headset baseline is Standard, Natural, Speech Strong, Bass Gentle,
-Noise Reduction Strong, Quiet Speech Boost Off. Keep it fixed when comparing
-RNNoise with the new DPDFNet8 engine. The new model and shelf changes have not
-been built or listening-tested here. See [speech understanding](SPEECH_UNDERSTANDING.md).
-
-Each ear now uses independent three-band WDRC envelopes, split at 700 and 2400 Hz
-with phase-aligned fourth-order Linkwitz-Riley crossovers. Loud bass compresses
-the bass band without applying the same attenuation to higher speech detail.
-The existing -35 dBFS threshold, 3:1 ratio and soft knee remain digital level
-settings, not a calibrated hearing-aid prescription. The low-band release is
-120 ms; the speech bands retain 80 ms release and 5 ms attack. The fitted EQ is
-upstream; the feedback guard, master cap and final lookahead limiter remain downstream.
-
-Optional neural enhancement runs once on the mono microphone signal,
-before per-ear fitting. Choose RNNoise or DPDFNet8; only one runs. Gentle retains about 50% dry signal, Strong about
-25%, blended in the same delayed spectrum before synthesis. These are not hard
-attenuation limits. The RNNoise model runs at 48 kHz; quality-10 SpeexDSP resampling
-adapts 8/16/24/32/44.1 kHz capture without recreating missing bandwidth. Optional
-RNNoise Quiet speech boost adds up to 6 or 12 dB when the model reports speech, with
-slow gain changes and peak headroom control. It defaults to Off and requires
-noise reduction; it never gates the signal. The final output limiter remains downstream. The adapter buffers 10 ms frames across capture block boundaries;
-model and resampler delays are additional. Off bypasses this stage without frame
-delay. DPDFNet8 uses full models for 8/16/48 kHz and its own longer delay; see the
-speech-understanding notes. The worker releases native state on stop, connection
-or capture failure.
-The old Speex denoiser remains a source-level comparison baseline. See
-[audio clarity research and next steps](AUDIO_CLARITY_NEXT_STEPS.md) for the library
-comparison, deferred tests and the five-metre recording protocol.
-
-JVM signal tests check flat crossover reconstruction, preservation of a quiet
-high-frequency tone alongside loud bass, block continuity/reset, filter response,
-denoiser frame ordering and final output ceilings at 8, 16 and 48 kHz. Synthetic
-tests establish DSP behavior, not subjective intelligibility or device compatibility.
-CMF Buds 2 / Nord 3 listening validation is still required.
-
-Oboe remains a possible future I/O improvement. Its purpose is high-performance,
-low-latency Android streams; it does not replace speech processing or change the
-Bluetooth headset's microphone bandwidth or firmware suppression.
-See [Google Oboe](https://github.com/google/oboe),
-[Linkwitz crossover design](https://www.linkwitzlab.com/crossovers.htm), and the
-[RBJ biquad reference](https://www.w3.org/TR/audio-eq-cookbook/).
+Noise reduction runs before per-ear fitting. Speech clarity follows compression;
+bass reduction is separate. The feedback guard and output limiter remain downstream.
+See [speech processing](SPEECH_UNDERSTANDING.md) for engine behavior and comparisons.
 
 ## Compatibility and latency
 
@@ -125,13 +61,12 @@ Non-SCO routes prefer mutually advertised rates, with fallbacks among 48, 44.1,
 32, 24, 16 and 8 kHz. Natural capture can retry voice-recognition capture if raw
 capture cannot start; it does not silently select Call processing. Device matching
 accepts missing addresses only when the remaining identity is unambiguous.
-These source changes still require hardware validation.
 
 The listed PCM rates are app I/O configurations, not measurements of the negotiated
 Bluetooth codec or acoustic bandwidth. A 16 kHz stream can carry audio that the
 headset/phone negotiated at a narrower bandwidth.
 
-Classic Bluetooth and devices advertising mono-only output process both ear profiles and averages their limited outputs
+Classic Bluetooth and devices advertising mono-only output process both ear profiles and average their limited outputs
 for mono playback. It cannot deliver independent left/right gain to the ears on
 that route. Unsupported EQ bands above the selected rate's Nyquist frequency are
 omitted by the existing equalizer. Device I/O uses PCM16 and DSP uses float samples.
@@ -147,8 +82,8 @@ claimed. Wired connections are the first hardware baseline to measure.
 
 ## Hardware validation (required before claiming device support)
 
-- Verify phone mode still records near the phone, including with a wired mic attached.
-- Verify headset mode records near the headset with the phone across the room.
+- Verify phone mode still captures near the phone, including with a wired mic attached.
+- Verify headset mode captures near the headset with the phone across the room.
   Check both physical microphones independently; a displayed name alone is insufficient.
 - Exercise classic Bluetooth on Android 8–11 and 12+, wired/USB, and LE Audio where available.
 - Disable Bluetooth call audio or use an output-only device: expect an actionable

@@ -1,9 +1,7 @@
 # Google Play release checklist
 
-Reviewed September 28, 2026. **Not approved for production yet.** Local build
-verification does not replace Play Console review or hardware listening tests.
-See [RELEASE.md](RELEASE.md). Historical verification records below predate
-removal of Pro and advertising and do not validate the current build.
+Local build verification does not replace Play Console review or hardware listening tests.
+See [RELEASE.md](RELEASE.md).
 
 ## Publisher inputs still required
 
@@ -72,60 +70,3 @@ removal of Pro and advertising and do not validate the current build.
 - [Health declaration](https://support.google.com/googleplay/android-developer/answer/14738291)
 - [Foreground services declaration](https://support.google.com/googleplay/android-developer/answer/13392821)
 - [Personal-account testing](https://support.google.com/googleplay/android-developer/answer/14151465)
-
-## Earlier publication audit — September 28, 2026
-
-This record predates removal of recording. Its artifact hash and test counts
-refer to the earlier build, not the current source. See the later verification
-record below for the recording-removal build.
-
-- API 36, AGP 8.10.1, minSdk 26; package `app.earcast`, versionCode 2.
-- Minified release APK and AAB built successfully using the explicit unsigned
-  audit option. Final artifact: `app/build/outputs/bundle/release/app-release.aab`.
-- SHA-256: `05caff85a8fb9c9f515d8114cbe6a33eafa1416e19df5bd95d7d3cbd7e52f554`.
-- Gradle unit tests: 354 executions, zero failures/errors/skips (includes debug
-  and release variants); Python audio-quality suite: 11 tests passed.
-- `ktlintCheck`, `detekt`, `:app:lintRelease`: passed. Lint has 0 errors,
-  110 warnings and 2 hints, mainly unused resources/dependency-update notices.
-- Normal `:app:verifyPlayRelease` correctly fails without publisher signing;
-  the audit bypass builds successfully with configuration caching enabled.
-- Official bundletool validation passed; bundle config is `PAGE_ALIGNMENT_16K`.
-  All 12 64-bit ELF libraries and all 87 generated APKs pass the respective
-  ELF/ZIP alignment checks. Generated APKs use the local debug key for audit only.
-- Estimated Play download range (bytes): `MIN,MAX; 64249151,66625927`.
-- Release manifest has target 36, backup/transfer exclusions, no cleartext traffic,
-  billing/network permissions and no advertising-ID permissions or AdMob component.
-- Listing text fits Play limits; icon is 512 × 512, feature graphic is opaque RGB
-  1024 × 500; six existing screenshots are 1080 × 2400 and need freshness review.
-- App and bundled speech-runtime license notices are included in assets.
-
-Not verified: signed publisher bundle, Play-installed purchase flows, actual
-16 KB runtime behavior, real-headset safety/calibration and the Console declarations.
-No device/emulator was connected. Host-native CTest could not run because this
-machine has no host C/C++ compiler or Make; run the native workbench from
-`audio-quality/README.md` on a suitable host. Android native libraries were
-included for all four ABIs in the successful release build.
-
-The AAB is an **unsigned audit artifact**, not a production upload. Rebuild and
-repeat artifact checks after adding the real signing, billing and policy values.
-
-## Recording removal verification — September 28, 2026
-
-The recording controls, WAV writer, ZIP export and recorder-only stream telemetry
-have been removed. Live hearing assistance and sharing hearing-check results
-remain available. Terms version 4 describes the new behavior. Old app-private
-recordings are preserved until app storage is cleared or the app is uninstalled;
-there is no automatic deletion migration.
-
-- Debug APK, minified release APK and unsigned audit AAB: built successfully.
-- `ktlintCheck`, `detekt`, `test`, `testDebugUnitTest`, `:app:lintRelease`: passed.
-- 352 Gradle test executions passed; the removed recorder test is no longer run.
-- Release lint: 0 errors, 109 warnings and 2 hints.
-- Final AAB passes bundletool validation and the 12-library ELF alignment check;
-  the release APK passes 16 KB ZIP alignment.
-- AAB SHA-256: `6b0ed4b176b191c88c6b4eca165456151e83ed88d728bc204eb365a9d3ec9c4d`.
-- Store copy, privacy/terms and workbench instructions now describe the app
-  without recording. Offline legacy-archive analysis tools are not shipped in it.
-
-This supersedes the earlier artifact hash. Publisher configuration, Console setup
-and real-device tests remain outstanding; this AAB is still unsigned.

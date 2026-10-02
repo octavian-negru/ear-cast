@@ -1,6 +1,3 @@
-// Root build script. Plugins are declared here with `apply false` so that each
-// subproject can apply them from the shared version catalog without re-declaring
-// versions. Module-specific configuration lives in each module's build.gradle.kts.
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -13,8 +10,6 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
-// Apply code-quality plugins to every module so `./gradlew detekt ktlintCheck`
-// covers the whole tree.
 val ktlintEngineVersion = libs.versions.ktlintEngine.get()
 
 subprojects {
@@ -24,7 +19,6 @@ subprojects {
     detekt {
         buildUponDefaultConfig = true
         config.setFrom(rootProject.files("config/detekt/detekt.yml"))
-        // Phase 0 keeps the build green while we grow the codebase; tighten later.
         ignoreFailures = false
     }
 

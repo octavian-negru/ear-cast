@@ -1,16 +1,8 @@
 package app.earcast.common
 
 /**
- * SAFETY-CRITICAL constants. This object is the single source of truth for every
- * output-loudness limit in the app. The hearing test plays calibrated tones and
- * the assist mode amplifies live sound directly into someone's ears — any code
- * path that can exceed these limits is a critical bug.
- *
- * These are conservative defaults. The real, enforced limiter (and its explicit
- * tests) lands in Phase 2 in :audio-engine and MUST reference these values rather
- * than redefining its own. The mapping from digital level to true dB SPL depends
- * on per-device/per-earbud calibration — see docs/SAFETY.md. Until calibrated,
- * the app must err on the quiet side.
+ * Shared output bounds. Digital limiting cannot establish physical dB SPL without
+ * device/headset calibration; see docs/SAFETY.md.
  */
 object AudioLimits {
     /**
@@ -57,9 +49,7 @@ object AudioLimits {
     const val MAX_MEDIA_BOOST_DB: Float = 25.0f
 
     /**
-     * True when [outputSpl] is within the absolute safety ceiling. The Phase 2
-     * limiter uses this as its invariant: output that fails this check must be
-     * attenuated before it ever reaches the audio device.
+     * Checks a calibrated SPL value against the absolute output ceiling.
      */
     fun isWithinOutputCeiling(outputSpl: AcousticDb): Boolean = outputSpl.value <= MAX_OUTPUT_SPL_DB
 }

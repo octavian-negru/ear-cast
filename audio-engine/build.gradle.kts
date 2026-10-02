@@ -1,7 +1,3 @@
-// Android library: real-time DSP core (multiband gain, WDRC compression,
-// feedback/howl guard, and the SAFETY-CRITICAL output limiter). The DSP math is
-// pure Kotlin behind interfaces; AAudio/Oboe is only the thin I/O shell, so the
-// core — including the limiter — is unit-testable without a device.
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.android.junit)
@@ -42,9 +38,11 @@ android {
 }
 
 androidComponents.onVariants { variant ->
-    variant.hostTests["unitTest"]?.sources?.kotlin?.addStaticSourceDirectory(
-        rootProject.file("audio-quality/kotlin").path,
-    )
+    variant.hostTests.values.forEach { hostTest ->
+        hostTest.sources.kotlin?.addStaticSourceDirectory(
+            rootProject.file("audio-quality/kotlin").path,
+        )
+    }
 }
 
 dependencies {

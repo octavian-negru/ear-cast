@@ -1,5 +1,3 @@
-// Android library: persistence for audiograms, hearing-assist profiles, and
-// settings (DataStore / Room). Phase 0 ships repository interfaces + stubs only.
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.android.junit)

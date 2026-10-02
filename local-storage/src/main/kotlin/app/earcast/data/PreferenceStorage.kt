@@ -2,7 +2,6 @@ package app.earcast.data
 
 import kotlinx.coroutines.flow.Flow
 
-/** App-level settings and the versioned terms consent. */
 interface PreferenceStorage {
     /** True only when the user has explicitly accepted the current terms and safety guidance. */
     fun observeConsentAccepted(): Flow<Boolean>
@@ -14,25 +13,16 @@ interface PreferenceStorage {
 
     suspend fun markBackgroundSetupReviewed()
 
-    /** High-contrast theme preference (accessibility). */
     fun observeHighContrast(): Flow<Boolean>
 
     suspend fun setHighContrast(enabled: Boolean)
 
-    /**
-     * The "comfort" output ceiling as a linear amplitude in (0, 1]. This is the
-     * maximum loudness the assist limiter will allow, set by the user during
-     * comfort calibration. A conservative default applies until calibrated. See
-     * docs/CALIBRATION.md.
-     */
+    /** Linear digital ceiling in (0, 1]; use a conservative default until comfort setup. */
     fun observeComfortCeiling(): Flow<Float>
 
     suspend fun setComfortCeiling(value: Float)
 
-    /**
-     * Assist environment preset, stored by name (e.g. "STANDARD"). The app layer
-     * maps it to the DSP preset enum; unknown names fall back to standard.
-     */
+    /** Stored preset name; unknown values resolve to Standard in the app layer. */
     fun observeAssistPreset(): Flow<String>
 
     suspend fun setAssistPreset(name: String)
@@ -46,7 +36,6 @@ interface PreferenceStorage {
 
     suspend fun setListeningSettings(settings: SoundPreferences)
 
-    /** Media EQ (profile applied to other apps' audio) on/off. */
     fun observeMediaEqEnabled(): Flow<Boolean>
 
     suspend fun setMediaEqEnabled(enabled: Boolean)
@@ -61,11 +50,7 @@ interface PreferenceStorage {
 
     suspend fun setMediaProcessingMode(name: String)
 
-    /**
-     * Accumulated relative listening-exposure units for one epoch day (see the
-     * ListeningTracker in :audio-engine for the unit definition — deliberately
-     * relative, never dB SPL). Reset implicitly when the stored day changes.
-     */
+    /** Relative exposure units, never dB SPL; resets when the epoch day changes. */
     fun observeExposureToday(): Flow<DailyListening>
 
     /** Add [units] to [epochDay]; a different stored day is replaced, not summed. */

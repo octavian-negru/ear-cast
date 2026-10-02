@@ -10,14 +10,13 @@ build:
 test:
     bash ./gradlew test
 
-# Build one smaller, complete APK per CPU architecture; every audio feature is included.
+# Signed release APK per architecture.
 build-prod:
     bash ./gradlew :app:assembleLocalRelease -PearcastLocalRelease=true -PearcastSplitApks=true
 
-# Larger APK supporting all four CPU architectures in one file.
+# Universal release APK.
 build-prod-universal:
     bash ./gradlew :app:assembleLocalRelease -PearcastLocalRelease=true -PearcastSplitApks=false
 
-# Size breakdown for the most recently built release APKs.
 apk-size:
     python3 scripts/apk_size.py

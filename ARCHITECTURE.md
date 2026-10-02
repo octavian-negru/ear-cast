@@ -34,7 +34,7 @@ calibration. [Fitting](docs/FITTING.md) and
 `LiveSessionBuilder` is shared by the listening screen and quick-settings tile.
 It checks consent and the active profile, fits a gain curve for each ear, applies
 the selected environment preset, and reads the comfort and microphone settings.
-If only one ear can be fitted, that curve supplies both channels. All listening options are available without an entitlement check.
+If only one ear can be fitted, that curve supplies both channels.
 
 `LiveAudioController` coordinates the session with `LiveAudioService`, which
 owns the foreground notification and screen-off listening lifecycle.
@@ -103,7 +103,7 @@ be attached. Changes here should be evaluated separately from microphone DSP.
 
 `foundation` and `sound-profile` build as Kotlin/JVM libraries. `audio-engine` and
 `local-storage` are Android libraries. The app uses Compose, coroutines and Hilt;
-the build targets Java 17, Android API 36, and a minimum Android API of 26.
+the build uses Java 17, compile SDK 37, target SDK 36 and min SDK 26.
 Native sources and third-party notices are under `audio-engine/src/main/cpp`;
 bundled speech-model information is under
 [audio-engine/src/main/assets/speech-models](audio-engine/src/main/assets/speech-models/README.md).

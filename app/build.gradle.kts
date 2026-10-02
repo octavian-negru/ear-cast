@@ -1,6 +1,3 @@
-// Android application: Compose + Material 3 UI, navigation, Hilt wiring,
-// onboarding/disclaimers, and debug screens. Depends on the core modules; no
-// core module depends back on :app.
 import java.net.URI
 import java.util.Properties
 
@@ -12,8 +9,6 @@ plugins {
     alias(libs.plugins.android.junit)
 }
 
-// Release signing is read from a gitignored keystore.properties (never committed).
-// Unsigned audit bundles require an explicit opt-in — see docs/RELEASE.md.
 val keystorePropsFile = rootProject.file("keystore.properties")
 val keystoreProps =
     Properties().apply {
@@ -26,15 +21,13 @@ val keystoreProps =
 
 val privacyPolicyUrl = providers.gradleProperty("earcastPrivacyPolicyUrl").orElse("")
 val supportEmail = providers.gradleProperty("earcastSupportEmail").orElse("")
-// The local APK recipe explicitly permits debug-key signing when no release key is configured.
 val localRelease =
     providers
         .gradleProperty("earcastLocalRelease")
         .orElse("false")
         .get()
         .toBooleanStrict()
-// ABI-specific APKs preserve all features but avoid shipping other CPUs' native libraries.
-// This selects APK outputs, not ABI filters. Build App Bundles separately with this flag off.
+// APK splits do not filter bundle ABIs; build bundles with this flag off.
 val splitApks =
     providers
         .gradleProperty("earcastSplitApks")
@@ -122,7 +115,7 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true // BuildConfig.VERSION_NAME shown on the About card
+        buildConfig = true
     }
 }
 
@@ -148,7 +141,7 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.datastore.preferences)
@@ -163,8 +156,6 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
 }
 
-// Keep local tests and APK audits available without pretending an unsigned AAB
-// is publishable. The normal Play bundle command fails on missing release inputs.
 val verifyPlayRelease =
     tasks.register("verifyPlayRelease") {
         group = "verification"
@@ -200,7 +191,6 @@ tasks.matching { it.name == "bundleRelease" || it.name == "buildReleasePreBundle
     dependsOn(verifyPlayRelease)
 }
 
-// Validate every produced APK, including all ABI-specific outputs.
 val signatureChecks =
     localApkNames.map { (abi, fileName) ->
         val suffix = abi.split('-', '_').joinToString("") { it.replaceFirstChar(Char::uppercaseChar) }
@@ -232,7 +222,6 @@ val verifyLocalReleaseApk =
         dependsOn(signatureChecks)
     }
 
-// Installable release APKs for local testing; publication still uses verifyPlayRelease.
 val assembleLocalRelease =
     tasks.register("assembleLocalRelease") {
         group = "build"

@@ -1,6 +1,3 @@
-// Pure-Kotlin/JVM module: audiogram model, pure-tone staircase threshold logic,
-// and audiogram -> gain-curve fitting. No Android dependencies so the screening
-// and fitting logic is exhaustively unit-tested on the JVM.
 plugins {
     alias(libs.plugins.kotlin.jvm)
     `java-library`

@@ -14,16 +14,7 @@ data class HearingPoint(
     val level: HearingDb,
 )
 
-/**
- * The result of a pure-tone screening: per-ear, per-frequency thresholds.
- *
- * Phase 0 ships the immutable model and lookup only. Phase 1 adds the
- * threshold-seeking staircase that produces these points and the
- * audiogram -> gain-curve fitting that consumes them.
- *
- * This is a screening aid, NOT a diagnostic audiogram. See README/SAFETY notes:
- * not a medical device, not a substitute for a professional hearing exam.
- */
+/** Per-ear screening thresholds; uncalibrated estimates, not a diagnostic audiogram. */
 data class HearingCurve(
     val thresholds: List<HearingPoint>,
 ) {

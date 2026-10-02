@@ -67,7 +67,7 @@ Details: [privacy](docs/PRIVACY.md).
 
 ## Build and evaluate
 
-Use JDK 17 and Android SDK 36. Set `sdk.dir` in `local.properties` or provide
+Use JDK 17 and Android SDK 37. Set `sdk.dir` in `local.properties` or provide
 `ANDROID_HOME` for your SDK installation.
 
 ```bash
@@ -76,9 +76,9 @@ just build-prod
 ./gradlew ktlintCheck detekt test testDebugUnitTest
 ```
 
-`just build-prod` produces an optimized release APK in `app/build/outputs/apk/release/`.
-Configure `keystore.properties` to sign it; without signing configuration the APK
-is unsigned and must be signed before installation. See the release instructions below.
+`just build-prod` produces a signed release APK per CPU architecture in
+`app/build/outputs/apk/release/`. It uses the configured release key or the local
+debug key for device testing. Configure `keystore.properties` before publication.
 
 The repository includes Kotlin checks for profile fitting, processing and route
 behavior, plus a native/Python [audio quality workbench](audio-quality/README.md).
@@ -100,7 +100,3 @@ The five Gradle modules are `app`, `sound-profile`, `audio-engine`,
 
 EarCast is free and open-source software distributed under [GPL-3.0](LICENSE). Bundled libraries and models
 retain their license notices in their respective directories.
-
-LibrePods and CAPod informed earlier AirPods protocol research, retained in the
-[protocol notes](docs/PROTOCOL.md). EarCast is independent of Apple; AirPods is an
-Apple trademark.

@@ -1,149 +1,35 @@
-# CLAUDE.md — EarCast project context
+# EarCast project context
 
-> This file is auto-loaded each session. It is the end-to-end orientation for
-> anyone (human or AI) picking up this repo. Full chronological history is in
-> [docs/PROJECT_LOG.md](docs/PROJECT_LOG.md).
+Android hearing-assistance app: audiograms, live microphone processing and media
+EQ. All features are free; no ads, billing, accounts, uploads or microphone recording.
+The app is not a medical device. See [README](README.md) and
+[architecture](ARCHITECTURE.md) for features and code ownership.
 
-## What this is
+## Safety
 
-**EarCast** — a private Android app bringing AirPods Pro 2/3-style
-hearing assistance to Android: (1) a pure-tone hearing **screening** → audiogram,
-(2) turn it into an amplification/EQ **profile**, (3) **assist** mode amplifies
-quiet sound (speech) in real time on any earbuds.
+- Keep the output limiter last. Shared bounds live in `AudioLimits`.
+- Clamp gain, ramp tones and fail quietly. Stop/mute must remain available.
+- Digital ceilings and uncalibrated hearing checks do not establish dB SPL or
+  clinical accuracy. Real-device safety and calibration are release prerequisites.
+- Preserve third-party licenses, model checksums and documented native patches.
 
-**Framing is load-bearing:** this is a *hearing-assistance / sound-amplification
-tool, NOT a medical device*. Never use "diagnose / treat / medical" in user-facing
-copy. Every health surface carries the disclaimer (README, onboarding, before any
-test). Hearing safety is non-negotiable — see [docs/SAFETY.md](docs/SAFETY.md).
+## Build
 
-- **Repository:** private · **License:** GPLv3 · **Author:** Arun Kumar Thiagarajan <arunkt.bm14@gmail.com>
+Use JDK 17, the Gradle wrapper and the Android SDK. Versions are in
+`gradle/libs.versions.toml` and `gradle/wrapper/gradle-wrapper.properties`.
 
-## Current status (2026-07-03)
-
-Phases 0,1,2,4,5 plus consumer phases A,B are **built, unit-tested**. The app is
-**alpha — ready for hardware testing, NOT ready to ship to consumers.**
-
-| Phase | State |
-|---|---|
-| 0 Scaffold (modules, CI, docs, license) | ✅ done |
-| 1 HearingCurve engine (staircase, fitting) + check screen | ✅ done |
-| 2 Real-time assist DSP + Android engine + service | ✅ done |
-| 3 AirPods protocol | ❌ **not started** — UNVERIFIED, [docs/PROTOCOL.md](docs/PROTOCOL.md) |
-| 4 Persistence, onboarding, assist UI, accessibility | ✅ done |
-| 5 Release build, signing, privacy, F-Droid metadata | ✅ done |
-| A Consumer polish (icons, results chart, translatable strings, regulatory copy, About, fastlane assets) | ✅ done 2026-07-02 |
-| B User-demanded features (live gain, manual audiogram entry, multi-profile history, disconnect auto-stop + speaker warning, QS tile) | ✅ done 2026-07-03 |
-| C Differentiators (per-ear stereo assist, environment presets, media EQ) | ✅ done 2026-07-03; WDRC boost 2026-09-19 |
-| D Shareable results card (first of viral phases D–H: share card, A/B demo, remote mic, loudness meter, digits-in-noise) | ✅ done 2026-07-09 |
-| E A/B "hear the difference" demo (synthesized clip through the real chains, mid-playback toggle) | ✅ done 2026-07-09 |
-| F Remote microphone mode (Live Listen equivalent; guard bypassed + headphones mandatory; also fixed the guard being inert post-WDRC) | ✅ done 2026-07-09 |
-| G Listening meter (relative exposure dashboard, post-limiter tap, daily rollover) | ✅ done 2026-07-09 |
-| H Digits-in-noise check | ✅ engine+UI done 2026-07-09; **hidden until maintainer records the CC0 digit corpus** ([docs/DIN.md](docs/DIN.md)) |
-| Calibration | ✅ comfort-ceiling proxy; true dB SPL needs a meter |
-
-**88 unit tests green; debug + release (R8) APKs build.** UI flows exercised on
-an API 35 emulator (screenshots in fastlane metadata). Market research + launch
-playbook and the FDA "audiogram + fitting formula = device design" finding are
-recorded in [docs/PROJECT_LOG.md](docs/PROJECT_LOG.md) (Phase A entry).
-
-### TWO GATES before any consumer release (cannot be closed in code)
-1. **On-device safety validation** — no audio has ever run on a real device. Assist
-   mode (live mic, feedback guard, real earbuds, latency) and the limiter must be
-   verified on hardware per [docs/DEVICE_TESTING.md](docs/DEVICE_TESTING.md).
-2. **Real calibration + legal/regulatory** — comfort calibration is a safe proxy,
-   not dB-SPL truth; medical-device framing/jurisdiction needs the maintainer's
-   judgement (no legal advice from here).
-
-## Key decisions (don't re-litigate without reason)
-
-- **Kotlin, Compose/Material 3, MVVM + Hilt, coroutines/Flow.** minSdk 26,
-  compile/target SDK 35, JDK 17.
-- **DSP is pure Kotlin** behind I/O interfaces (AAudio/AudioTrack/AudioRecord is a
-  thin shell) so the safety-critical and signal logic is JVM-unit-tested.
-- **Namespace / applicationId:** `app.earcast`.
-- **Fitting = half-gain rule** for v1 (uncalibrated + no per-band yet); NAL-NL2
-  slots behind `ProfileFitting` later — see [docs/FITTING.md](docs/FITTING.md).
-- **Earbud-agnostic first.** Works fully on any headset; AirPods is a best-effort,
-  clearly-`UNVERIFIED` enhancement, never a hard dependency.
-- **Assist is per-ear stereo** since Phase C: mono mic in, stereo out, one chain
-  (curve + limiter) per channel. Media EQ uses a WDRC quiet-sound boost followed
-  by a limiter. Its global-session attachment is deprecated and may not work on
-  all OEMs.
-
-## Module map (see [ARCHITECTURE.md](ARCHITECTURE.md))
-
-- `:foundation` — units (`FrequencyHz`, `HearingDb/Spl/Fs`, `AudioEar`) + **`AudioLimits`**
-  (single source of truth for output limits).
-- `:sound-profile` (pure JVM) — `HearingCurve`, `AdaptiveThresholdSearch`,
-  `ToneCheckProtocol`, `FrequencyGainCurve`/`ProfileFitting`/`ProportionalFit`, `HearingCurveCodec`.
-- `:audio-engine` (Android lib) — `dsp/`: `BiquadFilter`, `ProfileEqualizer`, `DynamicCompressor`,
-  `FeedbackSuppressor`, `PeakLimiter`, `MonoListeningChain`; `TestSignalGenerator`,
-  `TestSignalPlayer`, `AndroidStreamEngine`, `OutputCeiling`.
-- `:airpods-protocol` (Android lib) — `AirPodsController` interface, all `UNVERIFIED`.
-- `:local-storage` (Android lib) — `PreferenceStorage` + `ProfileStorage` (DataStore;
-  multi-profile list via internal `SavedProfilesCodec`, legacy keys auto-migrate).
-- `:app` — Compose UI (`EarCastApp` nav, onboarding gate, hearingtest/ incl.
-  `ProfileChart`, manualentry/, assist/, settings), Hilt modules (`di/`),
-  `assist/LiveAudioController` + `LiveSessionBuilder` + `LiveAudioService` +
-  `LiveAudioTile` (quick-settings tile).
-
-Data flow: screening → `HearingCurve` → `ProfileFitting` → `FrequencyGainCurve` →
-`MonoListeningChain` (EQ→WDRC→feedback guard→master gain→**limiter**) →
-`AndroidStreamEngine`. The limiter is ALWAYS the final stage.
-
-## Safety invariants (treat violations as critical bugs)
-
-- Nothing reaches the device without passing an `OutputCeiling`
-  (`PeakLimiter` = smooth limiting + hard brick-wall backstop). Its safety
-  test suite (`LookaheadLimiterSafetyRegressionTest`) is the **Phase 2 release gate**.
-- All limits live in `AudioLimits` (`:foundation`); never redefine them.
-- Tones ramp (raised-cosine, ≥ `MIN_TONE_RAMP_MS`); amplitude is clamped; master
-  gain is capped; instant mute/stop is always on screen; fail **quiet**, never loud.
-
-## Build / verify (toolchain is NOT committed — local only)
-
-```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
-# Android SDK at /usr/local/share/android-commandlinetools (platform 35, build-tools 35.0.0)
-./gradlew test testDebugUnitTest ktlintCheck detekt assembleDebug   # full check
-./gradlew assembleRelease                                           # R8; signs if keystore.properties present
+```sh
+./gradlew test ktlintCheck detekt :app:assembleDebug :app:lintRelease
+just build-prod
 ```
-- Use the **wrapper** (Gradle 8.11.1). System `gradle` is 9.6.1 — too new for AGP 8.7.3.
-- **Hilt is 2.56.2** (2.52 couldn't read DataStore's Kotlin metadata).
-- ktlint auto-fix: `./gradlew ktlintFormat`. Detekt config: `config/detekt/detekt.yml`.
-- Machine disk runs near-full; safe to clear `~/.gradle/caches/build-cache-1` etc.
 
-## Working agreement (the maintainer's rules — follow these)
+Native/Python evaluation: [audio-quality/README.md](audio-quality/README.md).
+Hardware checks: [DEVICE_TESTING](docs/DEVICE_TESTING.md).
+Signing and publication: [RELEASE](docs/RELEASE.md).
 
-- **Never add Claude / Claude Code as a commit co-author.** Sole author is the maintainer.
-- **Local changes first. Run tests before every push, and ASK permission before pushing**
-  (and before `git init`/first commits). Conventional Commits, small + reviewable.
-- Build in **phases**; after each, stop, summarize, run tests, wait.
-- Be honest about uncertainty — especially the AirPods protocol and anything
-  needing real hardware/calibration/legal review. Don't invent packet formats.
+## Working agreement
 
-## What's next
-
-- **Run the Phase 1/2 device tests** ([docs/DEVICE_TESTING.md](docs/DEVICE_TESTING.md))
-  on a real phone; fix whatever they surface. This is the launch gate.
-- **Record the DIN digit corpus** (maintainer's voice, CC0 — [docs/DIN.md](docs/DIN.md));
-  the listening-in-noise check unlocks itself once the WAVs land in res/raw.
-- **Remaining differentiators**: multi-band WDRC, media-EQ device compatibility,
-  localization. Android only officially supports effects on a player session the
-  app owns; there is no reliable unprivileged system-wide replacement.
-  (Remote mic, A/B demo, listening meter, DIN engine: done 2026-07-09.)
-- **Launch sequence once device tests pass**: IzzyOnDroid → F-Droid (first
-  hearing-assist app there) → Show HN (repo link + backstory comment) →
-  r/fossdroid → hearingtracker forum → press tips (9to5Google, Android Police).
-  Skip Product Hunt. Trust assets: Exodus 0-tracker report, reproducible builds,
-  published SAFETY/FITTING docs.
-- **Phase 3 — AirPods**: capture BLE/HCI logs, verify the LibrePods-documented
-  protocol item by item ([docs/PROTOCOL.md](docs/PROTOCOL.md) checklist).
-- True calibration; consumer-release gates (device validation + legal review).
-
-## Doc index
-
-[ARCHITECTURE](ARCHITECTURE.md) · [SAFETY](docs/SAFETY.md) · [FITTING](docs/FITTING.md) ·
-[CALIBRATION](docs/CALIBRATION.md) · [PROTOCOL](docs/PROTOCOL.md) ·
-[DEVICE_TESTING](docs/DEVICE_TESTING.md) · [RELEASE](docs/RELEASE.md) ·
-[PRIVACY](docs/PRIVACY.md) · [PROJECT_LOG](docs/PROJECT_LOG.md)
+- Keep changes small and reviewable; use Conventional Commits.
+- Run tests and ask permission before pushing or creating the first commit.
+- Do not add an AI co-author; the maintainer is the sole author.
+- Report hardware/calibration uncertainty accurately; do not invent protocol behavior.

@@ -1,14 +1,5 @@
 package app.earcast.common
 
-/*
- * Strongly-typed audio units. Using value classes prevents mixing up the many
- * "just a Double" quantities that flow through a hearing-assist pipeline
- * (frequencies, the several distinct decibel references, gains).
- *
- * Phase 0 ships the types; the screening/DSP code in later phases builds on them.
- */
-
-/** A frequency in FrequencyHz. */
 @JvmInline
 value class FrequencyHz(
     val value: Double,
@@ -24,31 +15,19 @@ value class FrequencyHz(
     }
 }
 
-/**
- * Hearing level in decibels (dB HL) — the audiogram reference. 0 dB HL is the
- * threshold of a normally-hearing listener at a given frequency; higher numbers
- * mean worse hearing. This is what a hearing test produces per ear, per frequency.
- */
+/** dB HL: hearing threshold relative to normal hearing at a given frequency. */
 @JvmInline
 value class HearingDb(
     val value: Double,
 )
 
-/**
- * Sound pressure level in decibels (dB SPL) — the physical, calibrated loudness
- * reference. All output-safety limits are expressed in dB SPL because that is
- * what actually reaches the ear. NOTE: mapping app output to true dB SPL requires
- * per-device/per-earbud calibration (tracked in docs/SAFETY.md).
- */
+/** dB SPL: physical sound pressure; mapping digital output requires device/headset calibration. */
 @JvmInline
 value class AcousticDb(
     val value: Double,
 )
 
-/**
- * Full-scale decibels (dBFS) — the digital signal reference, <= 0. 0 dBFS is the
- * loudest a digital sample can be; everything else is negative.
- */
+/** dBFS: digital level, where 0 is full scale. */
 @JvmInline
 value class DigitalDb(
     val value: Double,
@@ -58,7 +37,6 @@ value class DigitalDb(
     }
 }
 
-/** Which ear a measurement or signal applies to. */
 enum class AudioEar {
     LEFT,
     RIGHT,

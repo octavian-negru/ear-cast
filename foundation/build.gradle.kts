@@ -1,5 +1,3 @@
-// Pure-Kotlin/JVM module: shared value types, units, and SAFETY constants.
-// No Android dependencies — runs under fast JVM unit tests with no emulator.
 plugins {
     alias(libs.plugins.kotlin.jvm)
     `java-library`

@@ -5,8 +5,7 @@ import kotlin.math.log10
 
 /**
  * A prescribed frequency-dependent insertion gain (the amplification to apply per
- * frequency), derived from an audiogram by a [ProfileFitting]. The Phase 2 DSP
- * samples this curve to drive its multi-band gain.
+ * frequency), derived from an audiogram by a [ProfileFitting].
  *
  * Gains are in decibels and are already clamped to a safe per-band maximum by the
  * fitting strategy. A master cap and the output limiter (see AudioLimits /
@@ -50,11 +49,7 @@ data class FrequencyGainPoint(
     val gainDb: Double,
 )
 
-/**
- * Maps an audiogram (per ear) to a prescribed [FrequencyGainCurve]. Different prescriptive
- * formulae plug in behind this seam (half-gain today; a NAL-NL2-style fit later —
- * see docs/FITTING.md for the rationale).
- */
+/** Maps an ear's audiogram to prescribed gain; see docs/FITTING.md. */
 fun interface ProfileFitting {
     fun fit(
         audiogram: HearingCurve,
