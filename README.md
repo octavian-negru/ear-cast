@@ -4,6 +4,8 @@ EarCast uses your audiogram to shape the sound you hear through headphones.
 Create a hearing profile, adjust each ear on the chart, and use it for live
 microphone listening or supported media playback on Android.
 
+EarCast was inspired by [OpenHearing](https://github.com/HMAKT99/OpenHearing).
+
 The app runs on Android 8.0 and newer. Audio processing happens on the phone;
 root access and an EarCast account are not required.
 
