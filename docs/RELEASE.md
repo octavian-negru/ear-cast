@@ -45,8 +45,8 @@ sizes and content breakdown of the most recent build using its output metadata.
 Both recipes use the release variant with R8 and resource shrinking. They use
 `keystore.properties` when configured. Otherwise they explicitly permit signing
 with this machine’s Android debug key (`-PearcastLocalRelease=true`) and print
-that the APK is for local testing. Debug-key signing does not enable debug mode,
-AdMob, or other debug-only code. It is not a store-publication configuration.
+that the APK is for local testing. Debug-key signing does not enable debug mode
+or other debug-only code. It is not a store-publication configuration.
 The recipes do not bypass Play bundle checks.
 
 The original recipe could produce `app-release-unsigned.apk` without a keystore;

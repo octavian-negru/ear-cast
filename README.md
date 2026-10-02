@@ -61,8 +61,7 @@ are processed in memory for playback; the app does not record or upload them.
 Sharing an audiogram is an explicit action with a preview.
 
 All features are free, including DPDFNet8 and Strong quiet-speech boost.
-There are no purchases or paid tiers. Normal debug and all release builds contain no advertisements or ad SDK.
-An optional, disabled-by-default [AdMob test integration](docs/ADMOB.md) is available for development.
+There are no purchases or paid tiers. All builds contain no advertisements or ad SDK.
 
 Details: [privacy](docs/PRIVACY.md).
 

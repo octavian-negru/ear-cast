@@ -27,13 +27,6 @@ val keystoreProps =
 
 val privacyPolicyUrl = providers.gradleProperty("earcastPrivacyPolicyUrl").orElse("")
 val supportEmail = providers.gradleProperty("earcastSupportEmail").orElse("")
-// Test inventory is opt-in and compiled only into debug. Release never includes the SDK.
-val testAdsEnabled =
-    providers
-        .gradleProperty("earcastTestAds")
-        .orElse("false")
-        .get()
-        .toBooleanStrict()
 // The local APK recipe explicitly permits debug-key signing when no release key is configured.
 val localRelease =
     providers
@@ -90,17 +83,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    sourceSets {
-        getByName("debug") {
-            java.srcDir(if (testAdsEnabled) "src/testAds/kotlin" else "src/noAds/kotlin")
-            if (testAdsEnabled) {
-                manifest.srcFile("src/testAds/AndroidManifest.xml")
-                res.srcDir("src/testAds/res")
-            }
-        }
-        getByName("release").java.srcDir("src/noAds/kotlin")
-    }
-
     splits {
         abi {
             isEnable = splitApks
@@ -149,8 +131,6 @@ android {
 }
 
 dependencies {
-    if (testAdsEnabled) debugImplementation(libs.google.mobile.ads)
-
     implementation(project(":foundation"))
     implementation(project(":sound-profile"))
     implementation(project(":audio-engine"))

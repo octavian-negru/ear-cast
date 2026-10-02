@@ -18,10 +18,6 @@ build-prod:
 build-prod-universal:
     bash ./gradlew :app:assembleLocalRelease -PearcastLocalRelease=true -PearcastSplitApks=false
 
-# Explicit opt-in to Google test banners; normal and release builds stay ad-free.
-build-test-ads:
-    bash ./gradlew :app:assembleDebug -PearcastTestAds=true
-
 # Size breakdown for the most recently built release APKs.
 apk-size:
     python3 scripts/apk_size.py
