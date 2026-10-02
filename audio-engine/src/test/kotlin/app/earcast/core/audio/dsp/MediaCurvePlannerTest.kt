@@ -73,13 +73,31 @@ class MediaCurvePlannerTest {
                 val plan = MediaDynamicsPlanner.plan(boostDb)
                 assertTrue(quietInputDbFs < plan.thresholdDbFs - plan.kneeWidthDb / 2f)
                 assertEquals(expectedOutputDbFs, quietInputDbFs + plan.postGainDb)
-                assertEquals(MediaDynamicsPlanner.QUIET_INPUT_THRESHOLD_DB_FS, plan.thresholdDbFs)
+                assertTrue(plan.thresholdDbFs >= MediaDynamicsPlanner.QUIET_INPUT_THRESHOLD_DB_FS)
             }
     }
 
     @Test
+    fun `moderate media boost preserves dynamics below the compression knee`() {
+        val plan = MediaDynamicsPlanner.plan(AudioLimits.DEFAULT_MEDIA_BOOST_DB)
+        val inputs = listOf(-32.0f, -28.0f, -24.0f)
+        inputs.forEach { input ->
+            assertTrue(input < plan.thresholdDbFs - plan.kneeWidthDb / 2f)
+        }
+        assertEquals(8.0f, (inputs.last() + plan.postGainDb) - (inputs.first() + plan.postGainDb))
+    }
+
+    @Test
+    fun `high media boost retains the existing compression curve`() {
+        val plan = MediaDynamicsPlanner.plan(AudioLimits.MAX_MEDIA_BOOST_DB)
+        assertEquals(-30.0f, plan.thresholdDbFs)
+        assertEquals(10.0f, plan.ratio)
+        assertEquals(25.0f, plan.postGainDb)
+    }
+
+    @Test
     fun `media compression tapers every allowed boost to the output ceiling at full scale`() {
-        listOf(0.0f, 10.0f, AudioLimits.MAX_MEDIA_BOOST_DB).forEach { boostDb ->
+        (0..250).map { it / 10.0f }.forEach { boostDb ->
             val plan = MediaDynamicsPlanner.plan(boostDb)
             val fullScaleOutputDb =
                 plan.thresholdDbFs +

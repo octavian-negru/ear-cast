@@ -46,6 +46,7 @@ object MediaDynamicsPlanner {
     const val RELEASE_MS = 120.0f
     const val KNEE_WIDTH_DB = 4.0f
     const val TOP_CUTOFF_HZ = 20_000.0f
+    private const val COMPRESSION_RANGE_DB = 12.0f
 
     fun plan(boostDb: Float): MediaCompressionPlan = compressionPlan(boostDb, ATTACK_MS, RELEASE_MS)
 
@@ -78,15 +79,20 @@ object MediaDynamicsPlanner {
         releaseMs: Float,
     ): MediaCompressionPlan {
         require(boostDb.isFinite() && boostDb in 0f..AudioLimits.MAX_MEDIA_BOOST_DB)
+        // Use available headroom before compressing ordinary listening levels.
+        // At high boosts retain the quiet-speech threshold and existing full-scale
+        // target; the final platform limiter still catches transient overshoot.
+        val thresholdDbFs =
+            maxOf(QUIET_INPUT_THRESHOLD_DB_FS, OUTPUT_CEILING_DB_FS - boostDb - COMPRESSION_RANGE_DB)
         val ratio =
             if (boostDb == 0.0f) {
                 1.0f
             } else {
-                -QUIET_INPUT_THRESHOLD_DB_FS /
-                    (OUTPUT_CEILING_DB_FS - boostDb - QUIET_INPUT_THRESHOLD_DB_FS)
+                -thresholdDbFs /
+                    (OUTPUT_CEILING_DB_FS - boostDb - thresholdDbFs)
             }
         return MediaCompressionPlan(
-            thresholdDbFs = QUIET_INPUT_THRESHOLD_DB_FS,
+            thresholdDbFs = thresholdDbFs,
             ratio = ratio,
             attackMs = attackMs,
             releaseMs = releaseMs,
