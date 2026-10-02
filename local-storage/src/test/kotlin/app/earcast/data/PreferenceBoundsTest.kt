@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.mutablePreferencesOf
+import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -23,6 +24,64 @@ private class MemoryPreferences : DataStore<Preferences> {
 }
 
 class PreferenceBoundsTest {
+    @Test
+    fun `existing installations and unknown selections default to both listening features`() =
+        runTest {
+            val store = MemoryPreferences()
+            val repo = PreferencesStore(store)
+            repo.setMediaEqEnabled(true)
+            assertEquals(ListeningFeatures.BOTH, repo.observeListeningFeatures().first())
+            assertEquals(true, repo.observeMediaEqEnabled().first())
+            store.updateData {
+                mutablePreferencesOf(stringPreferencesKey("listening_features") to "FUTURE_FEATURES")
+            }
+            assertEquals(ListeningFeatures.BOTH, repo.observeListeningFeatures().first())
+        }
+
+    @Test
+    fun `feature choices survive repository recreation without starting media playback`() =
+        runTest {
+            val store = MemoryPreferences()
+            val repo = PreferencesStore(store)
+            for (features in ListeningFeatures.entries) {
+                repo.setListeningFeatures(features)
+                val restored = PreferencesStore(store)
+                assertEquals(features, restored.observeListeningFeatures().first())
+                assertEquals(false, restored.observeMediaEqEnabled().first())
+            }
+        }
+
+    @Test
+    fun `live only stops media and rejects stale enable requests without discarding sound settings`() =
+        runTest {
+            val repo = PreferencesStore(MemoryPreferences())
+            repo.setMediaBoostDb(25f)
+            repo.setMediaProcessingMode("SPEECH_CLARITY")
+            repo.setMediaEqEnabled(true)
+            repo.setListeningFeatures(ListeningFeatures.LIVE_ONLY)
+            assertEquals(false, repo.observeMediaEqEnabled().first())
+            repo.setMediaEqEnabled(true)
+            assertEquals(false, repo.observeMediaEqEnabled().first())
+            repo.setListeningFeatures(ListeningFeatures.BOTH)
+            assertEquals(false, repo.observeMediaEqEnabled().first())
+            assertEquals(25f, repo.observeMediaBoostDb().first())
+            assertEquals("SPEECH_CLARITY", repo.observeMediaProcessingMode().first())
+        }
+
+    @Test
+    fun `media only keeps media playback and saved live listening preferences`() =
+        runTest {
+            val repo = PreferencesStore(MemoryPreferences())
+            val listening = SoundPreferences(noiseReduction = "STRONG", speechEngine = "SPEEX")
+            repo.setListeningSettings(listening)
+            repo.setMediaEqEnabled(true)
+            repo.setListeningFeatures(ListeningFeatures.MEDIA_ONLY)
+            assertEquals(true, repo.observeMediaEqEnabled().first())
+            assertEquals(listening, repo.observeListeningSettings().first())
+            repo.setListeningFeatures(ListeningFeatures.BOTH)
+            assertEquals(true, repo.observeMediaEqEnabled().first())
+        }
+
     @Test
     fun `media boost defaults to six decibels and persists independently of assist settings`() =
         runTest {

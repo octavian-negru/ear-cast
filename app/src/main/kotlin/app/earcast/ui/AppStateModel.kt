@@ -11,6 +11,7 @@ import app.earcast.core.audio.TestSignalPlayer
 import app.earcast.core.audio.dsp.MediaCurvePlanner
 import app.earcast.core.audio.dsp.MediaProcessingMode
 import app.earcast.core.audio.dsp.MediaSoundConfig
+import app.earcast.data.ListeningFeatures
 import app.earcast.data.PreferenceStorage
 import app.earcast.data.ProfileStorage
 import app.earcast.mediaeq.MediaSoundController
@@ -31,6 +32,7 @@ import javax.inject.Inject
 data class AppState(
     val consentAccepted: Boolean? = null,
     val highContrast: Boolean = false,
+    val listeningFeatures: ListeningFeatures = ListeningFeatures.BOTH,
     val comfortCeiling: Float = 0.5f,
     val hasProfile: Boolean = false,
     val audiogram: HearingCurve? = null,
@@ -73,8 +75,13 @@ class AppStateModel
                 settings.observeConsentAccepted(),
                 settings.observeMediaBoostDb(),
                 settings.observeMediaProcessingMode(),
-            ) { enabled, consent, boost, mode ->
-                MediaSettings(enabled && consent, boost, MediaProcessingMode.fromName(mode))
+                settings.observeListeningFeatures(),
+            ) { enabled, consent, boost, mode, features ->
+                MediaSettings(
+                    enabled && consent && features.mediaSoundEnabled,
+                    boost,
+                    MediaProcessingMode.fromName(mode),
+                )
             }.distinctUntilChanged()
 
         private val baseUiState =
@@ -105,6 +112,8 @@ class AppStateModel
                         mediaBoostDb = media.boostDb,
                         mediaProcessingMode = media.mode,
                     )
+                }.combine(settings.observeListeningFeatures()) { state, features ->
+                    state.copy(listeningFeatures = features)
                 }.stateIn(
                     viewModelScope,
                     SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
@@ -154,6 +163,10 @@ class AppStateModel
 
         fun setHighContrast(enabled: Boolean) {
             viewModelScope.launch { settings.setHighContrast(enabled) }
+        }
+
+        fun setListeningFeatures(features: ListeningFeatures) {
+            viewModelScope.launch { settings.setListeningFeatures(features) }
         }
 
         fun setComfortCeiling(value: Float) {

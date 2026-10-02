@@ -20,6 +20,11 @@
     <string name="ui_advanced_audio">Audio engine &amp; capture</string>
     <string name="ui_preview">Try your sound</string>
     <string name="ui_settings_subtitle">Comfort, accessibility and peace of mind.</string>
+    <string name="settings_listening_features">Listening features</string>
+    <string name="settings_listening_features_description">Choose which features are available in Listen. Turning a feature off stops it.</string>
+    <string name="settings_listening_features_both">Live listening and media sound</string>
+    <string name="settings_listening_features_live">Live listening only</string>
+    <string name="settings_listening_features_media">Media sound only</string>
     <string name="ui_legal">Privacy &amp; terms</string>
     <string name="ui_stop_to_tune">Stop listening to change these settings.</string>
     <string name="ui_background_help">Keep listening in the background</string>

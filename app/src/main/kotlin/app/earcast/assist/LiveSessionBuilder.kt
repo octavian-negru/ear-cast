@@ -37,7 +37,10 @@ class LiveSessionBuilder
     ) {
         /** Prepare the controller config from the active profile. Returns true if ready. */
         suspend fun prepare(): Boolean {
-            if (!settingsRepository.observeConsentAccepted().first()) return false
+            val allowed =
+                settingsRepository.observeListeningFeatures().first().liveListeningEnabled &&
+                    settingsRepository.observeConsentAccepted().first()
+            if (!allowed) return false
             val profile = profileRepository.observeActiveProfile().first() ?: return false
             val (left, right) = earCurves(profile) ?: return false
             val ceiling = settingsRepository.observeComfortCeiling().first()

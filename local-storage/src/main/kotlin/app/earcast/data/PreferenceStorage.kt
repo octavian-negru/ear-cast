@@ -17,6 +17,11 @@ interface PreferenceStorage {
 
     suspend fun setHighContrast(enabled: Boolean)
 
+    fun observeListeningFeatures(): Flow<ListeningFeatures>
+
+    /** Removing media sound also clears its playback toggle. */
+    suspend fun setListeningFeatures(features: ListeningFeatures)
+
     /** Linear digital ceiling in (0, 1]; use a conservative default until comfort setup. */
     fun observeComfortCeiling(): Flow<Float>
 
@@ -58,6 +63,21 @@ interface PreferenceStorage {
         units: Double,
         epochDay: Long,
     )
+}
+
+/** Features available in Listen; choosing both does not start either feature. */
+enum class ListeningFeatures(
+    val liveListeningEnabled: Boolean,
+    val mediaSoundEnabled: Boolean,
+) {
+    BOTH(true, true),
+    LIVE_ONLY(true, false),
+    MEDIA_ONLY(false, true),
+    ;
+
+    companion object {
+        fun fromName(name: String?): ListeningFeatures = entries.firstOrNull { it.name == name } ?: BOTH
+    }
 }
 
 /** Exposure units accumulated on [epochDay] (may be a past day until next write). */

@@ -2,17 +2,14 @@
 # Builds upon the default config (see buildUponDefaultConfig in root build).
 # Kept lean for Phase 0; rules will tighten as the codebase grows.
 
-build:
-  maxIssues: 0
-
 complexity:
   LongMethod:
     active: true
-    threshold: 80
+    allowedLines: 80
   LongParameterList:
     active: true
-    functionThreshold: 8
-    constructorThreshold: 8
+    allowedFunctionParameters: 8
+    allowedConstructorParameters: 8
   TooManyFunctions:
     active: false
 
@@ -29,10 +26,12 @@ style:
     maxLineLength: 120
   WildcardImport:
     active: true
-  UnusedPrivateMember:
+  UnusedPrivateFunction:
     active: true
     # @Preview composables are entry points for tooling, not dead code.
     ignoreAnnotated: ['Preview', 'Composable']
+  UnusedPrivateProperty:
+    active: true
 
 naming:
   FunctionNaming:

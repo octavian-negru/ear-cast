@@ -10,12 +10,14 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.core.content.ContextCompat
 import app.earcast.MainActivity
+import app.earcast.data.PreferenceStorage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,13 +35,19 @@ class LiveAudioTile : TileService() {
     @Inject
     lateinit var sessionFactory: LiveSessionBuilder
 
+    @Inject
+    lateinit var settingsRepository: PreferenceStorage
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var listenJob: Job? = null
 
     override fun onStartListening() {
         listenJob =
             scope.launch {
-                controller.running.collect { running -> renderTile(running) }
+                controller.running
+                    .combine(settingsRepository.observeListeningFeatures()) { running, features ->
+                        running to features.liveListeningEnabled
+                    }.collect { (running, enabled) -> renderTile(running, enabled) }
             }
     }
 
@@ -70,9 +78,17 @@ class LiveAudioTile : TileService() {
         super.onDestroy()
     }
 
-    private fun renderTile(running: Boolean) {
+    private fun renderTile(
+        running: Boolean,
+        enabled: Boolean,
+    ) {
         val tile = qsTile ?: return
-        tile.state = if (running) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
+        tile.state =
+            when {
+                running -> Tile.STATE_ACTIVE
+                enabled -> Tile.STATE_INACTIVE
+                else -> Tile.STATE_UNAVAILABLE
+            }
         tile.updateTile()
     }
 

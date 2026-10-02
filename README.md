@@ -40,6 +40,11 @@ replacement for a professional hearing assessment.
 
 ## Listen with your profile
 
+In **Settings → Listening features**, choose **Live listening and media sound**
+(the default), **Live listening only**, or **Media sound only**. The unused
+feature is hidden from Listen and stops if it is running. This choice is saved
+on your device; enabling a feature does not start playback.
+
 1. Connect your headphones and accept the first-run safety terms.
 2. Open **Profiles** and save a profile from a tone check or manual entry.
 3. In **Settings**, set a comfortable output ceiling.

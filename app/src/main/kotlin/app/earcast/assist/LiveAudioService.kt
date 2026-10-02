@@ -28,6 +28,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -97,9 +98,14 @@ class LiveAudioService : Service() {
         if (consentJob?.isActive != true) {
             consentJob =
                 serviceScope.launch(Dispatchers.Main.immediate) {
-                    settingsRepository.observeConsentAccepted().distinctUntilChanged().collect { accepted ->
-                        if (accepted) startListening() else stopSelf()
-                    }
+                    settingsRepository
+                        .observeConsentAccepted()
+                        .combine(settingsRepository.observeListeningFeatures()) { accepted, features ->
+                            accepted && features.liveListeningEnabled
+                        }.distinctUntilChanged()
+                        .collect { allowed ->
+                            if (allowed) startListening() else stopSelf()
+                        }
                 }
         }
         return START_STICKY

@@ -29,6 +29,7 @@ private object PreferenceKeys {
     val CONSENT_ACCEPTED_AT = longPreferencesKey("consent_accepted_at")
     val BACKGROUND_SETUP_REVIEWED = booleanPreferencesKey("background_setup_reviewed")
     val HIGH_CONTRAST = booleanPreferencesKey("high_contrast")
+    val LISTENING_FEATURES = stringPreferencesKey("listening_features")
     val COMFORT_CEILING = floatPreferencesKey("comfort_ceiling")
     val ASSIST_PRESET = stringPreferencesKey("assist_preset")
     val MICROPHONE_SOURCE = stringPreferencesKey("microphone_source")
@@ -92,6 +93,16 @@ class PreferencesStore(
         dataStore.edit { it[PreferenceKeys.HIGH_CONTRAST] = enabled }
     }
 
+    override fun observeListeningFeatures(): Flow<ListeningFeatures> =
+        dataStore.observe { ListeningFeatures.fromName(it[PreferenceKeys.LISTENING_FEATURES]) }
+
+    override suspend fun setListeningFeatures(features: ListeningFeatures) {
+        dataStore.edit {
+            it[PreferenceKeys.LISTENING_FEATURES] = features.name
+            if (!features.mediaSoundEnabled) it[PreferenceKeys.MEDIA_EQ_ENABLED] = false
+        }
+    }
+
     override fun observeComfortCeiling(): Flow<Float> =
         dataStore.observe {
             (it[PreferenceKeys.COMFORT_CEILING] ?: DEFAULT_COMFORT_CEILING).coerceIn(MIN_CEILING, MAX_CEILING)
@@ -151,7 +162,10 @@ class PreferencesStore(
         }
 
     override suspend fun setMediaEqEnabled(enabled: Boolean) {
-        dataStore.edit { it[PreferenceKeys.MEDIA_EQ_ENABLED] = enabled }
+        dataStore.edit {
+            val features = ListeningFeatures.fromName(it[PreferenceKeys.LISTENING_FEATURES])
+            it[PreferenceKeys.MEDIA_EQ_ENABLED] = enabled && features.mediaSoundEnabled
+        }
     }
 
     override fun observeMediaBoostDb(): Flow<Float> =

@@ -1,4 +1,5 @@
-import io.gitlab.arturbosch.detekt.Detekt
+import dev.detekt.gradle.Detekt
+import dev.detekt.gradle.extensions.FailOnSeverity
 
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -15,17 +16,18 @@ plugins {
 val ktlintEngineVersion = libs.versions.ktlintEngine.get()
 
 subprojects {
-    apply(plugin = "io.gitlab.arturbosch.detekt")
+    apply(plugin = "dev.detekt")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     detekt {
-        buildUponDefaultConfig = true
+        buildUponDefaultConfig.set(true)
         config.setFrom(rootProject.files("config/detekt/detekt.yml"))
-        ignoreFailures = false
+        ignoreFailures.set(false)
+        failOnSeverity.set(FailOnSeverity.Info)
     }
 
     tasks.withType<Detekt>().configureEach {
-        jvmTarget = "17"
+        jvmTarget.set("17")
     }
 
     ktlint {

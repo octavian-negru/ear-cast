@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.earcast.R
 import app.earcast.assist.LiveAudioService
 import app.earcast.core.audio.dsp.MediaProcessingMode
+import app.earcast.data.ListeningFeatures
 import app.earcast.ui.assist.ListenScreen
 import app.earcast.ui.assist.ListenStateModel
 import app.earcast.ui.background.BackgroundSetupPrompt
@@ -67,7 +68,7 @@ fun EarCastApp(rootViewModel: AppStateModel = hiltViewModel()) {
 
     EarCastTheme(highContrast = root.highContrast) {
         val colors = MaterialTheme.colorScheme
-        if (root.consentAccepted == true) {
+        if (root.consentAccepted == true && root.listeningFeatures.liveListeningEnabled) {
             BackgroundSetupPrompt(backgroundReviewed, rootViewModel::markBackgroundSetupReviewed)
         }
         Surface(modifier = Modifier.fillMaxSize(), color = colors.background) {
@@ -94,14 +95,16 @@ private fun MainNav(
     onSetMediaProcessingMode: (MediaProcessingMode) -> Unit,
 ) {
     var screen by rememberSaveable { mutableStateOf(AppDestination.ASSIST) }
+    val visibleScreen = screen.availableFor(state.listeningFeatures)
+    val listenScreen = AppDestination.ASSIST.availableFor(state.listeningFeatures)
     val listenViewModel: ListenStateModel = hiltViewModel()
     val listening by listenViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    BackHandler(enabled = screen != AppDestination.ASSIST) {
-        screen = if (screen.isProfileSetupFlow()) AppDestination.PROFILE else AppDestination.ASSIST
+    BackHandler(enabled = visibleScreen != listenScreen) {
+        screen = if (visibleScreen.isProfileSetupFlow()) AppDestination.PROFILE else listenScreen
     }
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val useRail = maxWidth >= 840.dp && screen.showsPrimaryNavigation()
+        val useRail = maxWidth >= 840.dp && visibleScreen.showsPrimaryNavigation()
         Scaffold(
             containerColor = Color.Transparent,
             bottomBar = {
@@ -131,9 +134,9 @@ private fun MainNav(
                             }
                         }
                     }
-                    if (!useRail && screen.showsPrimaryNavigation()) {
+                    if (!useRail && visibleScreen.showsPrimaryNavigation()) {
                         navigationBarContent(
-                            selected = screen.primaryDestination(),
+                            selected = visibleScreen.primaryDestination(),
                             onDestinationSelected = { destination -> screen = destination.toAppDestination() },
                         )
                     } else {
@@ -145,7 +148,7 @@ private fun MainNav(
             Row(Modifier.fillMaxSize().padding(innerPadding)) {
                 if (useRail) {
                     primaryNavigationRail(
-                        selected = screen.primaryDestination(),
+                        selected = visibleScreen.primaryDestination(),
                         onDestinationSelected = { destination -> screen = destination.toAppDestination() },
                     )
                 }
@@ -155,7 +158,7 @@ private fun MainNav(
                 ) {
                     Box(Modifier.widthIn(max = if (useRail) 920.dp else 720.dp).fillMaxWidth().fillMaxHeight()) {
                         DestinationContent(
-                            screen = screen,
+                            screen = visibleScreen,
                             state = state,
                             listenViewModel = listenViewModel,
                             onNavigate = { screen = it },
@@ -189,19 +192,21 @@ private fun DestinationContent(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     PageHeading(stringResource(R.string.nav_listen), stringResource(R.string.ui_listen_subtitle))
-                    InlineChoices {
-                        ChoiceChip(
-                            stringResource(R.string.ui_live),
-                            screen == AppDestination.ASSIST,
-                            { onNavigate(AppDestination.ASSIST) },
-                            Modifier.weight(1f),
-                        )
-                        ChoiceChip(
-                            stringResource(R.string.ui_media),
-                            screen == AppDestination.MEDIA,
-                            { onNavigate(AppDestination.MEDIA) },
-                            Modifier.weight(1f),
-                        )
+                    if (state.listeningFeatures == ListeningFeatures.BOTH) {
+                        InlineChoices {
+                            ChoiceChip(
+                                stringResource(R.string.ui_live),
+                                screen == AppDestination.ASSIST,
+                                { onNavigate(AppDestination.ASSIST) },
+                                Modifier.weight(1f),
+                            )
+                            ChoiceChip(
+                                stringResource(R.string.ui_media),
+                                screen == AppDestination.MEDIA,
+                                { onNavigate(AppDestination.MEDIA) },
+                                Modifier.weight(1f),
+                            )
+                        }
                     }
                 }
                 Box(Modifier.weight(1f)) {
@@ -258,6 +263,13 @@ private fun LoadingState() {
         )
     }
 }
+
+private fun AppDestination.availableFor(features: ListeningFeatures): AppDestination =
+    when {
+        this == AppDestination.ASSIST && !features.liveListeningEnabled -> AppDestination.MEDIA
+        this == AppDestination.MEDIA && !features.mediaSoundEnabled -> AppDestination.ASSIST
+        else -> this
+    }
 
 private fun AppDestination.isProfileSetupFlow(): Boolean =
     this == AppDestination.HEARING_TEST || this == AppDestination.MANUAL_ENTRY || this == AppDestination.DIN_TEST
